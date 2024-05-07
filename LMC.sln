@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LMC", "LMC.csproj", "{0F7CD9AB-8B6D-4827-9B24-3367C511DACE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0F7CD9AB-8B6D-4827-9B24-3367C511DACE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F7CD9AB-8B6D-4827-9B24-3367C511DACE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F7CD9AB-8B6D-4827-9B24-3367C511DACE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F7CD9AB-8B6D-4827-9B24-3367C511DACE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DAB1FB69-FCC5-4C84-9264-867C15460252}
+	EndGlobalSection
+EndGlobal
