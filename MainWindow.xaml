@@ -8,13 +8,70 @@
         xmlns:controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
         xmlns:local="clr-namespace:LMC"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        ContentRendered="WindowRendered"
+        Title="{Binding ViewModel.ApplicationTitle, Mode=OneWay}"
+        Height="518" Width="886" Icon="/ico.png" ResizeMode="NoResize" AllowsTransparency="True" WindowStyle="None" >
     <Grid Background="#FF1D1D1D">
-        <ui:NavigationView PaneDisplayMode="LeftFluent" IsPaneVisible="True">
+        <ui:NavigationView PaneDisplayMode="LeftFluent" 
+            IsPaneVisible="True"
+            TitleBar="{Binding ElementName=TitleBar, Mode=OneWay}"
+            x:Name="nagv">
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="Home" Icon="Home24"/>
+                <ui:NavigationViewItem
+                     Content="lmc.mainui.home"
+                     NavigationCacheMode="Enabled"
+                     x:Name="homevi" VerticalAlignment="Center" Margin="0,70,0,0" Width="75" Height="75"  
+                     TargetPageType="{x:Type local:HomePage}"
+                    >
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Home24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                
+                <ui:NavigationViewItem
+                     Content="lmc.mainui.account"
+                     NavigationCacheMode="Enabled"
+                     x:Name="accountvi" VerticalAlignment="Top" Width="75" Height="75" 
+                     TargetPageType="{x:Type local:AccountPage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="People24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem
+                     Content="lmc.mainui.download"
+                     NavigationCacheMode="Enabled"
+                     x:Name="downloadvi" VerticalAlignment="Center" Margin="0,0,0,0" Width="75" Height="75" >
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="ArrowCircleDown24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItem
+                     Content="lmc.mainui.other"
+                     NavigationCacheMode="Enabled"
+                     x:Name="othervi" VerticalAlignment="Center" Margin="0,0,0,0" Width="75" Height="75" >
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Cube24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItem
+                     Content="lmc.mainui.setting"
+                     NavigationCacheMode="Enabled"
+                     x:Name="settingvi" VerticalAlignment="Center" Margin="0,75,0,0">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Settings24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
         </ui:NavigationView>
-        <ui:Button Icon="Home24" Content="Home" Margin="79,10,0,0" VerticalAlignment="Top"/>
-    </Grid>
+        <Image HorizontalAlignment="Left" Height="100" Margin="-15,-15,0,0" VerticalAlignment="Top" Width="100" Source="/LMC.png" Stretch="UniformToFill"/>
+        <ui:TitleBar
+            x:Name="TitleBar"
+            Width="886"
+            Height="40"
+            CloseWindowByDoubleClickOnIcon="False" HorizontalAlignment="Right" CanMaximize="False" ShowMaximize="False" />
+        <Label Content="Line Minecraft launCher" HorizontalAlignment="Left" Margin="78,15,0,0" VerticalAlignment="Top"/>
+        
+        </Grid>
 </Window>

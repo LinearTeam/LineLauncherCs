@@ -17,6 +17,7 @@ namespace LMC.Basic
         {
             if (!File.Exists(path))
             {
+                Directory.CreateDirectory(Directory.GetParent(path).FullName);
                 File.Create(path).Close();
                 return null;
             }
@@ -61,17 +62,17 @@ namespace LMC.Basic
             if (value.Contains("|") || key.Contains("|") || category.Contains("|")){
                 throw new Exception("key/value/category contain '|'");
             }
+            if (!File.Exists(path))
+            {
+                Directory.CreateDirectory(Directory.GetParent(path).FullName);
+                File.Create(path).Close();
+            }
             string startTag = $"|{category}|_start";
             string endTag = $"|{category}|_end";
             bool inCategory = false;
             bool categoryFound = false;
             bool keyFound = false;
             var lines = File.ReadAllLines(path).ToList();
-
-            if (!File.Exists(path))
-            {
-                File.Create(path).Close();
-            }
 
             for (int i = 0; i < lines.Count; i++)
             {
