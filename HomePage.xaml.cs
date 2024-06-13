@@ -28,9 +28,15 @@ namespace LMC
         }
         public void refreshContent()
         {
-            i18nTools i18n = new i18nTools();
-            noticeTitle.Text = i18n.getString(noticeTitle.Text);
-            launchButton.Content = i18n.getString(launchButton.Content.ToString());
+            noticeTitle.Text = MainWindow.i18NTools.getString(noticeTitle.Text);
+            launchButton.Content = MainWindow.i18NTools.getString(launchButton.Content.ToString());
+            if (MainWindow.i18NTools.getLangName().Equals("en_US"))
+            {
+                noticeTitle.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                launchButton.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                launchInfo.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                notice.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+            }
         }
     }
 }

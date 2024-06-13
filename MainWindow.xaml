@@ -40,7 +40,8 @@
                 <ui:NavigationViewItem
                      Content="lmc.mainui.download"
                      NavigationCacheMode="Enabled"
-                     x:Name="downloadvi" VerticalAlignment="Center" Margin="0,0,0,0" Width="75" Height="75" >
+                     x:Name="downloadvi" VerticalAlignment="Center" Margin="0,0,0,0" Width="75" Height="75" 
+                     TargetPageType="{x:Type local:DownloadPage}">
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="ArrowCircleDown24" />
                     </ui:NavigationViewItem.Icon>

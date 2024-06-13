@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LMC.Basic;
+using LMC.Properties;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +25,22 @@ namespace LMC
         public AccountPage()
         {
             InitializeComponent();
+            refreshContent();
+        }
+        public void refreshContent()
+        {
+            
+            add.Content = MainWindow.i18NTools.getString(add.Content.ToString());
+            delete.Content = MainWindow.i18NTools.getString(delete.Content.ToString());
+            ait.Text = MainWindow.i18NTools.getString(ait.Text.ToString());
+            if (MainWindow.i18NTools.getLangName().Equals("en_US"))
+            {
+                add.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                delete.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                ait.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                accountinfo.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                accountList.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+            }
         }
     }
 }

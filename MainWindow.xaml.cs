@@ -13,7 +13,7 @@ namespace LMC
     public partial class MainWindow : Window
     {
         HomePage homep = new HomePage();
-        i18nTools i18NTools = new i18nTools();
+        public static i18nTools i18NTools = new i18nTools();
         GameDownload GameDownload = new GameDownload();
         Logger logger;
         LineFileParser lfp = new LineFileParser();
@@ -25,7 +25,7 @@ namespace LMC
             if (string.IsNullOrEmpty(lfp.ReadFile("./lmc/main.line", "logN", "main"))){
                 Logger.logNum = "1";
                 lfp.WriteFile("./lmc/main.line", "logN", "1", "main");
-            }
+            }   
             else
             {
                 if (int.Parse(lfp.ReadFile("./lmc/main.line", "logN", "main")) != 5)
@@ -76,7 +76,8 @@ namespace LMC
             }
             catch(Exception e)
             {
-                //TODO: log error and tell user
+                //TODO: tell user
+                logger.error($"An error catched when refreshing ui content {e.ToString()}");
                 return;
             }
 

@@ -70,7 +70,7 @@ namespace LMC.Basic
             西班牙语 (智利)    es_CL
          */
            
-        static int lang = 0;
+        static int lang = 4;
 
         private static readonly List<string> locales = new List<string>
         {

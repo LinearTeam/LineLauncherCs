@@ -1,68 +1,56 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace LMC.Basic
 {
-    //Simple Logger
     public class Logger
     {
         public static string logNum = "1";
-        public String module;
-        public String logFile;
-        public Logger(String module, String filePath = "not")
+        private string module;
+        private string logFile;
+        private BlockingCollection<string> logQueue;
+        private Task logTask;
+        private CancellationTokenSource cancellationTokenSource;
+        private const int flushCount = 20;
+
+        public Logger(string module, string filePath = "not")
         {
             this.module = module;
-            if(filePath.Equals("not"))
+            if (filePath.Equals("not"))
             {
                 filePath = "./lmc/logs/log" + logNum + ".log";
             }
             logFile = filePath;
+            logQueue = new BlockingCollection<string>();
+            cancellationTokenSource = new CancellationTokenSource();
+
+            logTask = Task.Run(() => ProcessLogQueue(cancellationTokenSource.Token));
         }
 
-        public void info(String msg)
+        private void ProcessLogQueue(CancellationToken token)
         {
-            msg = "[" + module + "]" + msg;
-            msg = msg + "\n";
             try
             {
-                String time = System.DateTime.Now.ToString("G");
-                File.AppendAllText(logFile, "[" + time + "/INFO]" + msg);
-                File.AppendAllText("./lmc/logs/latest.log", "[" + time + "/INFO]" + msg);
+                while (!token.IsCancellationRequested || logQueue.Count > 0)
+                {
+                    string logEntry;
+                    if (logQueue.TryTake(out logEntry, Timeout.Infinite, token))
+                    {
+                        using (StreamWriter logWriter = new StreamWriter(logFile, true))
+                        using (StreamWriter latestWriter = new StreamWriter("./lmc/logs/latest.log", true))
+                        {
+                            logWriter.WriteLine(logEntry);
+                            latestWriter.WriteLine(logEntry);
+                        }
+                    }
+                }
             }
-            catch (IOException e)
+            catch (OperationCanceledException)
             {
-                Environment.Exit(1);
-            }
-        }
-        public void error(String msg)
-        {
-            msg = "[" + module + "]" + msg;
-            msg = msg + "\n";
-            try
-            {
-                String time = System.DateTime.Now.ToString("G");
-                File.AppendAllText(logFile, "[" + time + "/ERROR]" + msg);
-                File.AppendAllText("./lmc/logs/latest.log", "[" + time + "/ERROR]" + msg);
-            }
-            catch (IOException e)
-            {
-                Environment.Exit(1);
-            }
-        }
-        public void warn(String msg)
-        {
-            msg = "[" + module + "]" + msg;
-            msg = msg + "\n";
-            try
-            {
-                String time = System.DateTime.Now.ToString("G");
-                File.AppendAllText(logFile, "[" + time + "/WARN]" + msg);
-                File.AppendAllText("./lmc/logs/latest.log", "[" + time + "/WARN]" + msg);
+                FlushRemainingLogs();
             }
             catch (IOException e)
             {
@@ -70,5 +58,39 @@ namespace LMC.Basic
             }
         }
 
+        private void FlushRemainingLogs()
+        {
+            using (StreamWriter logWriter = new StreamWriter(logFile, true))
+            using (StreamWriter latestWriter = new StreamWriter("./lmc/logs/latest.log", true))
+            {
+                while (logQueue.TryTake(out string logEntry))
+                {
+                    logWriter.WriteLine(logEntry);
+                    latestWriter.WriteLine(logEntry);
+                }
+            }
+        }
+
+        private void Log(string level, string msg)
+        {
+            string time = DateTime.Now.ToString("G");
+            string logEntry = $"[{time}/{level}][{module}]{msg}";
+            logQueue.Add(logEntry);
+        }
+
+        public void info(string msg) => Log("INFO", msg);
+        public void error(string msg) => Log("ERROR", msg);
+        public void warn(string msg) => Log("WARN", msg);
+
+        public void Close()
+        {
+            cancellationTokenSource.Cancel();
+            logTask.Wait();
+        }
+
+        ~Logger()
+        {
+            Close();
+        }
     }
 }
