@@ -1,0 +1,26 @@
+|content|_start
+|lmc.mainui.home|:|Home|
+|lmc.mainui.setting|:|Settings|
+|lmc.mainui.account|:|Account|
+|lmc.mainui.download|:|Downloads|
+|lmc.mainui.other|:|Others|
+|lmc.mainui.homepage.launch|:|Launch Game|
+|lmc.mainui.homepage.notice|:|Notice|
+|lmc.mainui.downloadpage.sure|:|Confirm|
+|lmc.mainui.downloadpage.old|:|Old versions|
+|lmc.mainui.downloadpage.releases|:|Released versions|
+|lmc.mainui.downloadpage.previews|:|Preview versions|
+|lmc.mainui.downloadpage.specials|:|Special versions|
+|lmc.mainui.accountpage.delete|:|Delete|
+|lmc.mainui.accountpage.add|:|Add|
+|lmc.mainui.accountpage.info|:|Account Info|
+|lmc.messages.msastart.title|:|Microsoft Login|
+|lmc.messages.msastart.msg|:|You are logging in to Microsoft. Please click 'Continue' and complete the login process in your browser. After logging in, there will be a lag for a period of time.|
+|lmc.messages.continue|:|Continue|
+|lmc.messages.msastart.done|:|Login successful!    ID：${id}   UUID：${uuid}|
+|lmc.messages.msastart.error|:|Login failed!    Please contact author or send us feedback!|
+|lmc.messages.logging|:|You are logging into your Microsoft account, please sit down and relax.|
+|lmc.accountadd.msa|:|Microsoft|
+|lmc.msa.start|:|Start|
+|lmc.accountadd.offline|:|Offline|
+|content|_end

@@ -74,11 +74,11 @@ namespace LMC.Basic
 
         private static readonly List<string> locales = new List<string>
         {
-        "zh_CN", "zh_TW", "zh_HK", "en_HK", "en_US", "en_GB", "en_WW", "en_CA", "en_AU", "en_IE", "en_FI", "fi_FI",
-        "en_DK", "da_DK", "en_IL", "he_IL", "en_ZA", "en_IN", "en_NO", "en_SG", "en_NZ", "en_ID", "en_PH", "en_TH",
-        "en_MY", "en_XA", "ko_KR", "ja_JP", "nl_NL", "nl_BE", "pt_PT", "pt_BR", "fr_FR", "fr_LU", "fr_CH", "fr_BE",
-        "fr_CA", "es_LA", "es_ES", "es_AR", "es_US", "es_MX", "es_CO", "es_PR", "de_DE", "de_AT", "de_CH", "ru_RU",
-        "it_IT", "el_GR", "no_NO", "hu_HU", "tr_TR", "cs_CZ", "sl_SL", "pl_PL", "sv_SE", "es_CL"
+            "zh_CN", "zh_TW", "zh_HK", "en_HK", "en_US", "en_GB", "en_WW", "en_CA", "en_AU", "en_IE", "en_FI", "fi_FI",
+            "en_DK", "da_DK", "en_IL", "he_IL", "en_ZA", "en_IN", "en_NO", "en_SG", "en_NZ", "en_ID", "en_PH", "en_TH",
+            "en_MY", "en_XA", "ko_KR", "ja_JP", "nl_NL", "nl_BE", "pt_PT", "pt_BR", "fr_FR", "fr_LU", "fr_CH", "fr_BE",
+            "fr_CA", "es_LA", "es_ES", "es_AR", "es_US", "es_MX", "es_CO", "es_PR", "de_DE", "de_AT", "de_CH", "ru_RU",
+            "it_IT", "el_GR", "no_NO", "hu_HU", "tr_TR", "cs_CZ", "sl_SL", "pl_PL", "sv_SE", "es_CL", "Language_Han" //汉化就应该有汉文
         };
         public string getString(string key)
         {

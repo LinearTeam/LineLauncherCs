@@ -1,17 +1,24 @@
 ﻿using LMC.Basic;
 using LMC.Minecraft;
+using LMC.Pages;
 using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
 
 namespace LMC
 {
+
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static InfoBar infobar;
+        public static ContentPresenter cdp;
+        public static NavigationView mnv;
         HomePage homep = new HomePage();
         public static i18nTools i18NTools = new i18nTools();
         GameDownload GameDownload = new GameDownload();
@@ -54,7 +61,10 @@ namespace LMC
             Window window = new i18nEditWindow();
             window.Owner = this;
             window.Show();
-            //TODO: select homevi default
+            mnv = nagv;
+            nagv.Navigate(typeof(LMC.HomePage));
+            cdp = ContentDialogPresenter;
+            infobar = ib;
         }
         private void refreshUiContent()
         {
@@ -83,5 +93,9 @@ namespace LMC
 
         }
 
+        private void homevi_Selected(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

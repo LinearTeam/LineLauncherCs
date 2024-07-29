@@ -12,16 +12,16 @@
         Title="{Binding ViewModel.ApplicationTitle, Mode=OneWay}"
         Height="518" Width="886" Icon="/ico.png" ResizeMode="NoResize" AllowsTransparency="True" WindowStyle="None" >
     <Grid Background="#FF1D1D1D">
-        <ui:NavigationView PaneDisplayMode="LeftFluent" 
+        <ui:NavigationView PaneDisplayMode="LeftFluent" TabIndex="0"
             IsPaneVisible="True"
             TitleBar="{Binding ElementName=TitleBar, Mode=OneWay}"
-            x:Name="nagv">
+            x:Name="nagv" >
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem
                      Content="lmc.mainui.home"
                      NavigationCacheMode="Enabled"
                      x:Name="homevi" VerticalAlignment="Center" Margin="0,70,0,0" Width="75" Height="75"  
-                     TargetPageType="{x:Type local:HomePage}"
+                     TargetPageType="{x:Type local:HomePage}" 
                     >
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Home24" />
@@ -73,6 +73,7 @@
             Height="40"
             CloseWindowByDoubleClickOnIcon="False" HorizontalAlignment="Right" CanMaximize="False" ShowMaximize="False" />
         <Label Content="Line Minecraft launCher" HorizontalAlignment="Left" Margin="78,15,0,0" VerticalAlignment="Top"/>
-        
-        </Grid>
+        <ContentPresenter x:Name="ContentDialogPresenter" Grid.Row="0" />
+        <ui:InfoBar x:Name="ib" Title="" Message="" Margin="70,450,0,0" Height="120" Width="750"/>
+    </Grid>
 </Window>

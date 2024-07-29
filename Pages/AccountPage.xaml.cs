@@ -1,4 +1,5 @@
 ﻿using LMC.Basic;
+using LMC.Pages;
 using LMC.Properties;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,11 @@ namespace LMC
                 accountinfo.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
                 accountList.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
             }
+        }
+
+        private void add_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.mnv.Navigate(typeof(AccountAddPage));
         }
     }
 }

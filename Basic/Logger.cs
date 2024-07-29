@@ -73,7 +73,7 @@ namespace LMC.Basic
 
         private void Log(string level, string msg)
         {
-            string time = DateTime.Now.ToString("G");
+            string time = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss.fff");
             string logEntry = $"[{time}/{level}][{module}]{msg}";
             logQueue.Add(logEntry);
         }

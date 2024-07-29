@@ -1,0 +1,26 @@
+|content|_start
+|lmc.mainui.home|:|主页|
+|lmc.mainui.setting|:|设置|
+|lmc.mainui.account|:|账号|
+|lmc.mainui.download|:|下载|
+|lmc.mainui.other|:|其他|
+|lmc.mainui.homepage.launch|:|启动游戏|
+|lmc.mainui.homepage.notice|:|公告|
+|lmc.mainui.downloadpage.sure|:|确定|
+|lmc.mainui.downloadpage.old|:|远古版|
+|lmc.mainui.downloadpage.releases|:|正式版|
+|lmc.mainui.downloadpage.previews|:|快照版|
+|lmc.mainui.downloadpage.specials|:|特殊版|
+|lmc.mainui.accountpage.delete|:|删除|
+|lmc.mainui.accountpage.add|:|添加|
+|lmc.mainui.accountpage.info|:|账号信息|
+|lmc.messages.msastart.title|:|微软登录|
+|lmc.messages.msastart.msg|:|您正在进行微软登录，请在点击“继续”后，在浏览器内完成登录，登录结束后会卡顿一段时间。|
+|lmc.messages.continue|:|继续|
+|lmc.messages.msastart.done|:|登录成功！ID：${id}   UUID：${uuid}|
+|lmc.messages.msastart.error|:|登录失败！请与我们联系或者提交反馈！|
+|lmc.messages.logging|:|您正在登录微软账号，请坐和放宽，您正在成功。|
+|lmc.accountadd.msa|:|微软登录|
+|lmc.msa.start|:|开始|
+|lmc.accountadd.offline|:|离线登录|
+|content|_end
