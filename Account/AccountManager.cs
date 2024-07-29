@@ -12,7 +12,7 @@ namespace LMC.Account
         private static Logger logger = new Logger("AM");
         async public static Task addAccount(Account account, string refreshToken = null)
         {
-            if(refreshToken != null && account.type == 0)
+            if(account.type == 0)
             {
                 await Secrets.write(account.uuid + "_" + account.type, "refresh_token", refreshToken);
             }

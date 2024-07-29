@@ -10,7 +10,7 @@ namespace LMC.Account
     {
         private string _id = "Steve";
         private string _uuid = "s0000000";
-        private int _type = 1; //0 - msa, 1 - offline, 2 - authlib(mojang)
+        private int _type = 0; //0 - msa, 1 - offline, 2 - authlib(mojang)
         private string _AuthLib_authServer = string.Empty;
         private string _AuthLib_password = string.Empty;
         private string _accessToken = "0000";
