@@ -1,8 +1,11 @@
-﻿using LMC.Basic;
+﻿using LMC.Account.OAuth;
+using LMC.Basic;
 using LMC.Minecraft;
 using LMC.Pages;
 using System;
 using System.IO;
+using System.Net;
+using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 using Wpf.Ui.Appearance;
@@ -50,6 +53,12 @@ namespace LMC
             
             logger = new Logger("MainUI");
             logger.info("MainWindow Open");
+            logger.info("Downloading i18N Files...");
+            using(WebClient client = new WebClient())
+            {
+                client.DownloadFile("https://huangyu.win/LMC/en_US.line", "./lmc/resources/i18n/en_US.line");
+                client.DownloadFile("https://huangyu.win/LMC/zh_CN.line", "./lmc/resources/i18n/zh_CN.line");
+            }
             Directory.CreateDirectory(GameDownload.gamePath);
             SystemThemeWatcher.Watch(this);
             ApplicationThemeManager.Apply(ApplicationTheme.Dark);
