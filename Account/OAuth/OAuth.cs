@@ -23,10 +23,12 @@ namespace LMC.Account.OAuth
         static private bool isOaIng = false;
         async public Task<(int done, Account account,string refreshtoken)> startOA()
         {
-            var t = await stepOne();
-            try {  return (0, t.account, t.refreshtoken); } catch(Exception e) {
-                logger.warn(e.Message);
-                
+            try
+            {
+                var t = await stepOne();
+                return (0, t.account, t.refreshtoken); 
+            } catch(Exception e) {
+                logger.warn(e.Message);    
                 return (1,null,null); 
             };
         }
