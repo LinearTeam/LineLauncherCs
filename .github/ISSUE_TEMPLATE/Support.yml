@@ -1,5 +1,5 @@
-name: Bug反馈
-description: 发现了一个bug？
+name: 技术支持
+description: 需要帮助？
 title: "[Support] "
 labels: ["帮助支持","处理中"]
 assignees:
