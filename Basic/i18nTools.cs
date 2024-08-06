@@ -71,6 +71,7 @@ namespace LMC.Basic
          */
            
         static int lang = 0;
+        static string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/i18n/";
 
         private static readonly List<string> locales = new List<string>
         {
@@ -83,13 +84,13 @@ namespace LMC.Basic
         public string getString(string key)
         {
             LineFileParser lfp = new LineFileParser();
-            return lfp.ReadFile($"./lmc/resources/i18n/{getLangName()}.line",key,"content");
+            return lfp.ReadFile($"{path + getLangName()}.line",key,"content");
         }
 
         public string getString(string key, int lang)
         {
             LineFileParser lfp = new LineFileParser();
-            return lfp.ReadFile($"./lmc/resources/i18n/{getLangName(lang)}.line", key, "content");
+            return lfp.ReadFile($"{path + getLangName()}.line", key, "content");
         }
         public string getLangName() {
             return locales[lang];
@@ -105,7 +106,7 @@ namespace LMC.Basic
         public void setString(string key, string value)
         {
             LineFileParser lfp = new LineFileParser();
-            lfp.WriteFile($"./lmc/resources/i18n/{getLangName()}.line", key,value, "content");
+            lfp.WriteFile($"{path + getLangName()}.line", key,value, "content");
         }
 
         public void setString(string key, string value, int lang)

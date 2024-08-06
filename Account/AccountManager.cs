@@ -23,7 +23,7 @@ namespace LMC.Account
             }
             if (account.type == 1)
             {
-                await Secrets.write(account.uuid + "_" + account.type, "id", account.id);
+                await Secrets.write(account.id + "_" + account.type, "id", account.id);
             }
         }
     }

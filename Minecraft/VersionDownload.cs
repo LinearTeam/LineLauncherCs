@@ -15,6 +15,7 @@ namespace LMC.Minecraft
         public String releaseTime;
         bool latest;
 
+
         public VersionDownload(String id, int type, String url, String updateTime, String releaseTime, bool latest) { 
             this.id = id;
             this.type = type;

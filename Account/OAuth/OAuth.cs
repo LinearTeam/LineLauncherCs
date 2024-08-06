@@ -20,13 +20,31 @@ namespace LMC.Account.OAuth
     {
         private String loginurl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=1cbfda79-fc84-47f9-8110-f924da9841ec&response_type=code&redirect_uri=http://127.0.0.1:40935&response_mode=query&scope=XboxLive.offline_access";
         private Logger logger = new Logger("OA");
+        static private bool isOaIng = false;
         async public Task<(int done, Account account,string refreshtoken)> startOA()
         {
-            try { var t = await stepOne(); return (0, t.account, t.refreshtoken); } catch { return (1,null,null); };
+            var t = await stepOne();
+            try {  return (0, t.account, t.refreshtoken); } catch(Exception e) {
+                logger.warn(e.Message);
+                
+                return (1,null,null); 
+            };
         }
 
-        async public static Task oa()
+        async public static Task oa(System.Windows.Controls.Button b)
         {
+            if(isOaIng == true)
+            {
+                var confirmDialogc = new ContentDialog(MainWindow.cdp);
+
+                confirmDialogc.SetCurrentValue(ContentDialog.TitleProperty, MainWindow.i18NTools.getString("lmc.messages.msastart.title"));
+                confirmDialogc.SetCurrentValue(ContentControl.ContentProperty, MainWindow.i18NTools.getString("lmc.messages.msastart.logging"));
+                confirmDialogc.SetCurrentValue(ContentDialog.CloseButtonTextProperty, MainWindow.i18NTools.getString("lmc.messages.continue"));
+
+                await confirmDialogc.ShowAsync();
+                return;
+            }
+            isOaIng = true;
             var confirmDialog = new ContentDialog(MainWindow.cdp);
 
             confirmDialog.SetCurrentValue(ContentDialog.TitleProperty, MainWindow.i18NTools.getString("lmc.messages.msastart.title"));
@@ -39,7 +57,6 @@ namespace LMC.Account.OAuth
             MainWindow.infobar.IsOpen = true;
             MainWindow.infobar.IsClosable = false;
             MainWindow.infobar.Severity = InfoBarSeverity.Warning;
-
             MainWindow.mnv.Navigate(typeof(AccountPage));
             OAuth oa = new OAuth();
             var t = await oa.startOA();
@@ -52,11 +69,13 @@ namespace LMC.Account.OAuth
                 MainWindow.infobar.Severity = InfoBarSeverity.Success;
                 MainWindow.infobar.Message = MainWindow.i18NTools.getString("lmc.messages.msastart.done").Replace("${uuid}", a.uuid).Replace("${id}", a.id);
                 MainWindow.infobar.IsClosable = true;
+                isOaIng = false;
                 return;
             }
             MainWindow.infobar.Severity = InfoBarSeverity.Error;
             MainWindow.infobar.Message = MainWindow.i18NTools.getString("lmc.messages.msastart.error");
             MainWindow.infobar.IsClosable = true;
+            isOaIng = false;
         }
 
         async public Task<(Account account,string refreshtoken)> stepOne()
@@ -77,7 +96,7 @@ namespace LMC.Account.OAuth
             if (request.QueryString["code"] != null)
             {
                 string code = request.QueryString["code"];
-                string responseString = $"<html><body><center><h1>您已登录到Line Launcher，现在可以关闭此页面。</h1></center></body></html>";
+                string responseString = $"<html><body><center><h1>{MainWindow.i18NTools.getString("lmc.msastart.responecodedone")}</h1></center></body></html>";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -101,7 +120,7 @@ namespace LMC.Account.OAuth
             }
             else
             {
-                string responseString = "<html><body><center><h1>登录失败，请重试！</h1><center></body></html>";
+                string responseString = $"<html><body><center><h1>{MainWindow.i18NTools.getString("lmc.msastart.responecodeerror")}</h1><center></body></html>";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";

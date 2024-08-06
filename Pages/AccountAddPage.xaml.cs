@@ -36,24 +36,21 @@ namespace LMC.Pages
 
         private void refreshUiContent()
         {
-            try
+            
+            offl.Header = MainWindow.i18NTools.getString(offl.Header.ToString());
+            ms.Header = MainWindow.i18NTools.getString(ms.Header.ToString());
+            Msa.Content = MainWindow.i18NTools.getString(Msa.Content.ToString());
+            cofn.Content = MainWindow.i18NTools.getString(cofn.Content.ToString());
+            ofn.Content = MainWindow.i18NTools.getString(ofn.Content.ToString());
+            if (MainWindow.i18NTools.getLangName().Equals("en_US"))
             {
-                offl.Header = MainWindow.i18NTools.getString(offl.Header.ToString());
-                ms.Header = MainWindow.i18NTools.getString(ms.Header.ToString());
-                Msa.Content = MainWindow.i18NTools.getString(Msa.Content.ToString());
-                if (MainWindow.i18NTools.getLangName().Equals("en_US"))
-                {
-                    offl.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                    ms.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                    Msa.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                }
+                offl.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                ms.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                Msa.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                cofn.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                ofn.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
             }
-            catch (Exception e)
-            {
-                //TODO: tell user
-                return;
-            }
-
+            
         }
 
         private void back_Click(object sender, RoutedEventArgs e)
@@ -63,7 +60,32 @@ namespace LMC.Pages
 
         async private void Msa_Click(object sender, RoutedEventArgs e)
         {
-            await OAuth.oa();
+            await OAuth.oa(Msa);
+        }
+
+        async private void Cofn_Click(object sender, RoutedEventArgs e)
+        {
+            string name = offlineName.Text;
+            if(!string.IsNullOrEmpty(name))
+            {
+                LMC.Account.Account account = new LMC.Account.Account();
+                account.id = name;
+                account.type = 1;
+                try
+                {
+                    await AccountManager.addAccount(account);
+                    MainWindow.infobar.Severity = InfoBarSeverity.Success;
+                    MainWindow.infobar.Message = MainWindow.i18NTools.getString("lmc.messages.offline.done");
+                    MainWindow.infobar.IsClosable = true;
+                    MainWindow.infobar.IsOpen = true;
+
+                }
+                catch (Exception ex)
+                {
+                    Logger logger = new Logger("AAP");
+                    logger.warn("Some error occurred when adding offline account:" + ex.Message);
+                }
+            }
         }
     }
 }

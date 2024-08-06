@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace LMC.Minecraft
 {
@@ -17,6 +19,7 @@ namespace LMC.Minecraft
         private string _versionManifest = "https://piston-meta.mojang.com/mc/game/version_manifest.json";
         private string _versionManifestV2 = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
         private string _launcherMeta = "https://launchermeta.mojang.com/";
+        private string _launcher = "https://launcher.mojang.com/";
         private string _resourcesDownload = "http://resources.download.minecraft.net";
         private string _libraries = "https://libraries.minecraft.net/";
         private string _mojangJava = "https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json";
@@ -32,6 +35,7 @@ namespace LMC.Minecraft
         public string VersionManifest { get => _versionManifest; set => _versionManifest = value; }
         public string VersionManifestV2 { get => _versionManifestV2; set => _versionManifestV2 = value; }
         public string LauncherMeta { get => _launcherMeta; set => _launcherMeta = value; }
+        public string Launcher { get => _launcher; set => _launcher = value; }
         public string ResourcesDownload { get => _resourcesDownload; set => _resourcesDownload = value; }
         public string Libraries { get => _libraries; set => _libraries = value; }
         public string MojangJava { get => _mojangJava; set => _mojangJava = value; }
@@ -47,6 +51,7 @@ namespace LMC.Minecraft
             string versionManifest = "https://piston-meta.mojang.com/mc/game/version_manifest.json",
             string versionManifestV2 = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
             string launcherMeta = "https://launchermeta.mojang.com/",
+            string launcher = "https://launcher.mojang.com/",
             string resourcesDownload = "http://resources.download.minecraft.net",
             string libraries = "https://libraries.minecraft.net/",
             string mojangJava = "https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json",
@@ -69,7 +74,26 @@ namespace LMC.Minecraft
             FabricMeta = fabricMeta;
             FabricMaven = fabricMaven;
             SourceType = sourceType;
+            Launcher = launcher;
         }
+
+        public void BMCLAPI()
+        {
+            VersionManifest = "http://launchermeta.mojang.com/mc/game/version_manifest.json";
+            VersionManifestV2 = "http://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
+            LauncherMeta = "https://bmclapi2.bangbang93.com";
+            Launcher = "https://bmclapi2.bangbang93.com";
+            ResourcesDownload = "https://bmclapi2.bangbang93.com/assets";
+            Libraries = "https://bmclapi2.bangbang93.com/maven";
+            MojangJava = "https://bmclapi2.bangbang93.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json";
+            Forge = "https://bmclapi2.bangbang93.com/maven";
+            OptifineAPI = "https://bmclapi2.bangbang93.com/optifine/{mcversion}/{type}/{patch}";
+            AuthlibInjector = "https://bmclapi2.bangbang93.com/mirrors/authlib-injector";
+            FabricMeta = "https://bmclapi2.bangbang93.com/fabric-meta";
+            FabricMaven = "https://bmclapi2.bangbang93.com/maven";
+            SourceType = 1;
+        }
+
     }
 
 }

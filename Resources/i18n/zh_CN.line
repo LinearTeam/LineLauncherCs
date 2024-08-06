@@ -18,9 +18,14 @@
 |lmc.messages.msastart.msg|:|您正在进行微软登录，请在点击“继续”后，在浏览器内完成登录，登录结束后会卡顿一段时间。|
 |lmc.messages.continue|:|继续|
 |lmc.messages.msastart.done|:|登录成功！ID：${id}   UUID：${uuid}|
-|lmc.messages.msastart.error|:|登录失败！请与我们联系或者提交反馈！|
-|lmc.messages.logging|:|您正在登录微软账号，请坐和放宽，您正在成功。|
+|lmc.messages.msastart.error|:|登录失败！请检查网络连接或提交反馈！|
+|lmc.messages.logging|:|您正在登录微软账号，请稍后。|
+|lmc.msastart.responecodeerror|:|登录失败，请重试！|
+|lmc.msastart.responecodedone|:|您已登录到LineLauncher，现在可以关闭此页面！|
 |lmc.accountadd.msa|:|微软登录|
 |lmc.msa.start|:|开始|
 |lmc.accountadd.offline|:|离线登录|
+|lmc.messages.offline.done|:|离线账号添加成功！|
+|lmc.loginadd.offlinename|:|离线账号ID|
+|lmc.messages.msastart.logging|:|您已经在进行一个微软登录请求，请稍后再试！|
 |content|_end

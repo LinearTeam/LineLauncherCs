@@ -18,9 +18,14 @@
 |lmc.messages.msastart.msg|:|You are logging in to Microsoft. Please click 'Continue' and complete the login process in your browser. After logging in, there will be a lag for a period of time.|
 |lmc.messages.continue|:|Continue|
 |lmc.messages.msastart.done|:|Login successful!    ID：${id}   UUID：${uuid}|
-|lmc.messages.msastart.error|:|Login failed!    Please contact author or send us feedback!|
-|lmc.messages.logging|:|You are logging into your Microsoft account, please sit down and relax.|
+|lmc.messages.msastart.error|:|Login failed!    Please check your internet connection , or you can send us feedback!|
+|lmc.messages.logging|:|You are logging into your Microsoft account, please wait.|
 |lmc.accountadd.msa|:|Microsoft|
+|lmc.msastart.responecodeerror|:|An error occurred when login to Microsoft, please retry.|
+|lmc.msastart.responecodedone|:|You have been logged in to Line Launcher, You can close this page now!|
 |lmc.msa.start|:|Start|
 |lmc.accountadd.offline|:|Offline|
+|lmc.messages.offline.done|:|Offline account added successfully!|
+|lmc.loginadd.offlinename|:|In Game Name|
+|lmc.messages.msastart.logging|:|You are already making a Microsoft login request, please try again later!|
 |content|_end

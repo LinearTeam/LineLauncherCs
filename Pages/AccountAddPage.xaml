@@ -14,7 +14,11 @@
         <TabControl Margin="321,113,60,145" SelectedIndex="0">
             <TabItem x:Name="ms" Header="lmc.accountadd.msa" Margin="0,0,102,0">
                 <Grid >
-                    <Button x:Name="Msa" Content="lmc.msa.start" HorizontalAlignment="Center" Height="43" Width="82" Click="Msa_Click"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="122*"/>
+                        <ColumnDefinition Width="299*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="Msa" Content="lmc.msa.start" Height="48" Width="166" Click="Msa_Click" Margin="113,0,0,0" Grid.ColumnSpan="2"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="offl" Header="lmc.accountadd.offline" Margin="-96,0,198,0">
@@ -23,6 +27,9 @@
                         <ColumnDefinition Width="161*"/>
                         <ColumnDefinition Width="260*"/>
                     </Grid.ColumnDefinitions>
+                    <controls:TextBox x:Name="offlineName" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="120,38,0,0" TextWrapping="Wrap"  Text="" VerticalAlignment="Top" Width="200"/>
+                    <Label x:Name="ofn" Content="lmc.loginadd.offlinename" HorizontalAlignment="Left" Margin="36,45,0,0" VerticalAlignment="Top" Width="82"/>
+                    <Button x:Name="cofn" Content="lmc.mainui.downloadpage.sure" Height="48" Width="166" Click="Cofn_Click" Margin="43,98,0,0" Grid.Column="1" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
         </TabControl>

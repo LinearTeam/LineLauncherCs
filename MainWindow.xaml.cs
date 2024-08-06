@@ -1,11 +1,8 @@
-﻿using LMC.Account.OAuth;
-using LMC.Basic;
+﻿using LMC.Basic;
 using LMC.Minecraft;
-using LMC.Pages;
 using System;
 using System.IO;
 using System.Net;
-using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 using Wpf.Ui.Appearance;
@@ -54,10 +51,24 @@ namespace LMC
             logger = new Logger("MainUI");
             logger.info("MainWindow Open");
             logger.info("Downloading i18N Files...");
-            using(WebClient client = new WebClient())
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/i18n/";
+            try
             {
-                client.DownloadFile("https://huangyu.win/LMC/en_US.line", "./lmc/resources/i18n/en_US.line");
-                client.DownloadFile("https://huangyu.win/LMC/zh_CN.line", "./lmc/resources/i18n/zh_CN.line");
+                Directory.CreateDirectory (path);
+                using (WebClient client = new WebClient())
+                {
+                    client.DownloadFile("https://huangyu.win/LMC/en_US.line", $"{path}en_US.line");
+                    client.DownloadFile("https://huangyu.win/LMC/zh_CN.line", $"{path}zh_CN.line");
+                }
+            }
+            catch(Exception e)
+            {
+                logger.warn("Failed to download i18N files cause:\n" + e.Message + "\n, checking local...");
+                if(File.Exists(path + "zh_CN.line"))
+                {
+                    logger.error("Failed to load local's i18N file");
+                    throw new Exception("无法下载/找到语言文件|Can't find or download i18n files");
+                }
             }
             Directory.CreateDirectory(GameDownload.gamePath);
             SystemThemeWatcher.Watch(this);
@@ -77,29 +88,20 @@ namespace LMC
         }
         private void refreshUiContent()
         {
-            try
+            homevi.Content = i18NTools.getString(homevi.Content.ToString());
+            settingvi.Content = i18NTools.getString(settingvi.Content.ToString());
+            accountvi.Content = i18NTools.getString(accountvi.Content.ToString());
+            downloadvi.Content = i18NTools.getString(downloadvi.Content.ToString());
+            othervi.Content = i18NTools.getString(othervi.Content.ToString());
+            if (i18NTools.getLangName().Equals("en_US"))
             {
-                homevi.Content = i18NTools.getString(homevi.Content.ToString());
-                settingvi.Content = i18NTools.getString(settingvi.Content.ToString());
-                accountvi.Content = i18NTools.getString(accountvi.Content.ToString());
-                downloadvi.Content = i18NTools.getString(downloadvi.Content.ToString());
-                othervi.Content = i18NTools.getString(othervi.Content.ToString());
-                if (i18NTools.getLangName().Equals("en_US"))
-                {
-                    homevi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                    settingvi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                    accountvi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                    downloadvi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                    othervi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                }
+                homevi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                settingvi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                accountvi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                downloadvi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                othervi.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
             }
-            catch(Exception e)
-            {
-                //TODO: tell user
-                logger.error($"An error catched when refreshing ui content {e.ToString()}");
-                return;
-            }
-
+            
         }
 
         private void homevi_Selected(object sender, RoutedEventArgs e)
