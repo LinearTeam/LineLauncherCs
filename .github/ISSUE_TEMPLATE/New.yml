@@ -1,0 +1,32 @@
+name: 新功能
+description: 想让启动器添加一个目前没有的功能？
+title: "[NewFeatures] "
+labels: ["新功能", "待确认"]
+assignees:
+  - tmdakm
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先确认最新版本启动器没有此功能
+  - type: textarea
+    id: fea-descr
+    attributes:
+      label: 功能简述
+      description: 这个功能是什么样的？
+      placeholder: 可以自动启动原神
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: 附件
+      description: 如果有，可以上传附件
+  - type: checkboxes
+    id: confirm-update
+    attributes:
+      label: 是否使用最新版启动器尝试过？
+      description: 有的功能可能已经在新版本被添加了 
+      options:
+        - label: 是的，我已经在新版本尝试过
+          required: true
