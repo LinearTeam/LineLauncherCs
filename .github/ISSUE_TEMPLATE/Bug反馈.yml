@@ -1,0 +1,56 @@
+name: Bug反馈
+description: 发现了一个bug？
+title: "[Bug] "
+labels: ["bug", "待确认"]
+assignees:
+  - tmdakm
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请在提交bug前确认这不是由于网络问题(使用其他启动器尝试)/系统问题(更换新版本系统/下载.Net Framework依赖)/启动器版本问题(升级到新版本)导致的，此类问题不处理。
+  - type: textarea
+    id: bug-descr
+    attributes:
+      label: 简述bug
+      description: 这个bug是什么样的？
+      placeholder: 发作时我电脑会偷偷赚钱...
+    validations:
+      required: true
+  - type: textarea
+    id: step
+    attributes:
+      label: 复现步骤
+      description: 你做了什么导致这个bug发生？
+      placeholder: 1.下载安装 2.原神启动
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志和附件
+      description: 请上传./lmc/logs/中的所有内容（上传！不是粘贴文本！），如果你有其他想上传的文件也可以在这里上传。
+  - type: checkboxes
+    id: confirm-update
+    attributes:
+      label: 是否使用最新版启动器尝试过？
+      description: 有的bug可能在新版本被修复了 
+      options:
+        - label: 是的，我已经在新版本尝试过
+          required: true
+  - type: checkboxes
+    id: confirm-net
+    attributes:
+      label: 是否使用其他启动器尝试过，且其他启动器没有此问题？
+      description: 如果其他启动器中没有此问题，则可能是由于网络等因素导致的错误
+      options:
+        - label: 是的，我已经在其他启动器尝试过/我确定是由于启动器而非其他因素导致的
+          required: true
+  - type: checkboxes
+    id: confirm-os
+    attributes:
+      label: 是否确认不是由于你的操作系统导致的？
+      description: 有的问题可能是因为你的操作系统的防火墙/依赖等导致的，请确认不是此原因
+      options:
+        - label: 是的，我确认不是由于我的操作系统导致的
+        required: true
