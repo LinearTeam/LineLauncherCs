@@ -39,8 +39,8 @@ body:
       description: 有的bug可能在新版本被修复了 
       options:
         - label: 是的，我已经在新版本尝试过
-      validations:
-        required: true
+    validations:
+      required: true
   - type: checkboxes
     id: confirm-net
     attributes:
@@ -48,8 +48,8 @@ body:
       description: 如果其他启动器中没有此问题，则可能是由于网络等因素导致的错误
       options:
           - label: 是的，我已经在其他启动器尝试过/我确定是由于启动器而非其他因素导致的
-      validations:
-        required: true
+    validations:
+      required: true
   - type: checkboxes
     id: confirm-os
     attributes:
