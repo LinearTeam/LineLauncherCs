@@ -1,0 +1,27 @@
+﻿<Page x:Class="LMC.Pages.DownloadCurrentVersionPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
+      xmlns:local="clr-namespace:LMC"
+      mc:Ignorable="d" 
+      d:DesignHeight="468" d:DesignWidth="801"
+      Title="DownloadCurrentVersionPage">
+
+    <Grid>
+        <controls:Button x:Name="back" Margin="10,10,0,0" VerticalAlignment="Top" Height="50" Width="50" Click="back_Click">
+            <controls:SymbolIcon Symbol="ArchiveArrowBack48" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" FontSize="30"/>
+        </controls:Button>
+        <ComboBox x:Name="opt" Margin="598,80,43,0" VerticalAlignment="Top" Width="160" />
+        <ComboBox x:Name="fab" Margin="598,180,43,0" VerticalAlignment="Top" Width="160" />
+        <ComboBox x:Name="forge" Margin="598,280,43,0" VerticalAlignment="Top" Width="160" />
+        <ComboBox x:Name="quilt" Margin="598,380,43,0" VerticalAlignment="Top" Width="160" />
+        <TextBox x:Name="verName"  Margin="121,80,251,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+        <controls:Image Height="128" Width="128" Source="/hutao.jpg" Margin="91,180,582,160"/>
+        <TextBox x:Name="dvTitle"  TextWrapping="Wrap" Text="lmc.downloadpage.dcp.version" Margin="231,180,231,105" IsEnabled="False"/>
+        <Label x:Name="verInfo" Content="1.20.1&#13;Optifine:1.14.5.14&#13;Forge:191.9810&#13;Fabric:Null&#13;Quilt" HorizontalAlignment="Left" Margin="254,220,0,0" VerticalAlignment="Top" Height="129" Width="296" FontSize="8"/>
+        <controls:Button x:Name="confirm" Appearance="Primary" Content="lmc.mainui.downloadpage.sure" Margin="91,380,0,0" VerticalAlignment="Top" Height="60" Width="113"/>
+    </Grid>
+</Page>

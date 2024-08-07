@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LMC.Basic;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace LMC.Minecraft
         public static String gamePath = @"./.minecraft";
         private static HttpClient client = new HttpClient();
         private DownloadSource downloadSource = new DownloadSource();
+        private Logger logger = new Logger("GD");
 
         public void ChangeSource(DownloadSource newSource)
         {
@@ -24,18 +26,23 @@ namespace LMC.Minecraft
             this.downloadSource = newSource;
         }
 
+        public void BMCLAPI()
+        {
+            downloadSource.BMCLAPI();
+        }
+
         async public Task<String> GetVersionManifest()
         {
             return await client.GetStringAsync(downloadSource.VersionManifest);
         }
 
-        public List<VersionDownload> ManifestParse(String manifest) 
+        public (List<VersionDownload> normal, List<VersionDownload> alpha, List<VersionDownload> beta) ManifestParse(String manifest) 
         { 
             JsonDocument document = JsonDocument.Parse(manifest);
-            List<VersionDownload> result = new List<VersionDownload>();
+            List<VersionDownload> normal = new List<VersionDownload>();
+            List<VersionDownload> alpha = new List<VersionDownload>();
+            List<VersionDownload> beta = new List<VersionDownload>();
             JsonElement latest = document.RootElement.GetProperty("latest");
-            string latestRelease = latest.GetProperty("release").GetString();
-            string latestSnapshot = latest.GetProperty("snapshot").GetString();
             // Parse versions
             JsonElement versions = document.RootElement.GetProperty("versions");
             foreach (JsonElement version in versions.EnumerateArray())
@@ -47,39 +54,29 @@ namespace LMC.Minecraft
                 string releaseTime = version.GetProperty("releaseTime").GetString();
                 VersionDownload verd;
                 if(type.Equals("snapshot")) {
-                    if (id.Equals(latestSnapshot))
-                    {
-                        verd = new VersionDownload(id, 1, url, time, releaseTime, true);
-                    }
-                    else
-                    {
-                        verd = new VersionDownload(id, 1, url, time, releaseTime, false);
-                    }
+                    verd = new VersionDownload(id, 1, url, time, releaseTime);
+                    normal.Add(verd);
                 }
                 else if (type.Equals("release"))
                 {
-                    if (id.Equals(latestRelease))
-                    {
-                        verd = new VersionDownload(id, 0, url, time, releaseTime, true);
-                    }
-                    else
-                    {
-                        verd = new VersionDownload(id, 0, url, time, releaseTime, false);
-                    }
+                    verd = new VersionDownload(id, 0, url, time, releaseTime);
+                    normal.Add(verd);
                 }
                 else if(type.Equals("old_alpha")) {
-                    verd = new VersionDownload(id, 3, url, time, releaseTime, false);
+                    verd = new VersionDownload(id, 3, url, time, releaseTime);
+                    alpha.Add(verd);
                 }
                 else if(type.Equals("old_beta")) {
-                    verd = new VersionDownload(id, 2, url, time, releaseTime, false);
+                    verd = new VersionDownload(id, 2, url, time, releaseTime);
+                    beta.Add(verd);
                 }
                 else
                 {
-                    throw new Exception("Unknown version type");
+                    logger.warn("Found new unknown version type: " + type);
+                    continue;
                 }
-                result.Add(verd);
             }
-            return result;
+            return (normal,alpha,beta);
         }
         async public Task DownloadVersionJsonVanilla(VersionDownload version, String name)
         {

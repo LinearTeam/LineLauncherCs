@@ -29,7 +29,7 @@
                     </Grid.ColumnDefinitions>
                     <controls:TextBox x:Name="offlineName" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="120,38,0,0" TextWrapping="Wrap"  Text="" VerticalAlignment="Top" Width="200"/>
                     <Label x:Name="ofn" Content="lmc.loginadd.offlinename" HorizontalAlignment="Left" Margin="36,45,0,0" VerticalAlignment="Top" Width="82"/>
-                    <Button x:Name="cofn" Content="lmc.mainui.downloadpage.sure" Height="48" Width="166" Click="Cofn_Click" Margin="43,98,0,0" Grid.Column="1" VerticalAlignment="Top"/>
+                    <Button x:Name="cofn" Content="lmc.mainui.downloadpage.sure" Height="48" Width="166" Click="Cofn_Click" Margin="124,96,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
                 </Grid>
             </TabItem>
         </TabControl>

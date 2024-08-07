@@ -64,7 +64,7 @@ namespace LMC
             catch(Exception e)
             {
                 logger.warn("Failed to download i18N files cause:\n" + e.Message + "\n, checking local...");
-                if(File.Exists(path + "zh_CN.line"))
+                if(File.Exists(path + i18NTools.getLangName() + ".line"))
                 {
                     logger.error("Failed to load local's i18N file");
                     throw new Exception("无法下载/找到语言文件|Can't find or download i18n files");

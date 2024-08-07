@@ -9,10 +9,10 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Newtonsoft.Json.Linq;
 using System.Threading;
 using System.Windows.Controls;
 using Wpf.Ui.Controls;
+using System.Text.Json;
 
 namespace LMC.Account.OAuth
 {
@@ -23,12 +23,16 @@ namespace LMC.Account.OAuth
         static private bool isOaIng = false;
         async public Task<(int done, Account account,string refreshtoken)> startOA()
         {
+
+            HttpListener listener = new HttpListener();
             try
             {
-                var t = await stepOne();
+                var t = await stepOne(listener);
+                listener.Stop();
                 return (0, t.account, t.refreshtoken); 
             } catch(Exception e) {
                 logger.warn(e.Message);    
+                listener.Stop();
                 return (1,null,null); 
             };
         }
@@ -80,13 +84,12 @@ namespace LMC.Account.OAuth
             isOaIng = false;
         }
 
-        async public Task<(Account account,string refreshtoken)> stepOne()
+        async public Task<(Account account,string refreshtoken)> stepOne(HttpListener listener)
         {
             logger.info("MSL step 1");
             string url = "http://127.0.0.1:40935/";
             System.Diagnostics.Process.Start("explorer.exe", $"\"{loginurl}\"");
 
-            HttpListener listener = new HttpListener();
             listener.Prefixes.Add(url);
             listener.Start();
             logger.info("Listening...");
@@ -106,7 +109,6 @@ namespace LMC.Account.OAuth
                 System.IO.Stream output = response.OutputStream;
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
-                listener.Stop();
                 logger.info("Server stopped.");
                 logger.info("MSL step 2");
                 var t = await stepTwo(code);
@@ -222,35 +224,69 @@ namespace LMC.Account.OAuth
             }
             else return (null, null,null);
         }
-        async public Task<(bool,string,string)> stepSix(string tokenf)
+        async public Task<(bool, string, string)> stepSix(string tokenf)
         {
             string url = "https://api.minecraftservices.com/entitlements/mcstore";
             string accept = "application/json";
             string checkres = await GetWithAuth($"Bearer {tokenf}", url, accept);
-            var jsonObject = JObject.Parse(checkres);
-            var items = jsonObject.SelectToken("items") as JArray;
-            url = "https://api.minecraftservices.com/minecraft/profile";
-            string profileres = await GetWithAuth($"Bearer {tokenf}", url, accept);
-            bool haveMc = !(items == null || items.Count == 0 || profileres.Contains("NOT_FOUND"));
-            logger.info("Does Minecraft have : " + haveMc.ToString());
-            if (haveMc)
+
+            using (JsonDocument document = JsonDocument.Parse(checkres))
             {
-                string uuid = GetValueFromJson(profileres, "id");
-                string name = GetValueFromJson(profileres, "name");
-                return (true, uuid, name);
+                JsonElement itemsElement;
+                bool haveItems = document.RootElement.TryGetProperty("items", out itemsElement) && itemsElement.ValueKind == JsonValueKind.Array;
+                url = "https://api.minecraftservices.com/minecraft/profile";
+                string profileres = await GetWithAuth($"Bearer {tokenf}", url, accept);
+                bool haveMc = haveItems && itemsElement.GetArrayLength() > 0 && !profileres.Contains("NOT_FOUND");
+                Console.WriteLine("Does Minecraft have : " + haveMc.ToString());
+                if (haveMc)
+                {
+                    string uuid = GetValueFromJson(profileres, "id");
+                    string name = GetValueFromJson(profileres, "name");
+                    return (true, uuid, name);
+                }
+                return (false, null, null);
             }
-            return (false, null, null);
         }
 
-
-        public string GetValueFromJson(string jsonString, string key)
+        private string GetValueFromJson(string jsonString, string path)
         {
-            var jsonObject = JObject.Parse(jsonString);
+            using (JsonDocument document = JsonDocument.Parse(jsonString))
+            {
+                string[] keys = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                JsonElement element = document.RootElement;
+                foreach (var key in keys)
+                {
+                    if (key.Contains("["))
+                    {
+                        var parts = key.Split(new char[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+                        var arrayKey = parts[0];
+                        var index = int.Parse(parts[1]);
 
-            var value = jsonObject.SelectToken(key)?.ToString();
-
-            return value;
+                        if (element.TryGetProperty(arrayKey, out JsonElement arrayElement) && arrayElement.ValueKind == JsonValueKind.Array)
+                        {
+                            element = arrayElement[index];
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        if (element.TryGetProperty(key, out JsonElement nextElement))
+                        {
+                            element = nextElement;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+                return element.ToString();
+            }
         }
+
 
         async public Task<string> PostWithParameters(Dictionary<string, string> parameters, string url, string accept, string contentType)
         {
