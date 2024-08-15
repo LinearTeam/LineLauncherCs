@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LMC.Minecraft;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,11 +24,39 @@ namespace LMC.Pages
         public DownloadCurrentVersionPage()
         {
             InitializeComponent();
+            refreshContent();
         }
 
         private void back_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.mnv.Navigate(typeof(DownloadPage));
+        }
+
+        async private void refreshContent()
+        {
+            GameDownload gd = new GameDownload();
+            gd.BMCLAPI();
+            var a = await gd.GetForgeFabricOptifineVersionList("1.14.4");
+            forge.Items.Clear();
+            fab.Items.Clear();
+            opt.Items.Clear();
+            forge.Items.Add("请选择Forge版本");
+            fab.Items.Add("请选择Fabric版本");
+            opt.Items.Add("请选择Optifine版本");
+            foreach ( string f in a.forges ) { 
+                forge.Items.Add(f);
+            }
+            foreach (string f in a.fabs)
+            {
+                fab.Items.Add(f);
+            }
+            foreach (string f in a.opts)
+            {
+                opt.Items.Add(f);
+            }
+            forge.SelectedItem = forge.Items.GetItemAt(0);
+            fab.SelectedItem = forge.Items.GetItemAt(0);
+            opt.SelectedItem = forge.Items.GetItemAt(0);
         }
     }
 }

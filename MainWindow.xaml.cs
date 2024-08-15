@@ -103,7 +103,7 @@ namespace LMC
             }
             
         }
-
+        
         private void homevi_Selected(object sender, RoutedEventArgs e)
         {
 

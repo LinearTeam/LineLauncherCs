@@ -9,7 +9,7 @@
         xmlns:local="clr-namespace:LMC"
         mc:Ignorable="d"
         ContentRendered="WindowRendered"
-        Title="{Binding ViewModel.ApplicationTitle, Mode=OneWay}"
+        Title="Line Minecraft launCher"
         Height="518" Width="886" Icon="/ico.png" ResizeMode="NoResize" AllowsTransparency="True" WindowStyle="None" >
     <Grid Background="#FF1D1D1D">
         <ui:NavigationView PaneDisplayMode="LeftFluent" TabIndex="0"

@@ -29,6 +29,10 @@ namespace LMC.Minecraft
         private string _fabricMeta = "https://meta.fabricmc.net";
         private string _fabricMaven = "https://maven.fabricmc.net";
         private string _name = "Official";
+        private string _fabricManifest = "https://meta.fabricmc.net/v2/versions";
+        private string _forgeListViaMcVer = "https://bmclapi2.bangbang93.com/forge/minecraft/{mcversion}";
+        private string _forgeSupportedMc = "https://bmclapi2.bangbang93.com/forge/minecraft/{mcversion}";
+        private string _optifineListViaMcVer = "https://bmclapi2.bangbang93.com/optifine/{mcversion}";
         private int _sourceType = 0;
         
 
@@ -45,6 +49,10 @@ namespace LMC.Minecraft
         public string FabricMeta { get => _fabricMeta; set => _fabricMeta = value; }
         public string FabricMaven { get => _fabricMaven; set => _fabricMaven = value; }
         public string Name { get => _name; set => _name = value; }
+        public string FabricManifest { get => _fabricManifest; set => _fabricManifest = value; }
+        public string ForgeListViaMcVer { get => _forgeListViaMcVer; set => _forgeListViaMcVer = value; }
+        public string ForgeSupportedMc { get => _forgeSupportedMc; set => _forgeSupportedMc = value; }
+        public string OptifineListViaMcVer { get => _optifineListViaMcVer; set => _optifineListViaMcVer = value; }
         public int SourceType { get => _sourceType; set => _sourceType = value; }
 
         public DownloadSource(
@@ -60,8 +68,13 @@ namespace LMC.Minecraft
             string authlibInjector = "https://authlib-injector.yushi.moe",
             string fabricMeta = "https://meta.fabricmc.net",
             string fabricMaven = "https://maven.fabricmc.net",
-            int sourceType = 0
-        ){
+            string forgeListViaMcVer = "https://bmclapi2.bangbang93.com/forge/minecraft/{mcversion}",
+            string forgeSupportedMc = "https://bmclapi2.bangbang93.com/forge/minecraft",
+            string optifineListViaMcVer = "https://bmclapi2.bangbang93.com/optifine/{mcversion}",
+            int sourceType = 0,
+            string name = "Official",
+            string fabricManifest = "https://meta.fabricmc.net/v2/versions")
+        {
             VersionManifest = versionManifest;
             VersionManifestV2 = versionManifestV2;
             LauncherMeta = launcherMeta;
@@ -75,6 +88,11 @@ namespace LMC.Minecraft
             FabricMaven = fabricMaven;
             SourceType = sourceType;
             Launcher = launcher;
+            ForgeListViaMcVer = forgeListViaMcVer;
+            ForgeSupportedMc = forgeSupportedMc;
+            OptifineListViaMcVer = optifineListViaMcVer;
+            FabricManifest = fabricManifest;
+            Name = name;
         }
 
         public void BMCLAPI()
@@ -92,6 +110,7 @@ namespace LMC.Minecraft
             FabricMeta = "https://bmclapi2.bangbang93.com/fabric-meta";
             FabricMaven = "https://bmclapi2.bangbang93.com/maven";
             SourceType = 1;
+            FabricManifest = FabricMeta + "/v2/versions";
         }
 
     }
