@@ -132,7 +132,7 @@ namespace LMC.Minecraft
                 json = await response.Content.ReadAsStringAsync();
             }
             List<string> opts = new List<string>();
-            if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(json.Trim())) { 
+            if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(json.Trim()) || string.IsNullOrEmpty(json.Trim('[',']','{','}',' ')) || string.IsNullOrEmpty(json.Trim('[',']','{','}',' '))) { 
                 opts.Add("N");
             }
             else

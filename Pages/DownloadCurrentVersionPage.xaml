@@ -14,9 +14,9 @@
         <controls:Button x:Name="back" Margin="10,10,0,0" VerticalAlignment="Top" Height="50" Width="50" Click="back_Click">
             <controls:SymbolIcon Symbol="ArchiveArrowBack48" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" FontSize="30"/>
         </controls:Button>
-        <ComboBox x:Name="opt" Margin="598,80,43,0" VerticalAlignment="Top" Width="160" />
-        <ComboBox x:Name="fab" Margin="598,180,43,0" VerticalAlignment="Top" Width="160" />
-        <ComboBox x:Name="forge" Margin="598,280,43,0" VerticalAlignment="Top" Width="160" />
+        <ComboBox x:Name="opt" Margin="598,80,43,0" VerticalAlignment="Top" Width="160" SelectionChanged="opt_SelectionChanged" />
+        <ComboBox x:Name="fab" Margin="598,180,43,0" VerticalAlignment="Top" Width="160" SelectionChanged="fab_SelectionChanged" />
+        <ComboBox x:Name="forge" Margin="598,280,43,0" VerticalAlignment="Top" Width="160" SelectionChanged="forge_SelectionChanged" />
         <TextBox x:Name="verName"  Margin="62,81,310,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" />
         <controls:Image Source="/hutao.jpg" Margin="264,203,439,170"/>
         <TextBox x:Name="dvTitle"  TextWrapping="Wrap" Text="lmc.downloadpage.dcp.version" Margin="62,152,401,132" IsEnabled="False"/>

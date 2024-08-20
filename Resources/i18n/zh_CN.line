@@ -24,8 +24,12 @@
 |lmc.msastart.responecodedone|:|您已登录到LineLauncher，现在可以关闭此页面！|
 |lmc.accountadd.msa|:|微软登录|
 |lmc.msa.start|:|开始|
+|lmc.pages.dcp.failed|:|获取{type}失败！|
+|lmc.pages.dcp.notsupp|:|该版本不支持{type}！|
 |lmc.accountadd.offline|:|离线登录|
+|lmc.pages.dcp.plzc|:|请选择{type}|
 |lmc.messages.offline.done|:|离线账号添加成功！|
 |lmc.loginadd.offlinename|:|离线账号ID|
+|lmc.downloadpage.dcp.version|:|版本信息|
 |lmc.messages.msastart.logging|:|您已经在进行一个微软登录请求，请稍后再试！|
 |content|_end

@@ -25,7 +25,11 @@
 |lmc.msastart.responecodedone|:|You have been logged in to Line Launcher, You can close this page now!|
 |lmc.msa.start|:|Start|
 |lmc.accountadd.offline|:|Offline|
+|lmc.pages.dcp.failed|:|Failed to get {type} versions!|
+|lmc.pages.dcp.notsupp|:|{type} not support this version!|
+|lmc.pages.dcp.plzc|:|Please choose {type}|
 |lmc.messages.offline.done|:|Offline account added successfully!|
+|lmc.downloadpage.dcp.version|:|Version Information|
 |lmc.loginadd.offlinename|:|In Game Name|
 |lmc.messages.msastart.logging|:|You are already making a Microsoft login request, please try again later!|
 |content|_end

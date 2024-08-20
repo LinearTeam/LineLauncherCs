@@ -94,7 +94,10 @@ namespace LMC
 
         private void confirm_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.mnv.Navigate(typeof(DownloadCurrentVersionPage));
+            if(vlist.SelectedItem != null){
+                DownloadCurrentVersionPage.CurrentVersion = (string) vlist.SelectedItem;
+                MainWindow.mnv.Navigate(typeof(DownloadCurrentVersionPage));
+            }
         }
     }
 }
