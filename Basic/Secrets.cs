@@ -11,11 +11,12 @@ namespace LMC.Basic
 {
     public class Secrets
     {
-        private static string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/DoNotSendThisToAnyone/请勿将此发送给他人/secrets.txt";
+        private static string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/DoNotSendThisToAnyone/请勿将此发送给他人/secrets.line";
         private static LineFileParser lfp = new LineFileParser();
         private static Logger logger = new Logger("SEC");
         static async Task<string> GetCpuIDAsync()
         {
+            
             return await Task.Run(() =>
             {
                 string cpuID = string.Empty;

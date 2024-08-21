@@ -21,6 +21,6 @@
         <controls:Image Source="/hutao.jpg" Margin="264,203,439,170"/>
         <TextBox x:Name="dvTitle"  TextWrapping="Wrap" Text="lmc.downloadpage.dcp.version" Margin="62,152,401,132" IsEnabled="False"/>
         <Label x:Name="verInfo" Content="" HorizontalAlignment="Left" Margin="84,192,0,0" VerticalAlignment="Top" Height="130" Width="296" FontSize="8"/>
-        <controls:Button x:Name="confirm" Appearance="Primary" Content="lmc.mainui.downloadpage.sure" Margin="645,380,0,0" VerticalAlignment="Top" Height="60" Width="113"/>
+        <controls:Button x:Name="confirm" Appearance="Primary" Content="lmc.mainui.downloadpage.sure" Margin="645,380,0,0" VerticalAlignment="Top" Height="60" Width="113" Click="confirm_Click"/>
     </Grid>
 </Page>

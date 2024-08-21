@@ -77,6 +77,7 @@ namespace LMC.Pages
                     MainWindow.infobar.Severity = InfoBarSeverity.Success;
                     MainWindow.infobar.Message = MainWindow.i18NTools.getString("lmc.messages.offline.done");
                     MainWindow.infobar.IsClosable = true;
+                    await Task.Delay(700);
                     MainWindow.infobar.IsOpen = true;
 
                 }

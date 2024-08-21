@@ -90,18 +90,34 @@ namespace LMC.Pages
             fab.SelectedItem = fab.Items.GetItemAt(0);
             opt.SelectedItem = opt.Items.GetItemAt(0);
         }
-
-        private void opt_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        bool isForge = false;
+        bool isOpt = false;
+        bool isFab = false;
+        async private Task optTip()
         {
-
+            await Task.Run(() => Console.WriteLine("Hello World!"));
         }
-
-        private void fab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        async private void opt_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            isOpt = opt.SelectedIndex != 0;
+            if (isOpt && isFab) await optTip();
+        }
+        
+        async private void fab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            isFab = fab.SelectedIndex != 0;
+            if (isOpt && isFab) await optTip();
+            if (isFab) forge.IsEnabled = false;
         }
 
         private void forge_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (isFab) return;
+            isForge = forge.SelectedIndex != 0;
+            if(isForge) fab.IsEnabled = false;
+        }
+
+        private void confirm_Click(object sender, RoutedEventArgs e)
         {
 
         }

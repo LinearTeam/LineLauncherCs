@@ -7,23 +7,24 @@ using System.Threading.Tasks;
 
 namespace LMC.Account
 {
+    public enum AccountType{MSA, OFFLINE, AUTHLIB};
     public class AccountManager
     {
         private static Logger logger = new Logger("AM");
         async public static Task addAccount(Account account, string refreshToken = null)
         {
-            if(account.type == 0)
+            if(account.type == AccountType.MSA)
             {
-                await Secrets.write(account.uuid + "_" + account.type, "refresh_token", refreshToken);
+                await Secrets.write("acc_" + account.uuid + "_" + account.type, "refresh_token", refreshToken);
             }
-            if (account.type == 2) {
-                await Secrets.write(account.uuid + "_" + account.type, "authServer", account.AuthLib_authServer);
-                await Secrets.write(account.uuid + "_" + account.type, "authPassword", account.AuthLib_password);
-                await Secrets.write(account.uuid + "_" + account.type, "authAccount", account.AuthLib_account);
+            if (account.type == AccountType.AUTHLIB) {
+                await Secrets.write("acc_" + account.uuid + "_" + account.type, "authServer", account.AuthLib_authServer);
+                await Secrets.write("acc_" + account.uuid + "_" + account.type, "authPassword", account.AuthLib_password);
+                await Secrets.write("acc_" + account.uuid + "_" + account.type, "authAccount", account.AuthLib_account);
             }
-            if (account.type == 1)
+            if (account.type == AccountType.OFFLINE)
             {
-                await Secrets.write(account.id + "_" + account.type, "id", account.id);
+                await Secrets.write("acc_" + account.id + "_" + account.type, "id", account.id);
             }
         }
     }
