@@ -10,7 +10,6 @@ namespace LMC.Minecraft
 {
     /*
      * 
-     * DownloadSource Class
      * SourceType: 0 = Official(Optifine is BMCLAPI) 1 = BMCLAPI 2 = LineMirror 3 = Custom
      * 
      */
@@ -95,7 +94,7 @@ namespace LMC.Minecraft
             Name = name;
         }
 
-        public void BMCLAPI()
+        public void Bmclapi()
         {
             VersionManifest = "http://launchermeta.mojang.com/mc/game/version_manifest.json";
             VersionManifestV2 = "http://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
@@ -110,6 +109,23 @@ namespace LMC.Minecraft
             FabricMeta = "https://bmclapi2.bangbang93.com/fabric-meta";
             FabricMaven = "https://bmclapi2.bangbang93.com/maven";
             SourceType = 1;
+            FabricManifest = FabricMeta + "/v2/versions";
+        }
+        public void LineMirror()
+        {
+            VersionManifest = "https://lm.icecreamteam.win:440/mc/game/version_manifest.json";
+            VersionManifestV2 = "http://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
+            LauncherMeta = "https:/lm.icecreamteam.win:440/launchermeta/";
+            Launcher = "https:/lm.icecreamteam.win:440/launcher/";
+            ResourcesDownload = "https://lm.icecreamteam.win:440/assets";
+            Libraries = "https://lm.icecreamteam.win:440/libraries";
+            MojangJava = "https://bmclapi2.bangbang93.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json";
+            Forge = "https://bmclapi2.bangbang93.com/maven";
+            OptifineAPI = "https://bmclapi2.bangbang93.com/optifine/{mcversion}/{type}/{patch}";
+            AuthlibInjector = "https://bmclapi2.bangbang93.com/mirrors/authlib-injector";
+            FabricMeta = "https://bmclapi2.bangbang93.com/fabric-meta";
+            FabricMaven = "https://bmclapi2.bangbang93.com/maven";
+            SourceType = 2;
             FabricManifest = FabricMeta + "/v2/versions";
         }
 

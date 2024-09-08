@@ -1,4 +1,5 @@
-﻿using LMC.Basic;
+﻿using LMC.Account;
+using LMC.Basic;
 using LMC.Pages;
 using LMC.Properties;
 using System;
@@ -23,18 +24,23 @@ namespace LMC
     /// </summary>
     public partial class AccountPage : Page
     {
+        private static List<Account.Account> s_accounts;
+        private static ComboBox s_accountList;
+
         public AccountPage()
         {
             InitializeComponent();
-            refreshContent();
+            s_accountList = accountList;
+            RefreshAccounts();
+/*            refreshContent();
         }
         public void refreshContent()
         {
             
-            add.Content = MainWindow.i18NTools.getString(add.Content.ToString());
-            delete.Content = MainWindow.i18NTools.getString(delete.Content.ToString());
-            ait.Text = MainWindow.i18NTools.getString(ait.Text.ToString());
-            if (MainWindow.i18NTools.getLangName().Equals("en_US"))
+            add.Content = MainWindow.I18NTools.getString(add.Content.ToString());
+            delete.Content = MainWindow.I18NTools.getString(delete.Content.ToString());
+            ait.Text = MainWindow.I18NTools.getString(ait.Text.ToString());
+            if (MainWindow.I18NTools.getLangName().Equals("en_US"))
             {
                 add.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
                 delete.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
@@ -42,11 +48,43 @@ namespace LMC
                 accountinfo.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
                 accountList.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
             }
+*/
+        }
+
+        public async static Task RefreshAccounts()
+        {
+            s_accountList.Items.Clear();
+            s_accounts = await AccountManager.GetAccounts(false);
+            foreach (var account in s_accounts)
+            {
+                string totalStr = account.Id;
+                if(account.Type == AccountType.AUTHLIB)
+                {
+                    totalStr += " - 第三方";
+                }
+                if (account.Type == AccountType.MSA)
+                {
+                    totalStr += " - 微软";
+                }
+                if (account.Type == AccountType.OFFLINE)
+                {
+                    totalStr += " - 离线";
+                }
+                s_accountList.Items.Add(totalStr);
+            }
         }
 
         private void add_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.mnv.Navigate(typeof(AccountAddPage));
+            MainWindow.MainNagView.Navigate(typeof(AccountAddPage));
+        }
+
+        async private void delete_Click(object sender, RoutedEventArgs e)
+        {
+            if(accountList.SelectedItem!= null) {
+                await AccountManager.DeleteAccount(s_accounts.ElementAt(accountList.SelectedIndex));
+            }
+            await RefreshAccounts();
         }
     }
 }

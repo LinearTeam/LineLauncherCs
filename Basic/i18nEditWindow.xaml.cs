@@ -20,7 +20,7 @@ namespace LMC.Basic
     public partial class i18nEditWindow : Window
     {
 
-        private i18nTools i18NTools = new i18nTools();
+        private I18nTools _i18NTools = new I18nTools();
         public i18nEditWindow()
         {
             InitializeComponent();
@@ -30,7 +30,7 @@ namespace LMC.Basic
         {
             try
             {
-                value.Text = (i18NTools.getString(key.Text, int.Parse(lang.Text)));
+                value.Text = (_i18NTools.GetString(key.Text, int.Parse(lang.Text)));
             }
             catch{ }
            
@@ -40,7 +40,7 @@ namespace LMC.Basic
         {
             try
             {
-                i18NTools.setString(key.Text,value.Text,int.Parse(lang.Text));
+                _i18NTools.SetString(key.Text,value.Text,int.Parse(lang.Text));
             }
             catch { }
         }

@@ -11,10 +11,10 @@
       Title="HomePage">
 
     <Grid>
-        <TextBox x:Name="noticeTitle"  TextWrapping="Wrap" Text="lmc.mainui.homepage.notice" Margin="24,22,319,185" IsEnabled="False"/>
+        <TextBox x:Name="noticeTitle"  TextWrapping="Wrap" Text="公告" Margin="24,22,319,185" IsEnabled="False"/>
 
-        <Label x:Name="notice" Content="lmc.online.notice" HorizontalAlignment="Left" Margin="37,60,0,0" VerticalAlignment="Top" Height="197" Width="424" FontSize="8"/>
-        <controls:Button x:Name="launchButton" Content="lmc.mainui.homepage.launch" Margin="640,363,0,0" VerticalAlignment="Top" Height="80" Width="135">
+        <Label x:Name="notice" Content="公告" HorizontalAlignment="Left" Margin="37,60,0,0" VerticalAlignment="Top" Height="197" Width="424" FontSize="8"/>
+        <controls:Button x:Name="launchButton" Content="启动游戏" Margin="640,363,0,0" VerticalAlignment="Top" Height="80" Width="135">
             <controls:Button.Icon>
                 <ui:SymbolIcon Symbol="Open32"/>
             </controls:Button.Icon>

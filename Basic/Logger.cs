@@ -8,38 +8,37 @@ namespace LMC.Basic
 {
     public class Logger
     {
-        public static string logNum = "1";
-        private string module;
-        private string logFile;
-        private BlockingCollection<string> logQueue;
-        private Task logTask;
-        private CancellationTokenSource cancellationTokenSource;
-        private const int flushCount = 20;
+        public static string LogNum = "1";
+        private string _module;
+        private string _logFile;
+        private BlockingCollection<string> _logQueue;
+        private Task _logTask;
+        private CancellationTokenSource _cancellationTokenSource;
 
         public Logger(string module, string filePath = "not")
         {
-            this.module = module;
+            this._module = module;
             if (filePath.Equals("not"))
             {
-                filePath = "./lmc/logs/log" + logNum + ".log";
+                filePath = "./lmc/logs/log" + LogNum + ".log";
             }
-            logFile = filePath;
-            logQueue = new BlockingCollection<string>();
-            cancellationTokenSource = new CancellationTokenSource();
+            _logFile = filePath;
+            _logQueue = new BlockingCollection<string>();
+            _cancellationTokenSource = new CancellationTokenSource();
 
-            logTask = Task.Run(() => ProcessLogQueue(cancellationTokenSource.Token));
+            _logTask = Task.Run(() => ProcessLogQueue(_cancellationTokenSource.Token));
         }
 
         private void ProcessLogQueue(CancellationToken token)
         {
             try
             {
-                while (!token.IsCancellationRequested || logQueue.Count > 0)
+                while (!token.IsCancellationRequested || _logQueue.Count > 0)
                 {
                     string logEntry;
-                    if (logQueue.TryTake(out logEntry, Timeout.Infinite, token))
+                    if (_logQueue.TryTake(out logEntry, Timeout.Infinite, token))
                     {
-                        using (StreamWriter logWriter = new StreamWriter(logFile, true))
+                        using (StreamWriter logWriter = new StreamWriter(_logFile, true))
                         using (StreamWriter latestWriter = new StreamWriter("./lmc/logs/latest.log", true))
                         {
                             logWriter.WriteLine(logEntry);
@@ -52,7 +51,7 @@ namespace LMC.Basic
             {
                 FlushRemainingLogs();
             }
-            catch (IOException e)
+            catch
             {
                 Environment.Exit(1);
             }
@@ -60,10 +59,10 @@ namespace LMC.Basic
 
         private void FlushRemainingLogs()
         {
-            using (StreamWriter logWriter = new StreamWriter(logFile, true))
+            using (StreamWriter logWriter = new StreamWriter(_logFile, true))
             using (StreamWriter latestWriter = new StreamWriter("./lmc/logs/latest.log", true))
             {
-                while (logQueue.TryTake(out string logEntry))
+                while (_logQueue.TryTake(out string logEntry))
                 {
                     logWriter.WriteLine(logEntry);
                     latestWriter.WriteLine(logEntry);
@@ -74,18 +73,18 @@ namespace LMC.Basic
         private void Log(string level, string msg)
         {
             string time = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss.fff");
-            string logEntry = $"[{time}/{level}][{module}]{msg}";
-            logQueue.Add(logEntry);
+            string logEntry = $"[{time}/{level}][{_module}]{msg}";
+            _logQueue.Add(logEntry);
         }
 
-        public void info(string msg) => Log("INFO", msg);
-        public void error(string msg) => Log("ERROR", msg);
-        public void warn(string msg) => Log("WARN", msg);
+        public void Info(string msg) => Log("INFO", msg);
+        public void Error(string msg) => Log("ERROR", msg);
+        public void Warn(string msg) => Log("WARN", msg);
 
         public void Close()
         {
-            cancellationTokenSource.Cancel();
-            logTask.Wait();
+            _cancellationTokenSource.Cancel();
+            _logTask.Wait();
         }
 
         ~Logger()

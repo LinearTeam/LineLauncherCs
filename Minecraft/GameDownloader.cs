@@ -14,35 +14,40 @@ namespace LMC.Minecraft
     /*
      * GameDownload Tools Class
      */
-    public class GameDownload
+    public class GameDownloader
     {
-        public static String gamePath = @"./.minecraft";
-        private static HttpClient client = new HttpClient();
-        private DownloadSource downloadSource = new DownloadSource();
-        private Logger logger = new Logger("GD");
+        public static String GamePath = @"./.minecraft";
+        private static HttpClient s_client = new HttpClient();
+        private DownloadSource _downloadSource = new DownloadSource();
+        private Logger _logger = new Logger("GD");
 
         public void ChangeSource(DownloadSource newSource)
         {
-            if (newSource == downloadSource || newSource == null) return;
-            this.downloadSource = newSource;
+            if (newSource == _downloadSource || newSource == null) return;
+            this._downloadSource = newSource;
         }
 
-        public void BMCLAPI()
+        public void Bmclapi()
         {
-            downloadSource.BMCLAPI();
+            _downloadSource.Bmclapi();
+        }
+
+        public void LineMirror()
+        {
+            _downloadSource.LineMirror();
         }
 
         async public Task<String> GetVersionManifest()
         {
-            return await client.GetStringAsync(downloadSource.VersionManifest);
+            return await s_client.GetStringAsync(_downloadSource.VersionManifest);
         }
 
-        public (List<VersionDownload> normal, List<VersionDownload> alpha, List<VersionDownload> beta) ManifestParse(String manifest)
+        public (List<DVersion> normal, List<DVersion> alpha, List<DVersion> beta) ParseManifest(String manifest)
         {
             JsonDocument document = JsonDocument.Parse(manifest);
-            List<VersionDownload> normal = new List<VersionDownload>();
-            List<VersionDownload> alpha = new List<VersionDownload>();
-            List<VersionDownload> beta = new List<VersionDownload>();
+            List<DVersion> normal = new List<DVersion>();
+            List<DVersion> alpha = new List<DVersion>();
+            List<DVersion> beta = new List<DVersion>();
             JsonElement latest = document.RootElement.GetProperty("latest");
             // Parse versions
             JsonElement versions = document.RootElement.GetProperty("versions");
@@ -53,52 +58,52 @@ namespace LMC.Minecraft
                 string url = version.GetProperty("url").GetString();
                 string time = version.GetProperty("time").GetString();
                 string releaseTime = version.GetProperty("releaseTime").GetString();
-                VersionDownload verd;
+                DVersion verd;
                 if (type.Equals("snapshot")) {
-                    verd = new VersionDownload(id, 1, url, time, releaseTime);
+                    verd = new DVersion(id, 1, url, time, releaseTime);
                     normal.Add(verd);
                 }
                 else if (type.Equals("release"))
                 {
-                    verd = new VersionDownload(id, 0, url, time, releaseTime);
+                    verd = new DVersion(id, 0, url, time, releaseTime);
                     normal.Add(verd);
                 }
                 else if (type.Equals("old_alpha")) {
-                    verd = new VersionDownload(id, 3, url, time, releaseTime);
+                    verd = new DVersion(id, 3, url, time, releaseTime);
                     alpha.Add(verd);
                 }
                 else if (type.Equals("old_beta")) {
-                    verd = new VersionDownload(id, 2, url, time, releaseTime);
+                    verd = new DVersion(id, 2, url, time, releaseTime);
                     beta.Add(verd);
                 }
                 else
                 {
-                    logger.warn("Found new unknown version type: " + type);
+                    _logger.Warn("Found new unknown version type: " + type);
                     continue;
                 }
             }
             return (normal, alpha, beta);
         }
-        async public Task DownloadVersionJsonVanilla(VersionDownload version, String name)
+        async public Task DownloadVersionJsonVanilla(DVersion version, String name)
         {
             string json;
-            using (var response = await client.GetAsync(version.url))
+            using (var response = await s_client.GetAsync(version.Url))
             {
                 response.EnsureSuccessStatusCode();
                 json = await response.Content.ReadAsStringAsync();
             }
-            json = json.Replace($"\"id\": \"{version.id}\"", $"\"id\": \"{name}\"");
-            Directory.CreateDirectory(gamePath + $"/versions/{name}");
-            File.Create(gamePath + $"/versions/{name}/{name}.json").Close();
+            json = json.Replace($"\"id\": \"{version.Id}\"", $"\"id\": \"{name}\"");
+            Directory.CreateDirectory(GamePath + $"/versions/{name}");
+            File.Create(GamePath + $"/versions/{name}/{name}.json").Close();
             json.Replace("\r\n", "\n");
-            File.WriteAllText(gamePath + $"/versions/{name}/{name}.json", json);
+            File.WriteAllText(GamePath + $"/versions/{name}/{name}.json", json);
         }
 
-        async public Task<(List<string> forges, List<string> fabs, List<string> opts)> GetForgeFabricOptifineVersionList(string McVersion)
+        async public Task<(List<string> forges, List<string> fabs, List<string> opts)> GetForgeFabricOptifineVersionList(string mcVersion)
         {
             //forge
             string json;
-            using (var response = await client.GetAsync(downloadSource.ForgeSupportedMc))
+            using (var response = await s_client.GetAsync(_downloadSource.ForgeSupportedMc))
             {
                 response.EnsureSuccessStatusCode();
                 json = await response.Content.ReadAsStringAsync();
@@ -107,9 +112,9 @@ namespace LMC.Minecraft
             JsonElement element = document.RootElement;
             string[] versions = JsonSerializer.Deserialize<string[]>(json);
             List<string> forges = new List<string>();
-            if(Array.Exists(versions, version => version == McVersion))
+            if(Array.Exists(versions, version => version == mcVersion))
             {
-                using (var response = await client.GetAsync(downloadSource.ForgeListViaMcVer.Replace("{mcversion}",McVersion)))
+                using (var response = await s_client.GetAsync(_downloadSource.ForgeListViaMcVer.Replace("{mcversion}",mcVersion)))
                 {
                     response.EnsureSuccessStatusCode();
                     json = await response.Content.ReadAsStringAsync();
@@ -126,7 +131,7 @@ namespace LMC.Minecraft
                 forges.Add("N");
             }
             //optifine
-            using (var response = await client.GetAsync(downloadSource.OptifineListViaMcVer.Replace("{mcversion}",McVersion)))
+            using (var response = await s_client.GetAsync(_downloadSource.OptifineListViaMcVer.Replace("{mcversion}",mcVersion)))
             {
                 response.EnsureSuccessStatusCode();
                 json = await response.Content.ReadAsStringAsync();
@@ -146,7 +151,7 @@ namespace LMC.Minecraft
             }
             //fabric
             List<string> fabs = new List<string>();
-            using (var response = await client.GetAsync(downloadSource.FabricManifest))
+            using (var response = await s_client.GetAsync(_downloadSource.FabricManifest))
             {
                 response.EnsureSuccessStatusCode();
                 json = await response.Content.ReadAsStringAsync();
@@ -156,7 +161,7 @@ namespace LMC.Minecraft
             foreach (JsonElement el in document.RootElement.GetProperty("game").EnumerateArray())
             {
                 string version = el.GetProperty("version").GetString();
-                if (version.Equals(McVersion))
+                if (version.Equals(mcVersion))
                 {
                     isEnable = true;
                     break;

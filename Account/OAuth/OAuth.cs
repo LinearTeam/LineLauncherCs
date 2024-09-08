@@ -18,81 +18,69 @@ namespace LMC.Account.OAuth
 {
     public class OAuth
     {
-        private String loginurl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=1cbfda79-fc84-47f9-8110-f924da9841ec&response_type=code&redirect_uri=http://127.0.0.1:40935&response_mode=query&scope=XboxLive.offline_access";
-        private Logger logger = new Logger("OA");
-        static private bool isOaIng = false;
-        async public Task<(int done, Account account,string refreshtoken)> startOA()
+        private String _loginUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=1cbfda79-fc84-47f9-8110-f924da9841ec&response_type=code&redirect_uri=http://127.0.0.1:40935&response_mode=query&scope=XboxLive.offline_access";
+        private Logger _logger = new Logger("OA");
+        private static bool s_isOaIng = false;
+        async public Task<(int done, Account account,string refreshtoken)> StartOA()
         {
 
             HttpListener listener = new HttpListener();
             try
             {
-                var t = await stepOne(listener);
+                var t = await StepOne(listener);
                 listener.Stop();
                 return (0, t.account, t.refreshtoken); 
             } catch(Exception e) {
-                logger.warn(e.Message);    
+                _logger.Warn(e.Message);    
                 listener.Stop();
                 return (1,null,null); 
             };
         }
 
-        async public static Task oa(System.Windows.Controls.Button b)
+        public async static Task OA()
         {
-            if(isOaIng == true)
+            if(s_isOaIng == true)
             {
-                var confirmDialogc = new ContentDialog(MainWindow.cdp);
-
-                confirmDialogc.SetCurrentValue(ContentDialog.TitleProperty, MainWindow.i18NTools.getString("lmc.messages.msastart.title"));
-                confirmDialogc.SetCurrentValue(ContentControl.ContentProperty, MainWindow.i18NTools.getString("lmc.messages.msastart.logging"));
-                confirmDialogc.SetCurrentValue(ContentDialog.CloseButtonTextProperty, MainWindow.i18NTools.getString("lmc.messages.continue"));
-
-                await confirmDialogc.ShowAsync();
+                await MainWindow.ShowMsgBox(MainWindow.I18NTools.GetString("lmc.messages.msastart.title"), MainWindow.I18NTools.GetString("lmc.messages.msastart.logging"), MainWindow.I18NTools.GetString("lmc.messages.continue"));
                 return;
             }
-            isOaIng = true;
-            var confirmDialog = new ContentDialog(MainWindow.cdp);
+            s_isOaIng = true;
+            
+            //await MainWindow.showMsgBox(MainWindow.i18NTools.getString("lmc.messages.msastart.title"), MainWindow.i18NTools.getString("lmc.messages.msastart.msg"), MainWindow.i18NTools.getString("lmc.messages.continue"));
 
-            confirmDialog.SetCurrentValue(ContentDialog.TitleProperty, MainWindow.i18NTools.getString("lmc.messages.msastart.title"));
-            confirmDialog.SetCurrentValue(ContentControl.ContentProperty, MainWindow.i18NTools.getString("lmc.messages.msastart.msg"));
-            confirmDialog.SetCurrentValue(ContentDialog.CloseButtonTextProperty, MainWindow.i18NTools.getString("lmc.messages.continue"));
-
-            await confirmDialog.ShowAsync();
-
-            MainWindow.infobar.Message = MainWindow.i18NTools.getString("lmc.messages.logging");
-            MainWindow.infobar.IsOpen = true;
-            MainWindow.infobar.IsClosable = false;
-            MainWindow.infobar.Severity = InfoBarSeverity.Warning;
-            MainWindow.mnv.Navigate(typeof(AccountPage));
+            MainWindow.InfoBar.Message = MainWindow.I18NTools.GetString("lmc.messages.logging");
+            MainWindow.InfoBar.IsOpen = true;
+            MainWindow.InfoBar.IsClosable = false;
+            MainWindow.InfoBar.Severity = InfoBarSeverity.Warning;
+            MainWindow.MainNagView.Navigate(typeof(AccountPage));
             OAuth oa = new OAuth();
-            var t = await oa.startOA();
+            var t = await oa.StartOA();
             if (t.done == 0)
             {
                 string rt = t.refreshtoken;
                 LMC.Account.Account a = t.account;
-                await AccountManager.addAccount(a, rt);
-                var doneLoginDialog = new ContentDialog(MainWindow.cdp);
-                MainWindow.infobar.Severity = InfoBarSeverity.Success;
-                MainWindow.infobar.Message = MainWindow.i18NTools.getString("lmc.messages.msastart.done").Replace("${uuid}", a.uuid).Replace("${id}", a.id);
-                MainWindow.infobar.IsClosable = true;
-                isOaIng = false;
+                await AccountManager.AddAccount(a, rt);
+                MainWindow.InfoBar.Severity = InfoBarSeverity.Success;
+                MainWindow.InfoBar.Message = MainWindow.I18NTools.GetString("lmc.messages.msastart.done").Replace("${uuid}", a.Uuid).Replace("${id}", a.Id);
+                MainWindow.InfoBar.IsClosable = true;
+                s_isOaIng = false;
                 return;
             }
-            MainWindow.infobar.Severity = InfoBarSeverity.Error;
-            MainWindow.infobar.Message = MainWindow.i18NTools.getString("lmc.messages.msastart.error");
-            MainWindow.infobar.IsClosable = true;
-            isOaIng = false;
+            MainWindow.InfoBar.Severity = InfoBarSeverity.Error;
+            MainWindow.InfoBar.Message = MainWindow.I18NTools.GetString("登录失败，请检查网络连接或反馈此问题！");
+            MainWindow.InfoBar.IsClosable = true;
+            s_isOaIng = false;
         }
 
-        async public Task<(Account account,string refreshtoken)> stepOne(HttpListener listener)
+        async private Task<(Account account,string refreshtoken)> StepOne(HttpListener listener)
         {
-            logger.info("MSL step 1");
+            _logger.Info("MSL step 1");
             string url = "http://127.0.0.1:40935/";
-            System.Diagnostics.Process.Start("explorer.exe", $"\"{loginurl}\"");
+            System.Diagnostics.Process.Start("explorer.exe", $"\"{_loginUrl}\"");
 
             listener.Prefixes.Add(url);
             listener.Start();
-            logger.info("Listening...");
+            _logger.Info("Listening...");
 
             HttpListenerContext context = await listener.GetContextAsync();
             HttpListenerRequest request = context.Request;
@@ -101,7 +89,7 @@ namespace LMC.Account.OAuth
             if (request.QueryString["code"] != null)
             {
                 string code = request.QueryString["code"];
-                string responseString = $"<html><body><center><h1>{MainWindow.i18NTools.getString("lmc.msastart.responecodedone")}</h1></center></body></html>";
+                string responseString = $"<html><body><center><h1>{MainWindow.I18NTools.GetString("lmc.msastart.responecodedone")}</h1></center></body></html>";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -109,22 +97,22 @@ namespace LMC.Account.OAuth
                 System.IO.Stream output = response.OutputStream;
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
-                logger.info("Server stopped.");
-                logger.info("MSL step 2");
-                var t = await stepTwo(code);
+                _logger.Info("Server stopped.");
+                _logger.Info("MSL step 2");
+                var t = await StepTwo(code);
                 if (!t.haveMc)
                 {
                     throw new Exception("Do not have mc");
                 }
                 Account a = new Account();
-                a.accessToken = t.mcatoken;
-                a.uuid = t.uuid;
-                a.id = t.name;
+                a.AccessToken = t.mcatoken;
+                a.Uuid = t.uuid;
+                a.Id = t.name;
                 return (a, t.refreshtoken);
             }
             else
             {
-                string responseString = $"<html><body><center><h1>{MainWindow.i18NTools.getString("lmc.msastart.responecodeerror")}</h1><center></body></html>";
+                string responseString = $"<html><body><center><h1>{MainWindow.I18NTools.GetString("lmc.msastart.responecodeerror")}</h1><center></body></html>";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -132,11 +120,11 @@ namespace LMC.Account.OAuth
                 System.IO.Stream output = response.OutputStream;
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
-                logger.warn("MSL Error:no code");
+                _logger.Warn("MSL Error:no code");
                 throw new Exception("No code : " + request.ToString());
             }
         }
-        async public Task<(string uuid, string name, string mcatoken, string refreshtoken,bool haveMc)> stepTwo(string code)
+        async public Task<(string uuid, string name, string mcatoken, string refreshtoken,bool haveMc)> StepTwo(string code)
         {
             string url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
             var parameters = new Dictionary<string, string>
@@ -151,15 +139,15 @@ namespace LMC.Account.OAuth
             string accesstoken = GetValueFromJson(context, "access_token");
             string refreshtoken = GetValueFromJson(context, "refresh_token");
             
-            logger.info($"MSL step 3");
-            var t = await stepThree(accesstoken);
+            _logger.Info($"MSL step 3");
+            var t = await StepThree(accesstoken);
             if(t.name != null)
             {
                 return (t.uuid, t.name, t.mcatoken, refreshtoken, true);
             }
             return (null, null, null, null, false);
         }
-        async public Task<List<string>> refreshToken(string rtoken)
+        async public Task<(string accessToken, string refreshToken)> RefreshToken(string rtoken)
         {
             string url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
             var parameters = new Dictionary<string, string>
@@ -170,12 +158,9 @@ namespace LMC.Account.OAuth
                 { "grant_type", "refresh_token"}
             };
             string context = await PostWithParameters(parameters, url, "application/json", "application/x-www-form-urlencoded");
-            List<string> res = new List<string>();
-            res.Add(GetValueFromJson(context, "refresh_token"));
-            res.Add(GetValueFromJson(context, "access_token"));
-            return res;
+            return (GetValueFromJson(context, "access_token"), GetValueFromJson(context, "refresh_token"));
         }
-        async public Task<(string uuid, string name, string mcatoken)> stepThree(string token)
+        async public Task<(string uuid, string name, string mcatoken)> StepThree(string token)
         {
             string json = "{" +
                 "\"Properties\": {" +
@@ -188,11 +173,11 @@ namespace LMC.Account.OAuth
             string url = "https://user.auth.xboxlive.com/user/authenticate";
             string xblres = await PostWithJson(json, url, contenttype, contenttype);
             string t = GetValueFromJson(xblres, "Token");
-            logger.info("MSL step 4");
-            return await stepFour(t);
+            _logger.Info("MSL step 4");
+            return await StepFour(t);
         }
 
-        async public Task<(string uuid, string name, string mcatoken)> stepFour(string tokenth)
+        async public Task<(string uuid, string name, string mcatoken)> StepFour(string tokenth)
         {
             string json = "{" +
                 "\"Properties\": {" +
@@ -205,26 +190,26 @@ namespace LMC.Account.OAuth
             string xstsres = await PostWithJson(json, url, contenttype, contenttype);
             string token = GetValueFromJson(xstsres, "Token");
             string uhs = GetValueFromJson(xstsres, "DisplayClaims.xui[0].uhs");
-            logger.info("MSL step 5");
-            var t = await stepFive(token, uhs);
+            _logger.Info("MSL step 5");
+            var t = await StepFive(token, uhs);
             return t;
         }
-        async public Task<(string uuid,string name,string mcatoken)> stepFive(string tokenf, string uhs)
+        async public Task<(string uuid,string name,string mcatoken)> StepFive(string tokenf, string uhs)
         {
             string json = "{ \"identityToken\": \"XBL3.0 x=" + uhs + $";{tokenf}\"" + "}";
             string url = "https://api.minecraftservices.com/authentication/login_with_xbox";
             string contenttype = "application/json";
             string mjapires = await PostWithJson(json, url, contenttype, contenttype);
             string token = GetValueFromJson(mjapires, "access_token");
-            logger.info("MSL step 6");
-            var t = await stepSix(token);
+            _logger.Info("MSL step 6");
+            var t = await StepSix(token);
             if (t.Item1)
             {
                 return (t.Item2, t.Item3, token);
             }
             else return (null, null,null);
         }
-        async public Task<(bool, string, string)> stepSix(string tokenf)
+        async public Task<(bool, string, string)> StepSix(string tokenf)
         {
             string url = "https://api.minecraftservices.com/entitlements/mcstore";
             string accept = "application/json";

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Management;
 using System.Security.Cryptography;
+
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,47 +10,56 @@ namespace LMC.Basic
 {
     public class Secrets
     {
-        private static string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/DoNotSendThisToAnyone/请勿将此发送给他人/secrets.line";
-        private static LineFileParser lfp = new LineFileParser();
-        private static Logger logger = new Logger("SEC");
+        private static string s_path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/DoNotSendThisToAnyone/请勿将此发送给他人/secrets.line";
+        private static LineFileParser s_lineFileParser = new LineFileParser();
+        private static Logger s_logger = new Logger("SEC");
+        private static string s_cachedCpuId = null;
         static async Task<string> GetCpuIDAsync()
         {
-            
-            return await Task.Run(() =>
+            if (s_cachedCpuId != null) return s_cachedCpuId;
+            string cpuId = string.Empty;
+            try
             {
-                string cpuID = string.Empty;
-                try
+                ManagementClass mc = new ManagementClass("Win32_Processor");
+                ManagementObjectCollection moc = mc.GetInstances();
+                foreach (ManagementObject mo in moc)
                 {
-                    ManagementClass mc = new ManagementClass("Win32_Processor");
-                    ManagementObjectCollection moc = mc.GetInstances();
-                    foreach (ManagementObject mo in moc)
-                    {
-                        cpuID = mo.Properties["ProcessorId"].Value.ToString();
-                    }
-                    moc = null;
-                    mc = null;
-                    return cpuID;
+                    cpuId = mo.Properties["ProcessorId"].Value.ToString();
                 }
-                catch
-                {
-                    return "Unknown";
-                }
-            });
+                moc = null;
+                mc = null;
+                s_cachedCpuId=cpuId;
+                return cpuId;
+            }
+            catch(Exception e)
+            {
+                throw e;
+            }
         }
-        async public static Task write(string section, string key, string value)
+        public static List<string> ReadSections()
+        {
+            return s_lineFileParser.GetSections(s_path);
+        }
+        public static void DeleteSection(string section)
+        {
+            s_lineFileParser.DeleteSection(s_path,section);
+        }
+        async public static Task Write(string section, string key, string value)
         {
             int i = 0;
             string strCpuID = await GetCpuIDAsync();
+            if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
             string totalStr = Encrypt3Des(value, strCpuID);
-            logger.info(i++.ToString());
-            lfp.WriteFile(path, key, totalStr, section);
-            logger.info(i++.ToString());
+            s_logger.Info(i++.ToString());
+            s_lineFileParser.Write(s_path, key, totalStr, section);
+            s_logger.Info(i++.ToString());
         }
-        async public static Task<string> read(string section, string key)
+        async public static Task<string> Read(string section, string key)
         {
             string strCpuID = await GetCpuIDAsync();
-            strCpuID = strCpuID.ToCharArray()[2].ToString() + strCpuID.ToCharArray()[4].ToString() + strCpuID.ToCharArray()[1].ToString() + strCpuID;
-            string enStr = lfp.ReadFile(path, key, section);
+            if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
+            //            strCpuID = strCpuID.ToCharArray()[2].ToString() + strCpuID.ToCharArray()[4].ToString() + strCpuID.ToCharArray()[1].ToString() + strCpuID;
+            string enStr = s_lineFileParser.Read(s_path, key, section);
             if (enStr != string.Empty || enStr != null)
             {
                 string totalStr = Decrypt3Des(enStr, strCpuID);
@@ -76,7 +84,7 @@ namespace LMC.Basic
                 byte[] buffer = Encoding.UTF8.GetBytes(aStrString);
                 return Convert.ToBase64String(desEncrypt.TransformFinalBlock(buffer, 0, buffer.Length));
             }
-            catch (Exception e)
+            catch
             {
                 return string.Empty;
             }
@@ -102,7 +110,7 @@ namespace LMC.Basic
                 result = Encoding.UTF8.GetString(desDecrypt.TransformFinalBlock(buffer, 0, buffer.Length));
                 return result;
             }
-            catch (Exception e)
+            catch
             {
                 return string.Empty;
             }

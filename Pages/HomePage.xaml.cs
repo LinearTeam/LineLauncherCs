@@ -24,13 +24,14 @@ namespace LMC
         public HomePage()
         {
             InitializeComponent();
-            refreshContent();
+//            refreshContent();
         }
+        /*
         public void refreshContent()
         {
-            noticeTitle.Text = MainWindow.i18NTools.getString(noticeTitle.Text);
-            launchButton.Content = MainWindow.i18NTools.getString(launchButton.Content.ToString());
-            if (MainWindow.i18NTools.getLangName().Equals("en_US"))
+            noticeTitle.Text = MainWindow.I18NTools.getString(noticeTitle.Text);
+            launchButton.Content = MainWindow.I18NTools.getString(launchButton.Content.ToString());
+            if (MainWindow.I18NTools.getLangName().Equals("en_US"))
             {
                 noticeTitle.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
                 launchButton.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
@@ -38,5 +39,6 @@ namespace LMC
                 notice.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
             }
         }
+        */
     }
 }

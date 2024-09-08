@@ -11,14 +11,14 @@
       Title="DownloadPage">
 
     <Grid>
-        <CheckBox x:Name="rel" Content="lmc.mainui.downloadpage.releases" Margin="75,47,0,0" VerticalAlignment="Top" Checked="old_Checked" Unchecked="old_Checked"/>
-        <CheckBox x:Name="pre" Content="lmc.mainui.downloadpage.previews" Margin="75,117,0,0" VerticalAlignment="Top" Checked="old_Checked" Unchecked="old_Checked"/>
+        <CheckBox x:Name="rel" Content="正式版" Margin="75,47,0,0" VerticalAlignment="Top" Checked="old_Checked" Unchecked="old_Checked"/>
+        <CheckBox x:Name="pre" Content="快照版" Margin="75,117,0,0" VerticalAlignment="Top" Checked="old_Checked" Unchecked="old_Checked"/>
 <!--#>
         <CheckBox x:Name="spe" Content="lmc.mainui.downloadpage.specials" Margin="75,187,0,0" VerticalAlignment="Top"/>
 -->
-        <CheckBox x:Name="old" Content="lmc.mainui.downloadpage.old" Margin="75,187,0,0" VerticalAlignment="Top" Checked="old_Checked" Unchecked="old_Checked"/>
-        <ListBox x:Name="vlist" Margin="200,31,188,87" Height="350">
+        <CheckBox x:Name="old" Content="远古版" Margin="75,187,0,0" VerticalAlignment="Top" Checked="old_Checked" Unchecked="old_Checked"/>
+        <ListBox x:Name="VersionList" Margin="200,31,188,87" Height="350">
         </ListBox>
-        <ui:Button x:Name="confirm" Appearance="Primary" Margin="75,340,0,0" VerticalAlignment="Top" Height="41" Width="107" Content="lmc.mainui.downloadpage.sure" Click="confirm_Click"/>
+        <ui:Button x:Name="confirm" Appearance="Primary" Margin="75,340,0,0" VerticalAlignment="Top" Height="41" Width="107" Content="确认" Click="confirm_Click"/>
     </Grid>
 </Page>

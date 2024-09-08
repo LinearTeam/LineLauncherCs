@@ -11,10 +11,10 @@
       Title="AccountPage">
     <Grid>
         <ComboBox x:Name="accountList" Margin="10,10,281,0" VerticalAlignment="Top" Height="38" />
-        <controls:Button x:Name="delete" Content="lmc.mainui.accountpage.delete" Margin="556,10,0,0" VerticalAlignment="Top" Height="35" Width="84"/>
-        <controls:Button x:Name="add" Content="lmc.mainui.accountpage.add" Margin="679,10,0,0" VerticalAlignment="Top" Height="35" Width="84" Click="add_Click"/>
+        <controls:Button x:Name="delete" Content="删除账号" Margin="556,10,0,0" VerticalAlignment="Top" Height="35" Width="84" Click="delete_Click"/>
+        <controls:Button x:Name="add" Content="添加账号" Margin="679,10,0,0" VerticalAlignment="Top" Height="35" Width="84" Click="add_Click"/>
         <controls:Image x:Name="playerHead" HorizontalAlignment="Left" Margin="75,179,0,0" VerticalAlignment="Top" Height="128" Width="128" Source="/hutao.jpg"/>
-        <TextBox x:Name="ait" Margin="298,178,107,161" TextWrapping="Wrap" Text="lmc.mainui.accountpage.info" IsEnabled="False"/>   
+        <TextBox x:Name="ait" Margin="298,178,107,161" TextWrapping="Wrap" Text="账号信息" IsEnabled="False"/>   
         <Label x:Name="accountinfo" HorizontalAlignment="Left" Margin="319,220,0,0" VerticalAlignment="Top" Height="64" Width="354"/>
     </Grid>
 </Page>

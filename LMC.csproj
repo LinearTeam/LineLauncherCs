@@ -300,7 +300,7 @@
     <Compile Include="Basic\i18nEditWindow.xaml.cs">
       <DependentUpon>i18nEditWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Basic\i18nTools.cs" />
+    <Compile Include="Basic\I18nTools.cs" />
     <Compile Include="Basic\LineFileParser.cs" />
     <Compile Include="Basic\Logger.cs" />
     <Compile Include="Pages\DownloadCurrentVersionPage.xaml.cs">
@@ -319,8 +319,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Minecraft\DownloadSource.cs" />
-    <Compile Include="Minecraft\GameDownload.cs" />
-    <Compile Include="Minecraft\VersionDownload.cs" />
+    <Compile Include="Minecraft\GameDownloader.cs" />
+    <Compile Include="Minecraft\DVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

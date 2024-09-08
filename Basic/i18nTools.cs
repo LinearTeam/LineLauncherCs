@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LMC.Basic
 {
-    public class i18nTools
+    public class I18nTools
     {
         /*
          *从 0 开始，依次往下
@@ -70,10 +70,11 @@ namespace LMC.Basic
             西班牙语 (智利)    es_CL
          */
            
-        static int lang = 0;
-        static string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/i18n/";
+        private static int s_lang = 0;
+        private static string s_path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/i18n/";
+        private static LineFileParser s_lineFileParser = new LineFileParser();
 
-        private static readonly List<string> locales = new List<string>
+        private static readonly List<string> _locales = new List<string>
         {
             "zh_CN", "zh_TW", "zh_HK", "en_HK", "en_US", "en_GB", "en_WW", "en_CA", "en_AU", "en_IE", "en_FI", "fi_FI",
             "en_DK", "da_DK", "en_IL", "he_IL", "en_ZA", "en_IN", "en_NO", "en_SG", "en_NZ", "en_ID", "en_PH", "en_TH",
@@ -81,38 +82,34 @@ namespace LMC.Basic
             "fr_CA", "es_LA", "es_ES", "es_AR", "es_US", "es_MX", "es_CO", "es_PR", "de_DE", "de_AT", "de_CH", "ru_RU",
             "it_IT", "el_GR", "no_NO", "hu_HU", "tr_TR", "cs_CZ", "sl_SL", "pl_PL", "sv_SE", "es_CL", "Language_Han" //汉化就应该有汉文
         };
-        public string getString(string key)
+        public string GetString(string key)
         {
-            LineFileParser lfp = new LineFileParser();
-            return lfp.ReadFile($"{path + getLangName()}.line",key,"content");
+            return s_lineFileParser.Read($"{s_path + GetLangName()}.line",key,"content");
         }
 
-        public string getString(string key, int lang)
+        public string GetString(string key, int lang)
         {
-            LineFileParser lfp = new LineFileParser();
-            return lfp.ReadFile($"{path + getLangName()}.line", key, "content");
+            return s_lineFileParser.Read($"{s_path + GetLangName(lang)}.line", key, "content");
         }
-        public string getLangName() {
-            return locales[lang];
+        public string GetLangName() {
+            return _locales[s_lang];
         }
-        public string getLangName(int lang)
+        public string GetLangName(int lang)
         {
-            return locales[lang];
+            return _locales[lang];
         }
-        public void setLang(int lang)
+        public void SetLang(int lang)
         {
-            i18nTools.lang = lang;
+            I18nTools.s_lang = lang;
         }
-        public void setString(string key, string value)
+        public void SetString(string key, string value)
         {
-            LineFileParser lfp = new LineFileParser();
-            lfp.WriteFile($"{path + getLangName()}.line", key,value, "content");
+            s_lineFileParser.Write($"{s_path + GetLangName()}.line", key,value, "content");
         }
 
-        public void setString(string key, string value, int lang)
+        public void SetString(string key, string value, int lang)
         {
-            LineFileParser lfp = new LineFileParser();
-            lfp.WriteFile($"./lmc/resources/i18n/{getLangName(lang)}.line", key, value, "content");
+            s_lineFileParser.Write($"./lmc/resources/i18n/{GetLangName(lang)}.line", key, value, "content");
         }
     }
 }
