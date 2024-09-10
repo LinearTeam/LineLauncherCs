@@ -9,6 +9,7 @@ namespace LMC.Basic
     public class I18nTools
     {
         /*
+         * 已废弃
          *从 0 开始，依次往下
             简体中文(中国)        zh_CN
             繁体中文(台湾地区)     zh_TW

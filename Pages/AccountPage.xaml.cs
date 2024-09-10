@@ -16,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace LMC
 {
@@ -26,35 +27,43 @@ namespace LMC
     {
         private static List<Account.Account> s_accounts;
         private static ComboBox s_accountList;
+        private static Logger s_logger = new Logger("AP");
+        private DispatcherTimer _timer;
 
         public AccountPage()
         {
             InitializeComponent();
             s_accountList = accountList;
-            RefreshAccounts();
-/*            refreshContent();
-        }
-        public void refreshContent()
-        {
-            
-            add.Content = MainWindow.I18NTools.getString(add.Content.ToString());
-            delete.Content = MainWindow.I18NTools.getString(delete.Content.ToString());
-            ait.Text = MainWindow.I18NTools.getString(ait.Text.ToString());
-            if (MainWindow.I18NTools.getLangName().Equals("en_US"))
-            {
-                add.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                delete.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                ait.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                accountinfo.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-                accountList.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
-            }
-*/
+            this.Loaded += PageLoaded;
+            /*            refreshContent();
+                    }
+                    public void refreshContent()
+                    {
+
+                        add.Content = MainWindow.I18NTools.getString(add.Content.ToString());
+                        delete.Content = MainWindow.I18NTools.getString(delete.Content.ToString());
+                        ait.Text = MainWindow.I18NTools.getString(ait.Text.ToString());
+                        if (MainWindow.I18NTools.getLangName().Equals("en_US"))
+                        {
+                            add.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                            delete.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                            ait.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                            accountinfo.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                            accountList.FontFamily = new System.Windows.Media.FontFamily("Microsoft Yi Baiti");
+                        }
+            */
         }
 
-        public async static Task RefreshAccounts()
+        private async void PageLoaded(object sender, RoutedEventArgs e)
         {
+            await RefreshAccounts(false);
+        }
+
+        public async static Task RefreshAccounts(bool refresh)
+        {
+            s_logger.Info("Refresh accounts : " + refresh.ToString());
+            s_accounts = await AccountManager.GetAccounts(refresh);
             s_accountList.Items.Clear();
-            s_accounts = await AccountManager.GetAccounts(false);
             foreach (var account in s_accounts)
             {
                 string totalStr = account.Id;
@@ -82,9 +91,20 @@ namespace LMC
         async private void delete_Click(object sender, RoutedEventArgs e)
         {
             if(accountList.SelectedItem!= null) {
-                await AccountManager.DeleteAccount(s_accounts.ElementAt(accountList.SelectedIndex));
+                AccountManager.DeleteAccount(s_accounts.ElementAt(accountList.SelectedIndex));
             }
-            await RefreshAccounts();
+            await RefreshAccounts(false);
+        }
+
+        public static Account.Account GetSelectedAccount()
+        {
+            try
+            {
+                return s_accounts.ElementAt(s_accountList.SelectedIndex);
+            }
+            catch {
+                return null;
+            }
         }
     }
 }

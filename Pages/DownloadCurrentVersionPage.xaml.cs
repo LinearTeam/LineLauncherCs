@@ -52,44 +52,42 @@ namespace LMC.Pages
             }
             */
             verName.Text = CurrentVersion;
-            GameDownloader gameDownloader = new GameDownloader();
-            gameDownloader.Bmclapi();
-            var versionList = await gameDownloader.GetForgeFabricOptifineVersionList(CurrentVersion);
+            var versionList = await MainWindow.GameDownloader.GetForgeFabricOptifineVersionList(CurrentVersion);
             forge.Items.Clear();
             fab.Items.Clear();
             opt.Items.Clear();
-            string ff = MainWindow.I18NTools.GetString("lmc.pages.dcp.failed").Replace("{type}","Forge");
-            string of = MainWindow.I18NTools.GetString("lmc.pages.dcp.failed").Replace("{type}", "Optifine");
-            string bf = MainWindow.I18NTools.GetString("lmc.pages.dcp.failed").Replace("{type}", "Fabric");
+            string ff = "获取Forge版本列表失败！";
+            string of = "获取Optifine版本列表失败！";
+            string bf = "获取Fabric版本列表失败！";
             if (versionList.fabs.First().Equals("N"))
             {
-                bf = MainWindow.I18NTools.GetString("lmc.pages.dcp.notsupp").Replace("{type}", "Fabric");
+                bf = "该版本不支持Fabric！";
             }
             if (versionList.forges.First().Equals("N"))
             {
-                ff = MainWindow.I18NTools.GetString("lmc.pages.dcp.notsupp").Replace("{type}", "Forge");
+                ff = "该版本不支持Forge！";
             }
             if (versionList.opts.First().Equals("N"))
             {
-                of = MainWindow.I18NTools.GetString("lmc.pages.dcp.notsupp").Replace("{type}", "Optifine");
+                of = "该版本不支持Optifine！";
             }
             foreach ( string f in versionList.forges ) 
             {
                 if (f.Equals("N")) continue;
                 forge.Items.Add(f);
-                ff = MainWindow.I18NTools.GetString("lmc.pages.dcp.plzc").Replace("{type}", "Forge");
+                ff = "请选择Forge版本";
             }
             foreach (string f in versionList.fabs)
             {
                 if (f.Equals("N")) continue;
                 fab.Items.Add(f);
-                bf = MainWindow.I18NTools.GetString("lmc.pages.dcp.plzc").Replace("{type}", "Fabric");
+                bf = "请选择Fabric版本";
             }
             foreach (string f in versionList.opts)
             {
                 if (f.Equals("N")) continue;
                 opt.Items.Add(f);
-                of = MainWindow.I18NTools.GetString("lmc.pages.dcp.plzc").Replace("{type}", "Optifine");
+                of = "请选择Optifine版本";
             }
             forge.Items.Insert(0,ff);
             fab.Items.Insert(0,bf);
@@ -100,7 +98,7 @@ namespace LMC.Pages
         }
         async private Task OptTip()
         {
-            await MainWindow.ShowMsgBox("提示", "您正在同时使用Fabric和Optifine，启动器将为您自动安装Optifabric模组以让Fabric兼容Optifine。\n请注意，使用Optifine将导致严重的模组问题，若游戏界面发生任何编码错误等显示问题或模组兼容问题，请先尝试卸载Optifine和Optifabric。", "");
+            await MainWindow.ShowMsgBox("提示", "您正在同时使用Fabric和Optifine，启动器将为您自动安装Optifabric模组以让Fabric兼容Optifine。\n请注意，使用Optifine将导致严重的模组问题，若游戏界面发生任何编码错误等显示问题或模组兼容问题，请先尝试卸载Optifine和Optifabric。", "确认");
         }
         async private void opt_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -177,6 +175,11 @@ namespace LMC.Pages
             }
             validMsg.Content = "版本名不可用，可能因为文件夹已存在，以空格开头、结尾，包含特殊字符（如\\、/、|、\"、:、?等）";
             validMsg.Foreground = new SolidColorBrush(Color.FromScRgb(100, 1, 0, 0));
+        }
+
+        private async void confirm_Click(object sender, RoutedEventArgs e)
+        {
+            await MainWindow.GameDownloader.DownloadGame(CurrentVersion, verName.Text, _isOpt, _isFab, _isForge, (string) opt.SelectedItem, (string)fab.SelectedItem, (string)forge.SelectedItem);
         }
     }
 }

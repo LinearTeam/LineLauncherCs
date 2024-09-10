@@ -12,7 +12,6 @@
         Title="Line Minecraft launCher"
         Height="518" Width="886" Icon="/ico.png" ResizeMode="NoResize" AllowsTransparency="True" WindowStyle="None" >
     <Grid Background="#FF1D1D1D">
-
         <ui:NavigationView PaneDisplayMode="LeftFluent" TabIndex="0"
             IsPaneVisible="True"
             TitleBar="{Binding ElementName=TitleBar, Mode=OneWay}"
@@ -77,5 +76,6 @@
         <Label Content="Line Minecraft launCher" HorizontalAlignment="Left" Margin="78,15,0,0" VerticalAlignment="Top"/>
         <ui:InfoBar x:Name="ib" Title="" Message="" Margin="70,450,0,0" Height="120" Width="750"/>
         <ContentPresenter x:Name="ContentDialogPresenter" Grid.Row="0"/>
+        <controls:Button x:Name="dipButton" Content="下载进度" Margin="1,404,0,0" VerticalAlignment="Top" Click="dipButton_Click"/>
     </Grid>
 </Window>

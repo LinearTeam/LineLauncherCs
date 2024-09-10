@@ -19,7 +19,7 @@ namespace LMC.Minecraft
         private string _versionManifestV2 = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
         private string _launcherMeta = "https://launchermeta.mojang.com/";
         private string _launcher = "https://launcher.mojang.com/";
-        private string _resourcesDownload = "http://resources.download.minecraft.net";
+        private string _resourcesDownload = "https://resources.download.minecraft.net";
         private string _libraries = "https://libraries.minecraft.net/";
         private string _mojangJava = "https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json";
         private string _forge = "https://files.minecraftforge.net/maven";
@@ -59,7 +59,7 @@ namespace LMC.Minecraft
             string versionManifestV2 = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
             string launcherMeta = "https://launchermeta.mojang.com/",
             string launcher = "https://launcher.mojang.com/",
-            string resourcesDownload = "http://resources.download.minecraft.net",
+            string resourcesDownload = "https://resources.download.minecraft.net",
             string libraries = "https://libraries.minecraft.net/",
             string mojangJava = "https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json",
             string forge = "https://files.minecraftforge.net/maven",
@@ -115,8 +115,8 @@ namespace LMC.Minecraft
         {
             VersionManifest = "https://lm.icecreamteam.win:440/mc/game/version_manifest.json";
             VersionManifestV2 = "http://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
-            LauncherMeta = "https:/lm.icecreamteam.win:440/launchermeta/";
-            Launcher = "https:/lm.icecreamteam.win:440/launcher/";
+            LauncherMeta = "https://lm.icecreamteam.win:440/launchermeta/";
+            Launcher = "https://lm.icecreamteam.win:440/launcher/";
             ResourcesDownload = "https://lm.icecreamteam.win:440/assets";
             Libraries = "https://lm.icecreamteam.win:440/libraries";
             MojangJava = "https://bmclapi2.bangbang93.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json";

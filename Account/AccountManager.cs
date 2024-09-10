@@ -18,23 +18,23 @@ namespace LMC.Account
         {
             if(account.Type == AccountType.MSA)
             {
-                await Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "refresh_token", refreshToken);
-                await Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "id", account.Id);
+                Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "refresh_token", refreshToken);
+                Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "id", account.Id);
             }
             if (account.Type == AccountType.AUTHLIB) {
-                await Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "authServer", account.AuthLib_authServer);
-                await Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "authPassword", account.AuthLib_password);
-                await Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "authAccount", account.AuthLib_account);
-                await Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "id", account.Id);
+                Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "authServer", account.AuthLib_authServer);
+                Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "authPassword", account.AuthLib_password);
+                Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "authAccount", account.AuthLib_account);
+                Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "id", account.Id);
             }
             if (account.Type == AccountType.OFFLINE)
             {
-                await Secrets.Write("acc_" + account.Id + "_" + account.Type, "id", account.Id);
+                Secrets.Write("acc_" + account.Id + "_" + account.Type, "id", account.Id);
             }
-            await AccountPage.RefreshAccounts();
+            await AccountPage.RefreshAccounts(false);
         }
 
-        async public static Task DeleteAccount(Account account)
+        public static void DeleteAccount(Account account)
         {
             string section = null;
             if (account.Type == AccountType.MSA)
@@ -52,11 +52,6 @@ namespace LMC.Account
             Secrets.DeleteSection(section);
         }
 
-        async public static Task DeleteAccount(string id)
-        {
-            string section = null;
-            Secrets.DeleteSection(section);
-        }
 
         async public static Task<List<Account>> GetAccounts(bool refresh)
         {
@@ -79,16 +74,16 @@ namespace LMC.Account
                     account.Type = type; 
                     if (type==AccountType.OFFLINE)
                     {
-                        account.Id = section.Substring(4).Replace("_OFFLINE","");
+                        account.Id = Secrets.Read(section, "id");
                         accounts.Add(account);
                         continue;
                     }
                     if(type==AccountType.AUTHLIB)
                     {
-                        account.AuthLib_authServer = await Secrets.Read(section, "authServer");
-                        account.AuthLib_password = await Secrets.Read(section, "authPassword");
-                        account.AuthLib_account= await Secrets.Read(section, "authAccount");
-                        account.Id = await Secrets.Read(section, "id");
+                        account.AuthLib_authServer = Secrets.Read(section, "authServer");
+                        account.AuthLib_password = Secrets.Read(section, "authPassword");
+                        account.AuthLib_account= Secrets.Read(section, "authAccount");
+                        account.Id = Secrets.Read(section, "id");
                         account.Uuid = section.Substring(4).Replace("_AUTHLIB", "");
                         accounts.Add(account);
                         continue;
@@ -97,13 +92,13 @@ namespace LMC.Account
                     {
                         if (refresh)
                         {
-                            string refreshToken = await Secrets.Read(section, "refresh_token");
+                            string refreshToken = Secrets.Read(section, "refresh_token");
                             OAuth.OAuth oa = new OAuth.OAuth();
                             var tokens = await oa.RefreshToken(refreshToken);
-                            await Secrets.Write(section, "refresh_token", tokens.refreshToken);
+                            Secrets.Write(section, "refresh_token", tokens.refreshToken);
                             account.AccessToken = tokens.accessToken;
                         }
-                        account.Id = await Secrets.Read(section, "id");
+                        account.Id = Secrets.Read(section, "id");
                         account.Uuid = section.Substring(4).Replace("_MSA", "");
                         accounts.Add(account);
                     }

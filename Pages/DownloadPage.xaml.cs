@@ -28,13 +28,10 @@ namespace LMC
         public DownloadPage()
         {
             InitializeComponent();
-            Task.Run(async () => await RefreshContent());
         }
-        async public Task ParseManifest()
+        public async static Task ParseManifest()
         {
-            GameDownloader gameDownloader = new GameDownloader();
-            gameDownloader.LineMirror();
-            Versions = gameDownloader.ParseManifest(await gameDownloader.GetVersionManifest());
+            Versions = MainWindow.GameDownloader.ParseManifest(await MainWindow.GameDownloader.GetVersionManifest());
         }
         async public Task RefreshContent()
         {
@@ -55,12 +52,13 @@ namespace LMC
   */
             await ParseManifest();    
         }
-        private void RefreshVersionList()
+        private async Task RefreshVersionList()
         {
             bool isOld = (bool)old.IsChecked;
             bool isPre = (bool)pre.IsChecked;
             bool isRel = (bool)rel.IsChecked;
             List<DVersion> res = new List<DVersion>();
+            if(Versions.normal == null || Versions.beta == null || Versions.alpha == null) await ParseManifest();
             foreach (DVersion ver in Versions.normal)
             {
                 if (isRel && ver.Type == 0)
@@ -98,7 +96,7 @@ namespace LMC
             {
                 try
                 {
-                    RefreshVersionList();
+                    await RefreshVersionList();
                     return;
                 }
                 catch(Exception ex) { 

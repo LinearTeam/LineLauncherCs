@@ -1,5 +1,6 @@
 ﻿using LMC.Basic;
 using LMC.Minecraft;
+using LMC.Pages;
 using System;
 using System.IO;
 using System.Net;
@@ -19,34 +20,37 @@ namespace LMC
     /// </summary>
     public partial class MainWindow : Window
     {
-        
+        public static GameDownloader GameDownloader = new GameDownloader();
         public static InfoBar InfoBar;
         public static ContentPresenter ContentPre;
         public static NavigationView MainNagView;
         public static I18nTools I18NTools = new I18nTools();
+        public static bool RunningTask = false;
+        public static string LauncherVersion = "1.0.0";
         private Logger _logger;
         private LineFileParser _lineFileParser = new LineFileParser();
+
         public MainWindow()
         {
-            Directory.CreateDirectory("./lmc/");
-            Directory.CreateDirectory("./lmc/logs");
-            File.Create("./lmc/logs/latest.log").Close();
-            if (string.IsNullOrEmpty(_lineFileParser.Read("./lmc/main.line", "logN", "main"))){
+            Directory.CreateDirectory("./LMC/");
+            Directory.CreateDirectory("./LMC/logs");
+            File.Create("./LMC/logs/latest.log").Close();
+            if (string.IsNullOrEmpty(_lineFileParser.Read("./LMC/main.line", "logN", "main"))){
                 Logger.LogNum = "1";
-                _lineFileParser.Write("./lmc/main.line", "logN", "1", "main");
+                _lineFileParser.Write("./LMC/main.line", "logN", "1", "main");
             }   
             else
             {
-                if (int.Parse(_lineFileParser.Read("./lmc/main.line", "logN", "main")) != 5)
+                if (int.Parse(_lineFileParser.Read("./LMC/main.line", "logN", "main")) != 5)
                 {
-                    string logN = (int.Parse(_lineFileParser.Read("./lmc/main.line", "logN", "main")) + 1).ToString();
+                    string logN = (int.Parse(_lineFileParser.Read("./LMC/main.line", "logN", "main")) + 1).ToString();
                     Logger.LogNum = logN;
-                    _lineFileParser.Write("./lmc/main.line", "logN", logN, "main");
+                    _lineFileParser.Write("./LMC/main.line", "logN", logN, "main");
                 }
                 else
                 {
                     Logger.LogNum = "1";
-                    _lineFileParser.Write("./lmc/main.line", "logN", "1", "main");
+                    _lineFileParser.Write("./LMC/main.line", "logN", "1", "main");
                 }
             }
             
@@ -83,13 +87,12 @@ namespace LMC
 
         private void WindowRendered(object sender, EventArgs e)
         {
-            Window window = new i18nEditWindow();
-            window.Owner = this;
-            window.Show();
             MainNagView = nagv;
-            nagv.Navigate(typeof(LMC.HomePage));
             ContentPre = ContentDialogPresenter;
             InfoBar = ib;
+            Secrets.GetCpuIDAsync();
+            nagv.Navigate(typeof(LMC.HomePage));
+            GameDownloader.LineMirror();
         }
         /*
         private void refreshUiContent()
@@ -140,6 +143,11 @@ namespace LMC
             confirmDialog.SetCurrentValue(ContentProperty, content);
             confirmDialog.ButtonClicked += primaryButtonClicked;
             await confirmDialog.ShowAsync();
+        }
+
+        private void dipButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainNagView.Navigate(typeof(DownloadingPage));
         }
     }
 }

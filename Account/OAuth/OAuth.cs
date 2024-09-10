@@ -41,14 +41,14 @@ namespace LMC.Account.OAuth
         {
             if(s_isOaIng == true)
             {
-                await MainWindow.ShowMsgBox(MainWindow.I18NTools.GetString("lmc.messages.msastart.title"), MainWindow.I18NTools.GetString("lmc.messages.msastart.logging"), MainWindow.I18NTools.GetString("lmc.messages.continue"));
+                await MainWindow.ShowMsgBox("提示", "你正在进行一个微软登录操作，请勿重复登录", "确认");
                 return;
             }
             s_isOaIng = true;
             
             //await MainWindow.showMsgBox(MainWindow.i18NTools.getString("lmc.messages.msastart.title"), MainWindow.i18NTools.getString("lmc.messages.msastart.msg"), MainWindow.i18NTools.getString("lmc.messages.continue"));
 
-            MainWindow.InfoBar.Message = MainWindow.I18NTools.GetString("lmc.messages.logging");
+            MainWindow.InfoBar.Message = "正在进行微软登录...";
             MainWindow.InfoBar.IsOpen = true;
             MainWindow.InfoBar.IsClosable = false;
             MainWindow.InfoBar.Severity = InfoBarSeverity.Warning;
@@ -61,13 +61,13 @@ namespace LMC.Account.OAuth
                 LMC.Account.Account a = t.account;
                 await AccountManager.AddAccount(a, rt);
                 MainWindow.InfoBar.Severity = InfoBarSeverity.Success;
-                MainWindow.InfoBar.Message = MainWindow.I18NTools.GetString("lmc.messages.msastart.done").Replace("${uuid}", a.Uuid).Replace("${id}", a.Id);
+                MainWindow.InfoBar.Message = $"微软登录成功！   Id : {a.Id}   Uuid : {a.Uuid}";;
                 MainWindow.InfoBar.IsClosable = true;
                 s_isOaIng = false;
                 return;
             }
             MainWindow.InfoBar.Severity = InfoBarSeverity.Error;
-            MainWindow.InfoBar.Message = MainWindow.I18NTools.GetString("登录失败，请检查网络连接或反馈此问题！");
+            MainWindow.InfoBar.Message = "登录失败，请检查网络连接或反馈此问题！";
             MainWindow.InfoBar.IsClosable = true;
             s_isOaIng = false;
         }
@@ -89,7 +89,7 @@ namespace LMC.Account.OAuth
             if (request.QueryString["code"] != null)
             {
                 string code = request.QueryString["code"];
-                string responseString = $"<html><body><center><h1>{MainWindow.I18NTools.GetString("lmc.msastart.responecodedone")}</h1></center></body></html>";
+                string responseString = "<html><body><center><h1>您已登录您的微软账号至Line Launcher，可以关闭此界面。</h1></center></body></html>";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -112,7 +112,7 @@ namespace LMC.Account.OAuth
             }
             else
             {
-                string responseString = $"<html><body><center><h1>{MainWindow.I18NTools.GetString("lmc.msastart.responecodeerror")}</h1><center></body></html>";
+                string responseString = "<html><body><center><h1>登录失败，请重试或提交反馈！</h1><center></body></html>";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -233,7 +233,7 @@ namespace LMC.Account.OAuth
             }
         }
 
-        private string GetValueFromJson(string jsonString, string path)
+        public static string GetValueFromJson(string jsonString, string path)
         {
             using (JsonDocument document = JsonDocument.Parse(jsonString))
             {

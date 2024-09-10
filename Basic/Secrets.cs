@@ -14,7 +14,7 @@ namespace LMC.Basic
         private static LineFileParser s_lineFileParser = new LineFileParser();
         private static Logger s_logger = new Logger("SEC");
         private static string s_cachedCpuId = null;
-        static async Task<string> GetCpuIDAsync()
+        public static string GetCpuIDAsync()
         {
             if (s_cachedCpuId != null) return s_cachedCpuId;
             string cpuId = string.Empty;
@@ -44,19 +44,19 @@ namespace LMC.Basic
         {
             s_lineFileParser.DeleteSection(s_path,section);
         }
-        async public static Task Write(string section, string key, string value)
+        public static void Write(string section, string key, string value)
         {
             int i = 0;
-            string strCpuID = await GetCpuIDAsync();
+            string strCpuID = GetCpuIDAsync();
             if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
             string totalStr = Encrypt3Des(value, strCpuID);
             s_logger.Info(i++.ToString());
             s_lineFileParser.Write(s_path, key, totalStr, section);
             s_logger.Info(i++.ToString());
         }
-        async public static Task<string> Read(string section, string key)
+        public static string Read(string section, string key)
         {
-            string strCpuID = await GetCpuIDAsync();
+            string strCpuID = GetCpuIDAsync();
             if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
             //            strCpuID = strCpuID.ToCharArray()[2].ToString() + strCpuID.ToCharArray()[4].ToString() + strCpuID.ToCharArray()[1].ToString() + strCpuID;
             string enStr = s_lineFileParser.Read(s_path, key, section);

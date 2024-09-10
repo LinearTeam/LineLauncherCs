@@ -20,7 +20,7 @@ namespace LMC.Basic
             this._module = module;
             if (filePath.Equals("not"))
             {
-                filePath = "./lmc/logs/log" + LogNum + ".log";
+                filePath = "./LMC/logs/log" + LogNum + ".log";
             }
             _logFile = filePath;
             _logQueue = new BlockingCollection<string>();
@@ -39,7 +39,7 @@ namespace LMC.Basic
                     if (_logQueue.TryTake(out logEntry, Timeout.Infinite, token))
                     {
                         using (StreamWriter logWriter = new StreamWriter(_logFile, true))
-                        using (StreamWriter latestWriter = new StreamWriter("./lmc/logs/latest.log", true))
+                        using (StreamWriter latestWriter = new StreamWriter("./LMC/logs/latest.log", true))
                         {
                             logWriter.WriteLine(logEntry);
                             latestWriter.WriteLine(logEntry);
@@ -51,16 +51,16 @@ namespace LMC.Basic
             {
                 FlushRemainingLogs();
             }
-            catch
+            catch(Exception ex)
             {
-                Environment.Exit(1);
+                throw ex;
             }
         }
 
         private void FlushRemainingLogs()
         {
             using (StreamWriter logWriter = new StreamWriter(_logFile, true))
-            using (StreamWriter latestWriter = new StreamWriter("./lmc/logs/latest.log", true))
+            using (StreamWriter latestWriter = new StreamWriter("./LMC/logs/latest.log", true))
             {
                 while (_logQueue.TryTake(out string logEntry))
                 {

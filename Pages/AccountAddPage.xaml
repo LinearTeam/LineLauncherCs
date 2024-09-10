@@ -12,7 +12,7 @@
 
     <Grid>
         <controls:Button x:Name="back" Margin="10,10,0,0" VerticalAlignment="Top" Height="50" Width="50" Click="back_Click">
-            <ui:SymbolIcon Symbol="PersonArrowBack48" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" FontSize="30"/>
+            <ui:SymbolIcon Symbol="ArrowStepBack20" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" FontSize="30"/>
         </controls:Button>
         <Slider x:Name="lsl" HorizontalAlignment="Left" Margin="187,419,0,0" VerticalAlignment="Top" Width="378" RenderTransformOrigin="0.5,0.5" IsSnapToTickEnabled="True" Maximum="2" Minimum="1" Value="1" ValueChanged="Slider_ValueChanged" Ticks="1,2"/>
         <TabControl x:Name="ltc" Margin="91,-22,103,76" SelectedIndex="0">
