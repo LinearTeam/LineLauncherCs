@@ -1,5 +1,5 @@
 name: Bug反馈
-description: 发现了一个bug？
+description: 发现了一个bug？(注：如果你是在使用启动器的过程中突然看到此页面，点这个，你的启动器发生了一些未知的错误。也可以查看日志自行解决)
 title: "[Bug] "
 labels: ["bug", "待确认"]
 assignees:
@@ -29,7 +29,7 @@ body:
     id: logs
     attributes:
       label: 日志和附件
-      description: 请上传./lmc/logs/中的所有内容（上传！不是粘贴文本！），如果你有其他想上传的文件也可以在这里上传。
+      description: 请上传./lmc/logs/中的所有内容（上传！不是粘贴文本！），如果你有其他想上传的文件也可以在这里上传。请不要在显示Uploading xxx的时候就点提交！
     validations:
       required: true
   - type: checkboxes
@@ -45,7 +45,7 @@ body:
     id: confirm-net
     attributes:
       label: 是否使用其他启动器尝试过，且其他启动器没有此问题？
-      description: 如果其他启动器中没有此问题，则可能是由于网络等因素导致的错误
+      description: 如果其他启动器中仍有此问题，则可能是由于网络等因素导致的错误
       options:
           - label: 是的，我已经在其他启动器尝试过/我确定是由于启动器而非其他因素导致的
     validations:
