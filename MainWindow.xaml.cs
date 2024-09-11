@@ -90,7 +90,7 @@ namespace LMC
             MainNagView = nagv;
             ContentPre = ContentDialogPresenter;
             InfoBar = ib;
-            Secrets.GetCpuIDAsync();
+            Secrets.GetDeviceCode();
             nagv.Navigate(typeof(LMC.HomePage));
             GameDownloader.LineMirror();
         }

@@ -56,31 +56,34 @@ namespace LMC.Minecraft
         }
 
 
-        private string CalculateFileSHA1(string filePath)
+        public async Task<string> CalculateFileSHA1(string filePath)
         {
-            try
+            return await Task.Run(() =>
             {
-                using (FileStream fileStream = File.OpenRead(filePath))
+                try
                 {
-                    using (SHA1 sha1 = SHA1.Create())
+                    using (FileStream fileStream = File.OpenRead(filePath))
                     {
-                        // 计算哈希值
-                        byte[] hashBytes = sha1.ComputeHash(fileStream);
-
-                        // 将哈希字节数组转换为十六进制字符串
-                        StringBuilder sb = new StringBuilder();
-                        foreach (byte b in hashBytes)
+                        using (SHA1 sha1 = SHA1.Create())
                         {
-                            sb.Append(b.ToString("x2"));
+                            // 计算哈希值
+                            byte[] hashBytes = sha1.ComputeHash(fileStream);
+
+                            // 将哈希字节数组转换为十六进制字符串
+                            StringBuilder sb = new StringBuilder();
+                            foreach (byte b in hashBytes)
+                            {
+                                sb.Append(b.ToString("x2"));
+                            }
+                            return sb.ToString();
                         }
-                        return sb.ToString();
                     }
                 }
-            }
-            catch
-            {
-                return "";
-            }
+                catch
+                {
+                    return "";
+                }
+            });
         }
 
         public async Task DownloadGame(string versionId, string versionName, bool isOptifine, bool isFabric, bool isForge, string optifine = "", string fabric = "", string forge = "")
@@ -186,7 +189,7 @@ namespace LMC.Minecraft
             url = GetValueFromJson(indexJson, "assetIndex.url");
             string sha1 = GetValueFromJson(indexJson, "assetIndex.url");
             path = $"{GamePath}/assets/indexes/{GetValueFromJson(indexJson, "assetIndex.id")}.json";
-            if(!(CalculateFileSHA1(path).ToLower() == sha1.ToLower()))
+            if((await CalculateFileSHA1(path)).ToLower() != sha1.ToLower())
             {
                 libs.Clear();
                 libs.Add(url.Replace("https://piston-meta.mojang.com", _downloadSource.LauncherMeta), path + "|" + sha1);
@@ -200,27 +203,33 @@ namespace LMC.Minecraft
 
             string objects = GetValueFromJson(File.ReadAllText(path), "objects");
             Dictionary<string, string> assets = new Dictionary<string, string>();
-            using (JsonDocument doc = JsonDocument.Parse(objects))
+            await Task.Run(async () =>
             {
-                JsonElement root = doc.RootElement;
-                if (root.ValueKind == JsonValueKind.Object)
+                using (JsonDocument doc = JsonDocument.Parse(objects))
                 {
-                    int parsedFiles = 0;
-                    foreach (JsonProperty property in root.EnumerateObject())
+                    JsonElement root = doc.RootElement;
+                    if (root.ValueKind == JsonValueKind.Object)
                     {
-                        string hash = GetValueFromJson(property.Value.ToString(), "hash");
-                        url = $"{_downloadSource.ResourcesDownload}/{hash.Substring(0, 2)}/{hash}";
-                        path = $"{GamePath}/assets/objects/{hash.Substring(0, 2)}/{hash}|{hash}";
-                        if (File.Exists(path.Split('|')[0]) && CalculateFileSHA1(path.Split()[0]).ToLower() == hash.ToLower())
+                        List<string> verifiedFiles = new List<string>();
+                        int parsedFiles = 0;
+                        foreach (JsonProperty property in root.EnumerateObject())
                         {
-                            continue;
+                            string hash = GetValueFromJson(property.Value.ToString(), "hash");
+                            url = $"{_downloadSource.ResourcesDownload}/{hash.Substring(0, 2)}/{hash}";
+                            path = $"{GamePath}/assets/objects/{hash.Substring(0, 2)}/{hash}|{hash}";
+                            if (verifiedFiles.Contains(hash)) continue;
+                            if (File.Exists(path.Split('|')[0]) && (await CalculateFileSHA1(path.Split()[0])).ToLower() == hash.ToLower())
+                            {
+                                try { verifiedFiles.Add(hash); } catch { }
+                                continue;
+                            }
+                            try { assets.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to assets dict"); }
+                            parsedFiles++;
+                            DownloadingPage.ProProg = $"当前任务进度：    {((double)parsedFiles / root.EnumerateObject().ToArray().Length * 100):0.00}%";
                         }
-                        try { assets.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to assets dict"); }
-                        parsedFiles++;
-                        DownloadingPage.ProProg = $"当前任务进度：    {((double)parsedFiles / root.EnumerateObject().ToArray().Length * 100):0.00}%";                        
                     }
                 }
-            }
+            });
             DownloadingPage.ProProg = "当前任务进度：  100% 已完成";
             DownloadingPage.ProProc = "当前进行中：    下载资源文件";
             DownloadingPage.ProProg = "当前任务进度：  0%";
@@ -255,22 +264,9 @@ namespace LMC.Minecraft
         {
             _remainingFiles = urlPathDictionary.Count;
             _totalFiles = urlPathDictionary.Count;
-            List<Thread> list = new List<Thread>();
-            urlPathDictionary.ForEach((kvp) => {
-                    list.Add(new Thread(async () => await DownloadFileWithSemaphoreAsync(kvp.Key, kvp.Value, defHost, backupHost)));
-            });
-            await Task.Run(() => {
-                foreach (Thread t in list)
-                {
-                    lock (list)
-                    {
-                        if (t != null && (t.ThreadState == System.Threading.ThreadState.Unstarted || t.ThreadState == ThreadState.Suspended))
-                        {
-                            t.Start();
-                        }
-                    }
-                }
-            });
+            await Task.Run(() => urlPathDictionary.AsParallel().ForEach(async (kvp) => {
+                    await DownloadFileWithSemaphoreAsync(kvp.Key, kvp.Value, defHost, backupHost);
+            }));
             
             while (true)
             {
@@ -282,12 +278,9 @@ namespace LMC.Minecraft
         
         private async Task DownloadFileWithSemaphoreAsync(string url, string filePath, string defHost = "", string backupHost = "")
         {
+            GC.Collect();
             int attempt = 0;
-            if (filePath.Contains("17.json"))
-            {
-                attempt++;
-            }
-            string sha1 = filePath.Split('|')[1];
+//            string sha1 = filePath.Split('|')[1];
             filePath = filePath.Split('|')[0];
             while (true)
             {
@@ -298,24 +291,26 @@ namespace LMC.Minecraft
                 attempt++;
                 try
                 {
+                    /*
                     if(File.Exists(filePath))
                     {
-                        string fileSha1 = CalculateFileSHA1(filePath);
+                        string fileSha1 = await CalculateFileSHA1(filePath);
                         if(sha1.ToLower() == fileSha1.ToLower())
                         {
                             Interlocked.Decrement(ref _remainingFiles);
                             DownloadingPage.ProProg = $"当前任务进度：    {(((double)(_totalFiles - _remainingFiles)) / _totalFiles * 100):0.00}%";
                             return;
                         }
-                    }
+                    }*/
                     Directory.CreateDirectory(Directory.GetParent(filePath).FullName);
-                    /*var response = await s_httpClient.GetAsync(url);
+                    s_httpClient.DefaultRequestHeaders.Add("User-Agent", $"LMC/C{MainWindow.LauncherVersion}");
+                    var response = await s_httpClient.GetAsync(url);
                     response.EnsureSuccessStatusCode();
                     using (FileStream fs = File.OpenWrite(filePath))
                     {
                         await response.Content.CopyToAsync(fs);
-                    }*/
-                    var request = (HttpWebRequest) HttpWebRequest.Create(url);
+                    }
+/*                    var request = (HttpWebRequest) HttpWebRequest.Create(url);
                     request.Method = "GET";
                     request.UserAgent = $"LMC/C{MainWindow.LauncherVersion}";
                     request.KeepAlive = false;
@@ -331,7 +326,7 @@ namespace LMC.Minecraft
                             await fs.WriteAsync(buffer, 0, read);
                         }
                     }
-                    Interlocked.Decrement(ref _remainingFiles);
+  */                  Interlocked.Decrement(ref _remainingFiles);
                     DownloadingPage.ProProg = $"当前任务进度：    {(((double)(_totalFiles - _remainingFiles)) / _totalFiles * 100):0.00}%";
                     GC.Collect();
                     break;

@@ -1,10 +1,13 @@
-﻿using System;
+﻿using LMC.Minecraft;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Management;
 using System.Security.Cryptography;
 
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace LMC.Basic
 {
@@ -14,27 +17,87 @@ namespace LMC.Basic
         private static LineFileParser s_lineFileParser = new LineFileParser();
         private static Logger s_logger = new Logger("SEC");
         private static string s_cachedCpuId = null;
-        public static string GetCpuIDAsync()
+        private static string s_cachedBiosId = null;
+        private static string s_cachedMacAddress = null;
+
+        public static string GetWmiInfo(string c, string p)
         {
-            if (s_cachedCpuId != null) return s_cachedCpuId;
-            string cpuId = string.Empty;
+            string res = string.Empty;
             try
             {
-                ManagementClass mc = new ManagementClass("Win32_Processor");
+                ManagementClass mc = new ManagementClass(c);
                 ManagementObjectCollection moc = mc.GetInstances();
                 foreach (ManagementObject mo in moc)
                 {
-                    cpuId = mo.Properties["ProcessorId"].Value.ToString();
+                    try
+                    {
+                        res = mo.Properties[p].Value.ToString();
+                        break;
+                    }
+                    catch { }
                 }
                 moc = null;
                 mc = null;
-                s_cachedCpuId=cpuId;
-                return cpuId;
+                return res;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw e;
             }
+        }
+
+        public static string GetDeviceCode()
+        {
+            List<string> macs = new List<string>();
+            try
+            {
+                string mac = "";
+                ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
+                ManagementObjectCollection moc = mc.GetInstances();
+                foreach (ManagementObject mo in moc)
+                {
+                    try
+                    {
+                        if ((bool)mo["IPEnabled"])
+                        {
+                            mac = mo["MacAddress"].ToString();
+                            macs.Add(mac);
+                        }
+                    }
+                    catch { }
+                }
+                moc = null;
+                mc = null;
+            }
+            catch
+            {}
+            string cpuId = string.IsNullOrEmpty(s_cachedCpuId) ? GetWmiInfo("Win32_Processor","ProcessorId") : s_cachedCpuId;
+            string biosId = string.IsNullOrEmpty(s_cachedBiosId) ? GetWmiInfo("Win32_BIOS", "SerialNumber") + GetWmiInfo("Win32_BIOS", "ReleaseDate") + GetWmiInfo("Win32_BIOS", "SMBIOSBIOSVersion") : s_cachedBiosId;
+            string macAddress = string.IsNullOrEmpty(s_cachedMacAddress) ? string.Empty : s_cachedMacAddress;
+            macs.ForEach(mac => { macAddress += mac; });
+            string hash = string.Empty;
+            s_cachedCpuId = cpuId;
+            s_cachedBiosId = biosId;
+            s_cachedMacAddress = macAddress;
+            var all = new ASCIIEncoding().GetBytes("CML" + cpuId /*+ macAddress*/ + biosId + "LMC");
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                byte[] hashBytes = sha1.ComputeHash(all);
+
+                StringBuilder sb = new StringBuilder();
+                foreach (byte b in hashBytes)
+                {
+                    sb.Append(b.ToString("x2"));
+                }
+                hash = sb.ToString();
+            }
+            int i = 0;
+            while(hash.Length < 16)
+            {
+                hash += hash[i];
+                i++;
+            }
+            return hash.Substring(0,16);
         }
         public static List<string> ReadSections()
         {
@@ -44,75 +107,82 @@ namespace LMC.Basic
         {
             s_lineFileParser.DeleteSection(s_path,section);
         }
+
+        public static async void Backup(string cause)
+        {
+            s_logger.Info("Copying secret file cause:" + cause);
+
+            await Task.Run(() => {File.Delete(Directory.GetParent(s_path).FullName + "/secret_backup.line"); File.Copy(s_path, Directory.GetParent(s_path).FullName + "/secret_backup.line"); });
+            s_lineFileParser.Write(Directory.GetParent(s_path).FullName + "/secret_backup.line", "fromVersion", MainWindow.LauncherVersion, "backup");
+        }
+
         public static void Write(string section, string key, string value)
         {
             int i = 0;
-            string strCpuID = GetCpuIDAsync();
+            string strCpuID = GetDeviceCode();
             if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
-            string totalStr = Encrypt3Des(value, strCpuID);
+            string totalStr = EncryptAes(value, strCpuID);
             s_logger.Info(i++.ToString());
             s_lineFileParser.Write(s_path, key, totalStr, section);
             s_logger.Info(i++.ToString());
         }
         public static string Read(string section, string key)
         {
-            string strCpuID = GetCpuIDAsync();
+            string strCpuID = GetDeviceCode();
             if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
             //            strCpuID = strCpuID.ToCharArray()[2].ToString() + strCpuID.ToCharArray()[4].ToString() + strCpuID.ToCharArray()[1].ToString() + strCpuID;
             string enStr = s_lineFileParser.Read(s_path, key, section);
             if (enStr != string.Empty || enStr != null)
             {
-                string totalStr = Decrypt3Des(enStr, strCpuID);
+                string totalStr = DecryptAes(enStr, strCpuID);
                 return totalStr;
             }
             return null;
         }
-        public static string Encrypt3Des(string aStrString, string aStrKey, CipherMode mode = CipherMode.ECB, string iv = "13654774")
+        public static string EncryptAes(string aStrString, string aStrKey)
         {
-            try
+
+            using (Aes aesAlg = Aes.Create())
             {
-                var des = new TripleDESCryptoServiceProvider
+                aesAlg.Key = Encoding.UTF8.GetBytes(aStrKey);
+                aesAlg.IV = new byte[16]; 
+
+                ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+                using (MemoryStream msEncrypt = new MemoryStream())
                 {
-                    Key = Encoding.UTF8.GetBytes(aStrKey),
-                    Mode = mode
-                };
-                if (mode == CipherMode.CBC)
-                {
-                    des.IV = Encoding.UTF8.GetBytes(iv);
+                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                        {
+                            swEncrypt.Write(aStrString);
+                        }
+                    }
+
+                    return Convert.ToBase64String(msEncrypt.ToArray());
                 }
-                var desEncrypt = des.CreateEncryptor();
-                byte[] buffer = Encoding.UTF8.GetBytes(aStrString);
-                return Convert.ToBase64String(desEncrypt.TransformFinalBlock(buffer, 0, buffer.Length));
-            }
-            catch
-            {
-                return string.Empty;
             }
         }
 
-        public static string Decrypt3Des(string aStrString, string aStrKey, CipherMode mode = CipherMode.ECB, string iv = "13654774")
+        public static string DecryptAes(string aStrString, string aStrKey)
         {
-            try
+            using (Aes aesAlg = Aes.Create())
             {
-                var des = new TripleDESCryptoServiceProvider
+                aesAlg.Key = Encoding.UTF8.GetBytes(aStrKey);
+                aesAlg.IV = new byte[16];
+
+                ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+
+                using (MemoryStream msDecrypt = new MemoryStream(Convert.FromBase64String(aStrString)))
                 {
-                    Key = Encoding.UTF8.GetBytes(aStrKey),
-                    Mode = mode,
-                    Padding = PaddingMode.PKCS7
-                };
-                if (mode == CipherMode.CBC)
-                {
-                    des.IV = Encoding.UTF8.GetBytes(iv);
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                        {
+                            return srDecrypt.ReadToEnd();
+                        }
+                    }
                 }
-                var desDecrypt = des.CreateDecryptor();
-                var result = "";
-                byte[] buffer = Convert.FromBase64String(aStrString);
-                result = Encoding.UTF8.GetString(desDecrypt.TransformFinalBlock(buffer, 0, buffer.Length));
-                return result;
-            }
-            catch
-            {
-                return string.Empty;
             }
         }
     }

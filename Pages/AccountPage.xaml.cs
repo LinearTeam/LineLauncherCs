@@ -5,6 +5,7 @@ using LMC.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -61,25 +62,34 @@ namespace LMC
 
         public async static Task RefreshAccounts(bool refresh)
         {
-            s_logger.Info("Refresh accounts : " + refresh.ToString());
-            s_accounts = await AccountManager.GetAccounts(refresh);
-            s_accountList.Items.Clear();
-            foreach (var account in s_accounts)
+            try
             {
-                string totalStr = account.Id;
-                if(account.Type == AccountType.AUTHLIB)
+                s_logger.Info("Refresh accounts : " + refresh.ToString());
+                s_accounts = await AccountManager.GetAccounts(refresh);
+                s_accountList.Items.Clear();
+                foreach (var account in s_accounts)
                 {
-                    totalStr += " - 第三方";
+                    string totalStr = account.Id;
+                    if (account.Type == AccountType.AUTHLIB)
+                    {
+                        totalStr += " - 第三方";
+                    }
+                    if (account.Type == AccountType.MSA)
+                    {
+                        totalStr += " - 微软";
+                    }
+                    if (account.Type == AccountType.OFFLINE)
+                    {
+                        totalStr += " - 离线";
+                    }
+                    s_accountList.Items.Add(totalStr);
                 }
-                if (account.Type == AccountType.MSA)
-                {
-                    totalStr += " - 微软";
-                }
-                if (account.Type == AccountType.OFFLINE)
-                {
-                    totalStr += " - 离线";
-                }
-                s_accountList.Items.Add(totalStr);
+            }
+            catch(CryptographicException ex)
+            {
+                s_logger.Warn("Failed to refresh account: " + ex.Message + "\n" + ex.StackTrace);
+                Secrets.Backup("Can't refresh account");
+                await MainWindow.ShowMsgBox("提示", "LMC的全局设置（如账号、游戏文件夹列表）等可能由于重装系统、更换硬件等原因导致无法解密，已留下一份备份，请更换回原来的硬件并在 设置 -> 安全设置 -> 导出全局设置 中导出设置，然后在 设置 -> 安全设置 -> 导入全局设置 中导入。若无法找回原来的硬件或是重装系统导致的解密失败，则无法恢复。\n\n注：为啥重装系统会改BIOS和CPU信息？？？ ", "确定");
             }
         }
 

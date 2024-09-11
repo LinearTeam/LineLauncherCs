@@ -53,7 +53,6 @@ namespace LMC.Basic
             }
             catch(Exception ex)
             {
-                throw ex;
             }
         }
 
