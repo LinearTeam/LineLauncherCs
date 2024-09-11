@@ -45,7 +45,7 @@ body:
     id: confirm-net
     attributes:
       label: 是否使用其他启动器尝试过，且其他启动器没有此问题？
-      description: 如果其他启动器中没有此问题，则可能是由于网络等因素导致的错误
+      description: 如果其他启动器中仍有此问题，则可能是由于网络等因素导致的错误
       options:
           - label: 是的，我已经在其他启动器尝试过/我确定是由于启动器而非其他因素导致的
     validations:
