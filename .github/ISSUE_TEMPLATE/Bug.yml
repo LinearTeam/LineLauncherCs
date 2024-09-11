@@ -1,5 +1,5 @@
 name: Bug反馈
-description: 发现了一个bug？
+description: 发现了一个bug？(注：如果你是在使用启动器的过程中突然看到此页面，点这个，你的启动器发生了一些未知的错误。也可以查看日志自行解决)
 title: "[Bug] "
 labels: ["bug", "待确认"]
 assignees:
@@ -29,7 +29,7 @@ body:
     id: logs
     attributes:
       label: 日志和附件
-      description: 请上传./lmc/logs/中的所有内容（上传！不是粘贴文本！），如果你有其他想上传的文件也可以在这里上传。
+      description: 请上传./lmc/logs/中的所有内容（上传！不是粘贴文本！），如果你有其他想上传的文件也可以在这里上传。请不要在显示Uploading xxx的时候就点提交！
     validations:
       required: true
   - type: checkboxes
