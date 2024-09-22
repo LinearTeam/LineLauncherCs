@@ -18,7 +18,6 @@ namespace LMC.Basic
         private static Logger s_logger = new Logger("SEC");
         private static string s_cachedCpuId = null;
         private static string s_cachedBiosId = null;
-        private static string s_cachedMacAddress = null;
 
         public static string GetWmiInfo(string c, string p)
         {
@@ -48,37 +47,12 @@ namespace LMC.Basic
 
         public static string GetDeviceCode()
         {
-            List<string> macs = new List<string>();
-            try
-            {
-                string mac = "";
-                ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
-                ManagementObjectCollection moc = mc.GetInstances();
-                foreach (ManagementObject mo in moc)
-                {
-                    try
-                    {
-                        if ((bool)mo["IPEnabled"])
-                        {
-                            mac = mo["MacAddress"].ToString();
-                            macs.Add(mac);
-                        }
-                    }
-                    catch { }
-                }
-                moc = null;
-                mc = null;
-            }
-            catch
-            {}
+            s_logger.Info("正在获取设备标识符");
             string cpuId = string.IsNullOrEmpty(s_cachedCpuId) ? GetWmiInfo("Win32_Processor","ProcessorId") : s_cachedCpuId;
             string biosId = string.IsNullOrEmpty(s_cachedBiosId) ? GetWmiInfo("Win32_BIOS", "SerialNumber") + GetWmiInfo("Win32_BIOS", "ReleaseDate") + GetWmiInfo("Win32_BIOS", "SMBIOSBIOSVersion") : s_cachedBiosId;
-            string macAddress = string.IsNullOrEmpty(s_cachedMacAddress) ? string.Empty : s_cachedMacAddress;
-            macs.ForEach(mac => { macAddress += mac; });
             string hash = string.Empty;
             s_cachedCpuId = cpuId;
             s_cachedBiosId = biosId;
-            s_cachedMacAddress = macAddress;
             var all = new ASCIIEncoding().GetBytes("CML" + cpuId /*+ macAddress*/ + biosId + "LMC");
             using (SHA1 sha1 = SHA1.Create())
             {

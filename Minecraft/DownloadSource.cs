@@ -96,8 +96,8 @@ namespace LMC.Minecraft
 
         public void Bmclapi()
         {
-            VersionManifest = "http://launchermeta.mojang.com/mc/game/version_manifest.json";
-            VersionManifestV2 = "http://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
+            VersionManifest = "http://bmclapi2.bangbang93.com/mc/game/version_manifest.json";
+            VersionManifestV2 = "http://bmclapi2.bangbang93.com/mc/game/version_manifest_v2.json";
             LauncherMeta = "https://bmclapi2.bangbang93.com";
             Launcher = "https://bmclapi2.bangbang93.com";
             ResourcesDownload = "https://bmclapi2.bangbang93.com/assets";

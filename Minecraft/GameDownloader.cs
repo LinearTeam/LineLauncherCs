@@ -21,6 +21,7 @@ using System.Windows.Media;
 using System.Xml.Linq;
 using static LMC.Account.OAuth.OAuth;
 using Common;
+using LMC.Utils;
 
 namespace LMC.Minecraft
 {
@@ -95,32 +96,33 @@ namespace LMC.Minecraft
             MainWindow.RunningTask = true;
             if (!(isOptifine || isFabric || isForge))
             {
-                _logger.Info($"Downloading new vanilla game: {versionId} , name: {versionName}");
-                await DownloadGame(versionId, versionName);
+                int id = new Random().Next(1000,9999);
+                _logger.Info($"新的原版游戏下载任务: {versionId} , 名称: {versionName}, pid:{id}");
+                await DownloadGame(versionId, versionName,id);
             }
             MainWindow.RunningTask = false;
         }
 
-        async private Task DownloadGame(string versionId, string versionName)
+        async private Task DownloadGame(string versionId, string versionName,int pid)
         {
             MainWindow.MainNagView.Navigate(typeof(DownloadingPage));
             DownloadingPage.ProProc = "当前进行中：    下载原版Json";
             DownloadingPage.ProProg = "当前任务进度：  0%";
             DownloadingPage.ProgressRing.IsIndeterminate = true;
-            _logger.Info("Getting manifest");
+            _logger.Info("获取manifest" + " pid:" + pid);
             string manifest = await GetVersionManifest();
             DownloadingPage.ProProg = "当前任务进度：  30%";
-            _logger.Info("Parsing manifest");
+            _logger.Info("解析manifest" + " pid:" + pid);
             DVersion version = ParseManifest(versionId, manifest);
             string path = $"{GamePath}/versions/{versionName}";
             Directory.CreateDirectory(path);
             //Download Version Json
-            _logger.Info("Downloading vanilla json");
+            _logger.Info("下载原版json" + " pid:" + pid);
             DownloadingPage.ProProg = "当前任务进度：  70%";
             string url = version.Url;
-            _logger.Info("1"); 
+            _logger.Info("1" + " pid:" + pid); 
             string versionIndexJson = await s_client.GetStringAsync(new Uri(url.Replace("https://piston-meta.mojang.com", _downloadSource.LauncherMeta)));
-            _logger.Info("2");
+            _logger.Info("2" + " pid:" + pid);
             JsonNode? jsonNode = JsonNode.Parse(versionIndexJson);
             jsonNode["id"] = versionName;
             versionIndexJson = jsonNode.ToJsonString(new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
@@ -137,12 +139,12 @@ namespace LMC.Minecraft
             lineFileParser.Write($"{path}/LMC/version.line", "Optifine", "N", "loader");
             lineFileParser.Write($"{path}/LMC/version.line", "id", versionId, "base");
             DownloadingPage.ProProg = "当前任务进度：  100% 已完成";
-            _logger.Info("3");
+            _logger.Info("3" + " pid:" + pid);
             //Download libs and version jar
             DownloadingPage.ProProc = "当前进行中：    下载依赖库";
             DownloadingPage.ProProg = "当前任务进度：  0%";
             Directory.CreateDirectory($"{GamePath}/libraries");
-            _logger.Info("4");
+            _logger.Info("4" + " pid:" + pid);
             string indexJson = File.ReadAllText($"{GamePath}/versions/{versionName}/{versionName}.json");
             string librariesStr = GetValueFromJson(indexJson, "libraries");
             JsonArray larr = JsonArray.Parse(librariesStr).AsArray();
@@ -154,18 +156,18 @@ namespace LMC.Minecraft
                 {
                     url = GetValueFromJson(libStr, "downloads.artifact.url").Replace("https://libraries.minecraft.net", _downloadSource.Libraries);
                     path = $"{GamePath}/libraries/{GetValueFromJson(libStr, "downloads.artifact.path")}|{GetValueFromJson(libStr, "downloads.artifact.sha1")}";
-                    try { libs.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to libs dict"); }
+                    try { libs.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to libs dict" + " pid:" + pid); }
                 }
                 if (GetValueFromJson(libStr, "downloads.natives.windows") != null)
                 {
                     libStr = GetValueFromJson(libStr, $"downloads.classifiers.{GetValueFromJson(libStr, "downloads.natives.windows")}");
                     url = GetValueFromJson(libStr, "url").Replace("https://libraries.minecraft.net", _downloadSource.Libraries);
                     path = $"{GamePath}/libraries/{GetValueFromJson(libStr, "path")}|{GetValueFromJson(libStr, "sha1")}";
-                    try { libs.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to libs dict"); }
+                    try { libs.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to libs dict" + " pid:" + pid); }
                 }
 
             }
-            _logger.Info("5"); 
+            _logger.Info("5" + " pid:" + pid); 
             libs.Add(GetValueFromJson(indexJson, "downloads.client.url"), $"{GamePath}/versions/{versionName}/{versionName}.jar|{GetValueFromJson(indexJson, "downloads.client.sha1")}");
             string backup;
             if (_downloadSource.SourceType == 0)
@@ -173,12 +175,12 @@ namespace LMC.Minecraft
                 var source = new DownloadSource();
                 source.Bmclapi();
                 backup = source.Libraries;
-                await DownloadFilesAsync(libs, _downloadSource.Libraries, backup);
+                await DownloadFilesAsync(libs, pid, _downloadSource.Libraries, backup);
             }
             else {
                 var source = new DownloadSource();
                 backup = source.Libraries;
-                await DownloadFilesAsync(libs);
+                await DownloadFilesAsync(libs, pid);
             }
             _logger.Info("6");
             DownloadingPage.ProProg = "当前任务进度：  100% 已完成";
@@ -194,7 +196,7 @@ namespace LMC.Minecraft
                 libs.Clear();
                 libs.Add(url.Replace("https://piston-meta.mojang.com", _downloadSource.LauncherMeta), path + "|" + sha1);
             }
-            await DownloadFilesAsync(libs);
+            await DownloadFilesAsync(libs , pid);
             DownloadingPage.ProProg = "当前任务进度：  100% 已完成";
 
             //Assets Object
@@ -203,7 +205,7 @@ namespace LMC.Minecraft
 
             string objects = GetValueFromJson(File.ReadAllText(path), "objects");
             Dictionary<string, string> assets = new Dictionary<string, string>();
-            await Task.Run(async () =>
+            await Task.Run(() =>
             {
                 using (JsonDocument doc = JsonDocument.Parse(objects))
                 {
@@ -217,13 +219,7 @@ namespace LMC.Minecraft
                             string hash = GetValueFromJson(property.Value.ToString(), "hash");
                             url = $"{_downloadSource.ResourcesDownload}/{hash.Substring(0, 2)}/{hash}";
                             path = $"{GamePath}/assets/objects/{hash.Substring(0, 2)}/{hash}|{hash}";
-                            if (verifiedFiles.Contains(hash)) continue;
-                            if (File.Exists(path.Split('|')[0]) && (await CalculateFileSHA1(path.Split()[0])).ToLower() == hash.ToLower())
-                            {
-                                try { verifiedFiles.Add(hash); } catch { }
-                                continue;
-                            }
-                            try { assets.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to assets dict"); }
+                            try { assets.Add(url, path); } catch { _logger.Warn("无法将" + url + " 添加到资源字典 " + " pid:" + pid); }
                             parsedFiles++;
                             DownloadingPage.ProProg = $"当前任务进度：    {((double)parsedFiles / root.EnumerateObject().ToArray().Length * 100):0.00}%";
                         }
@@ -241,121 +237,171 @@ namespace LMC.Minecraft
                 var source = new DownloadSource();
                 source.Bmclapi();
                 backup = source.ResourcesDownload;
-                await DownloadFilesAsync(assets, _downloadSource.ResourcesDownload, backup);
+                await DownloadFilesAsync(assets, pid, _downloadSource.ResourcesDownload, backup);
             }
             else
             {
                 var source = new DownloadSource();
                 backup = source.ResourcesDownload;
-                await DownloadFilesAsync(assets, _downloadSource.ResourcesDownload, backup);
+                await DownloadFilesAsync(assets, pid, _downloadSource.ResourcesDownload, backup);
             }
 
             var end = DateTime.Now;
-            _logger.Info($"Download assets took {end.Subtract(start).TotalSeconds}s");
+            
+            _logger.Info($"资源文件下载耗时{end.Subtract(start).TotalSeconds}s" + " pid:" + pid);
+            DownloadingPage.ProProc = "当前进行中：    下载版本 " + versionName;
+            DownloadingPage.ProProg = "当前任务进度：  100% 已完成";
+            DownloadingPage.ProgressRing.IsIndeterminate = false;
+            _logger.Info($"版本{versionName}:{versionId}下载已完成");
+            await MainWindow.ShowMsgBox("提示",$"版本 {versionName} 下载已完成。","确定");
         }
-        private static HttpClient s_httpClient = new HttpClient()
-        {
-            Timeout = TimeSpan.FromSeconds(120)
-        };
         private int _remainingFiles; 
         private int _totalFiles; 
         private int _maxRetries = 30;
-        public async Task DownloadFilesAsync(Dictionary<string, string> urlPathDictionary, string defHost = "", string backupHost = "")
+        public async Task DownloadFilesAsync(Dictionary<string, string> urlPathDictionary, int pid, string defHost = "", string backupHost = "", Dictionary<string,List<string>> cachedFiles = null)
         {
             _remainingFiles = urlPathDictionary.Count;
             _totalFiles = urlPathDictionary.Count;
-            await Task.Run(() => urlPathDictionary.AsParallel().ForEach(async (kvp) => {
-                    await DownloadFileWithSemaphoreAsync(kvp.Key, kvp.Value, defHost, backupHost);
-            }));
-            
+            _debug.Clear(); 
+            var task = Task.Run(async () =>
+            { 
+                foreach(var kvp in urlPathDictionary)
+                {
+                    var url = kvp.Key;
+                    var path = kvp.Value;
+                    if (cachedFiles != null)
+                    {
+                        await DownloadFileAsync(url, path, pid, defHost, backupHost, cachedFiles[url]);
+                    }
+                    await DownloadFileAsync(url, path, pid, defHost, backupHost);
+                }
+            });
+            await task;
             while (true)
             {
                 if (_remainingFiles <= 0) break;    
-                _logger.Info($"Remaining {_remainingFiles} / {_totalFiles}");
+                _logger.Info($"剩余文件 {_remainingFiles} / {_totalFiles}" + " pid:" + pid);
+                if(_remainingFiles < 10)
+                {
+                    try
+                    {
+                        _debug.ForEach((kvp) =>
+                        {
+                            _logger.Info("剩余文件：" + kvp.Key + "  " + kvp.Value + " pid:" + pid);
+                        });
+                    }
+                    catch(Exception e) {
+                        _logger.Info(_debug.ToString() + " pid:" + pid);
+                        _debug.Clear();
+                    }
+                }
                 await Task.Delay(2000);
             }
         }
-        
-        private async Task DownloadFileWithSemaphoreAsync(string url, string filePath, string defHost = "", string backupHost = "")
+        private Dictionary<string, int> _debug = new Dictionary<string, int>();
+        private async Task DownloadFileAsync(string url, string filePath,int pid , string defHost = "", string backupHost = "", List<string> cacheFiles = null)
         {
-            GC.Collect();
+//            GC.Collect();
             int attempt = 0;
-//            string sha1 = filePath.Split('|')[1];
+            string sha = filePath.Split('|')[1];
             filePath = filePath.Split('|')[0];
-            while (true)
+            if (cacheFiles != null)
             {
+                foreach (string s in cacheFiles)
+                {
+                    if (File.Exists(s) && ((await CalculateFileSHA1(s)).ToLower() == sha.ToLower()))
+                    {
+                        File.Copy(s, filePath);
+                        Interlocked.Decrement(ref _remainingFiles);
+                        DownloadingPage.ProProg = $"当前任务进度：    {(((double)(_totalFiles - _remainingFiles)) / _totalFiles * 100):0.00}%";
+                        return;
+                    }
+                }
+            }
+            while (true) {
+                try { _debug.Add(url, pid); } catch { }
                 if (attempt >= _maxRetries)
                 {
-                    throw new WebException("Failed to download " + url + " to " + filePath + " after " + attempt + " retries.");
+                    throw new WebException("Failed to download " + url + " to " + filePath + " after " + attempt + " retries." + " pid:" + pid);
                 }
                 attempt++;
                 try
                 {
-                    /*
                     if(File.Exists(filePath))
                     {
                         string fileSha1 = await CalculateFileSHA1(filePath);
-                        if(sha1.ToLower() == fileSha1.ToLower())
+                        if(sha.ToLower() == fileSha1.ToLower())
                         {
                             Interlocked.Decrement(ref _remainingFiles);
                             DownloadingPage.ProProg = $"当前任务进度：    {(((double)(_totalFiles - _remainingFiles)) / _totalFiles * 100):0.00}%";
                             return;
                         }
-                    }*/
-                    Directory.CreateDirectory(Directory.GetParent(filePath).FullName);
+                    }
+                    /*Directory.CreateDirectory(Directory.GetParent(filePath).FullName);
                     s_httpClient.DefaultRequestHeaders.Add("User-Agent", $"LMC/C{MainWindow.LauncherVersion}");
                     var response = await s_httpClient.GetAsync(url);
                     response.EnsureSuccessStatusCode();
                     using (FileStream fs = File.OpenWrite(filePath))
                     {
                         await response.Content.CopyToAsync(fs);
-                    }
-/*                    var request = (HttpWebRequest) HttpWebRequest.Create(url);
-                    request.Method = "GET";
-                    request.UserAgent = $"LMC/C{MainWindow.LauncherVersion}";
-                    request.KeepAlive = false;
-                    request.Timeout = 3000;
-                    using (var response = await request.GetResponseAsync())
-                    using (Stream sr = response.GetResponseStream())
-                    using (FileStream fs = File.Create(filePath) )
-                    {
-                        byte[] buffer = new byte[8192000];
-                        int read;
-                        while((read = sr.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            await fs.WriteAsync(buffer, 0, read);
-                        }
-                    }
-  */                  Interlocked.Decrement(ref _remainingFiles);
+                    }*/
+                    /*                    var request = (HttpWebRequest) HttpWebRequest.Create(url);
+                                        request.Method = "GET";
+                                        request.UserAgent = $"LMC/C{MainWindow.LauncherVersion}";
+                                        request.KeepAlive = false;
+                                        request.Timeout = 3000;
+                                        using (var response = await request.GetResponseAsync())
+                                        using (Stream sr = response.GetResponseStream())
+                                        using (FileStream fs = File.Create(filePath) )
+                                        {
+                                            byte[] buffer = new byte[8192000];
+                                            int read;
+                                            while((read = sr.Read(buffer, 0, buffer.Length)) > 0)
+                                            {
+                                                await fs.WriteAsync(buffer, 0, read);
+                                            }
+                                        }
+                      */
+                    Downloader downloader = new Downloader(url, filePath);
+                    downloader.Timeout = TimeSpan.FromSeconds(20);
+                    await downloader.DownloadFileAsync();
+                    downloader.Dispose();
+                    downloader = null;
+                    Interlocked.Decrement(ref _remainingFiles);
                     DownloadingPage.ProProg = $"当前任务进度：    {(((double)(_totalFiles - _remainingFiles)) / _totalFiles * 100):0.00}%";
+                    _debug.Remove(url);
                     GC.Collect();
                     break;
+                }
+                catch(TimeoutException ex)
+                {
+                    _logger.Warn("下载文件" + url + "超时：" + ex.Message + " pid:" + pid);
+                    while (true)
+                    {
+                        Random random = new Random();
+                        if (random.Next(0, 2) > 0) break;
+                        await Task.Delay(5000);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(defHost) && !string.IsNullOrWhiteSpace(backupHost))
+                    {
+                        _debug.Remove(url);
+                        url = url.Replace(defHost, backupHost);
+                    }
+                    continue;
                 }
                 catch (Exception ex)
                 {
                     await Task.Delay(100);
                     if (ex.Message.Contains("429"))
                     {
+                        _logger.Warn($"下载文件{url}时遇到429错误{ex.Message}" + " pid:" + pid);
                         await Task.Delay(new Random().Next(2000, 3000));
-                        continue;
-                    }
-                    if (ex.Message.Contains("200"))
-                    {
-                        while (true)
-                        {
-                            Random random = new Random();
-                            if (random.Next(0, 2) > 0) break;
-                            await Task.Delay(5000);
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(defHost) && !string.IsNullOrWhiteSpace(backupHost))
-                        {
-                            url = url.Replace(defHost, backupHost);
-                        }
                         continue;
                     }
                     if (ex.Message.Contains("404"))
                     {
+                        _logger.Warn($"下载文件{url}时遇到404错误{ex.Message}" + " pid:" + pid);
                         while (true)
                         {
                             Random random = new Random();
@@ -365,35 +411,19 @@ namespace LMC.Minecraft
 
                         if (!string.IsNullOrWhiteSpace(defHost) && !string.IsNullOrWhiteSpace(backupHost))
                         {
+                            _debug.Remove(url);
                             url = url.Replace(defHost, backupHost);
                         }
                         
                         continue;
                     }
-                    if (ex.Message.Contains("HttpClient"))
-                    {
-                        while (true)
-                        {
-                            Random random = new Random();
-                            if(random.Next(0, 2) > 0) break;
-                            await Task.Delay(5000);
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(defHost) && !string.IsNullOrWhiteSpace(backupHost))
-                        {
-                            url = url.Replace(defHost, backupHost);
-                        }
-                        continue;
-                    }
+                    _logger.Warn($"下载文件{url}时遇到未知错误{ex.Message}" + " pid:" + pid);
                     continue;
                 }
 
             }
-        }
+            try { _debug.Remove(url); } catch { }
 
-        private void _downloader_DownloadCompleted(DownloadMetric metric, Stream stream)
-        {
-            throw new NotImplementedException();
         }
 
         public DVersion ParseManifest(string versionId, string manifest)
@@ -477,20 +507,6 @@ namespace LMC.Minecraft
                 }
             }
             return (normal, alpha, beta);
-        }
-        async public Task DownloadVersionJsonVanilla(DVersion version, String name)
-        {
-            string json;
-            using (var response = await s_client.GetAsync(version.Url))
-            {
-                response.EnsureSuccessStatusCode();
-                json = await response.Content.ReadAsStringAsync();
-            }
-            json = json.Replace($"\"id\": \"{version.Id}\"", $"\"id\": \"{name}\"");
-            Directory.CreateDirectory(GamePath + $"/versions/{name}");
-            File.Create(GamePath + $"/versions/{name}/{name}.json").Close();
-            json.Replace("\r\n", "\n");
-            File.WriteAllText(GamePath + $"/versions/{name}/{name}.json", json);
         }
 
         async public Task<(List<string> forges, List<string> fabs, List<string> opts)> GetForgeFabricOptifineVersionList(string mcVersion)

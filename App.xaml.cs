@@ -16,6 +16,14 @@ namespace LMC
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
         }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            Logger logger = new Logger("A");
+            logger.Info("日志记录结束 日志编号:" + Logger.LogNum + "，正在退出程序");
+            base.OnExit(e);
+        }
+
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
             ShowException(e.Exception);

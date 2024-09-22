@@ -27,7 +27,7 @@ namespace LMC
         public static I18nTools I18NTools = new I18nTools();
         public static bool RunningTask = false;
         public static string LauncherVersion = "1.0.0";
-        private Logger _logger;
+        private static Logger s_logger;
         private LineFileParser _lineFileParser = new LineFileParser();
 
         public MainWindow()
@@ -54,8 +54,8 @@ namespace LMC
                 }
             }
             
-            _logger = new Logger("MainUI");
-            _logger.Info("MainWindow Open");
+            s_logger = new Logger("MainUI");
+            s_logger.Info("日志记录开始 日志编号" + Logger.LogNum);
             /*
             logger.info("Downloading i18N Files...");
             string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/i18n/";
@@ -116,11 +116,13 @@ namespace LMC
         async public static Task ShowMsgBox(string title,string content, string button)
         {
             var confirmDialog = new ContentDialog(MainWindow.ContentPre);
-  /*          if (I18NTools.getLangName().Equals("en_US"))
-            {
-                confirmDialog.SetCurrentValue(ContentDialog.FontFamilyProperty, new System.Windows.Media.FontFamily("Microsoft Yi Baiti"));
-            }
-  */          confirmDialog.SetCurrentValue(ContentDialog.IsPrimaryButtonEnabledProperty, false);
+            s_logger.Info($"显示MsgBox:{title} - {content} - {button}");
+            /*          if (I18NTools.getLangName().Equals("en_US"))
+                      {
+                          confirmDialog.SetCurrentValue(ContentDialog.FontFamilyProperty, new System.Windows.Media.FontFamily("Microsoft Yi Baiti"));
+                      }
+            */
+            confirmDialog.SetCurrentValue(ContentDialog.IsPrimaryButtonEnabledProperty, false);
             confirmDialog.SetCurrentValue(ContentDialog.IsSecondaryButtonEnabledProperty, false);
             confirmDialog.SetCurrentValue(ContentDialog.TitleProperty, title);
             confirmDialog.SetCurrentValue(ContentProperty, content);
@@ -135,7 +137,9 @@ namespace LMC
             {
                 confirmDialog.SetCurrentValue(ContentDialog.FontFamilyProperty, new System.Windows.Media.FontFamily("Microsoft Yi Baiti"));
             }
-*/            confirmDialog.SetCurrentValue(ContentDialog.IsPrimaryButtonEnabledProperty, true);
+*/          
+            s_logger.Info($"显示MsgBox:{title} - {content} - {confirm} - {cancel}");
+            confirmDialog.SetCurrentValue(ContentDialog.IsPrimaryButtonEnabledProperty, true);
             confirmDialog.SetCurrentValue(ContentDialog.IsSecondaryButtonEnabledProperty,false);
             confirmDialog.SetCurrentValue(ContentDialog.PrimaryButtonTextProperty,confirm);
             confirmDialog.SetCurrentValue(ContentDialog.CloseButtonTextProperty,cancel);
