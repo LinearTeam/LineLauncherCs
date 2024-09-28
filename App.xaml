@@ -5,6 +5,11 @@
              StartupUri="MainWindow.xaml"
              xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern">
     <Application.Resources>
-        <ResourceDictionary/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemeResources/>
+                <ui:XamlControlsResources/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
