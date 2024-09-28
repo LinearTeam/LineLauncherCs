@@ -10,18 +10,22 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using Wpf.Ui.Controls;
 
-namespace LMC
+namespace LMC.Pages
 {
     /// <summary>
-    /// MainWindow.xaml 的交互逻辑
+    /// DownloadingPage.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class ManagePage : Page
     {
-        public static string LauncherVersion = "v2.0.0";
-        public MainWindow()
+        public ManagePage()
         {
+            InitializeComponent();
         }
+
     }
 }

@@ -1,17 +1,10 @@
-﻿using LMC.Basic;
-using Microsoft.Win32;
+﻿using LMC.Utils;
+using LMC.Basic;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Net.Http;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using System.Threading;
-using System.Windows.Controls;
-using Wpf.Ui.Controls;
 using System.Text.Json;
 
 namespace LMC.Account.OAuth
@@ -36,7 +29,7 @@ namespace LMC.Account.OAuth
                 return (1,null,null); 
             };
         }
-
+        /*
         public async static Task OA()
         {
             if(s_isOaIng == true)
@@ -71,7 +64,7 @@ namespace LMC.Account.OAuth
             MainWindow.InfoBar.IsClosable = true;
             s_isOaIng = false;
         }
-
+*/
         async private Task<(Account account,string refreshtoken)> StepOne(HttpListener listener)
         {
             _logger.Info("MSL step 1");
@@ -135,9 +128,9 @@ namespace LMC.Account.OAuth
                 { "redirect_uri", "http://127.0.0.1:40935"},
                 { "grant_type", "authorization_code"}
             };
-            string context = await PostWithParameters(parameters, url, "application/json", "application/x-www-form-urlencoded");
-            string accesstoken = GetValueFromJson(context, "access_token");
-            string refreshtoken = GetValueFromJson(context, "refresh_token");
+            string context = await HttpUtils.PostWithParameters(parameters, url, "application/json", "application/x-www-form-urlencoded");
+            string accesstoken = JsonUtils.GetValueFromJson(context, "access_token");
+            string refreshtoken = JsonUtils.GetValueFromJson(context, "refresh_token");
             
             _logger.Info($"MSL step 3");
             var t = await StepThree(accesstoken);
@@ -157,8 +150,8 @@ namespace LMC.Account.OAuth
                 { "refresh_token", rtoken},
                 { "grant_type", "refresh_token"}
             };
-            string context = await PostWithParameters(parameters, url, "application/json", "application/x-www-form-urlencoded");
-            return (GetValueFromJson(context, "access_token"), GetValueFromJson(context, "refresh_token"));
+            string context = await HttpUtils.PostWithParameters(parameters, url, "application/json", "application/x-www-form-urlencoded");
+            return (JsonUtils.GetValueFromJson(context, "access_token"), JsonUtils.GetValueFromJson(context, "refresh_token"));
         }
         async public Task<(string uuid, string name, string mcatoken)> StepThree(string token)
         {
@@ -171,8 +164,8 @@ namespace LMC.Account.OAuth
                 "\"TokenType\": \"JWT\"}";
             string contenttype = "application/json";
             string url = "https://user.auth.xboxlive.com/user/authenticate";
-            string xblres = await PostWithJson(json, url, contenttype, contenttype);
-            string t = GetValueFromJson(xblres, "Token");
+            string xblres = await HttpUtils.PostWithJson(json, url, contenttype, contenttype);
+            string t = JsonUtils.GetValueFromJson(xblres, "Token");
             _logger.Info("MSL step 4");
             return await StepFour(t);
         }
@@ -187,9 +180,9 @@ namespace LMC.Account.OAuth
                 "\"TokenType\": \"JWT\"}";
             string url = "https://xsts.auth.xboxlive.com/xsts/authorize";
             string contenttype = "application/json";
-            string xstsres = await PostWithJson(json, url, contenttype, contenttype);
-            string token = GetValueFromJson(xstsres, "Token");
-            string uhs = GetValueFromJson(xstsres, "DisplayClaims.xui[0].uhs");
+            string xstsres = await HttpUtils.PostWithJson(json, url, contenttype, contenttype);
+            string token = JsonUtils.GetValueFromJson(xstsres, "Token");
+            string uhs = JsonUtils.GetValueFromJson(xstsres, "DisplayClaims.xui[0].uhs");
             _logger.Info("MSL step 5");
             var t = await StepFive(token, uhs);
             return t;
@@ -199,8 +192,8 @@ namespace LMC.Account.OAuth
             string json = "{ \"identityToken\": \"XBL3.0 x=" + uhs + $";{tokenf}\"" + "}";
             string url = "https://api.minecraftservices.com/authentication/login_with_xbox";
             string contenttype = "application/json";
-            string mjapires = await PostWithJson(json, url, contenttype, contenttype);
-            string token = GetValueFromJson(mjapires, "access_token");
+            string mjapires = await HttpUtils.PostWithJson(json, url, contenttype, contenttype);
+            string token = JsonUtils.GetValueFromJson(mjapires, "access_token");
             _logger.Info("MSL step 6");
             var t = await StepSix(token);
             if (t.Item1)
@@ -213,120 +206,23 @@ namespace LMC.Account.OAuth
         {
             string url = "https://api.minecraftservices.com/entitlements/mcstore";
             string accept = "application/json";
-            string checkres = await GetWithAuth($"Bearer {tokenf}", url, accept);
+            string checkres = await HttpUtils.GetWithAuth($"Bearer {tokenf}", url, accept);
 
             using (JsonDocument document = JsonDocument.Parse(checkres))
             {
                 JsonElement itemsElement;
                 bool haveItems = document.RootElement.TryGetProperty("items", out itemsElement) && itemsElement.ValueKind == JsonValueKind.Array;
                 url = "https://api.minecraftservices.com/minecraft/profile";
-                string profileres = await GetWithAuth($"Bearer {tokenf}", url, accept);
+                string profileres = await HttpUtils.GetWithAuth($"Bearer {tokenf}", url, accept);
                 bool haveMc = haveItems && itemsElement.GetArrayLength() > 0 && !profileres.Contains("NOT_FOUND");
                 Console.WriteLine("Does Minecraft have : " + haveMc.ToString());
                 if (haveMc)
                 {
-                    string uuid = GetValueFromJson(profileres, "id");
-                    string name = GetValueFromJson(profileres, "name");
+                    string uuid = JsonUtils.GetValueFromJson(profileres, "id");
+                    string name = JsonUtils.GetValueFromJson(profileres, "name");
                     return (true, uuid, name);
                 }
                 return (false, null, null);
-            }
-        }
-
-        public static string GetValueFromJson(string jsonString, string path)
-        {
-            using (JsonDocument document = JsonDocument.Parse(jsonString))
-            {
-                string[] keys = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-                JsonElement element = document.RootElement;
-                foreach (var key in keys)
-                {
-                    if (key.Contains("["))
-                    {
-                        var parts = key.Split(new char[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
-                        var arrayKey = parts[0];
-                        var index = int.Parse(parts[1]);
-
-                        if (element.TryGetProperty(arrayKey, out JsonElement arrayElement) && arrayElement.ValueKind == JsonValueKind.Array)
-                        {
-                            element = arrayElement[index];
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
-                    else
-                    {
-                        if (element.TryGetProperty(key, out JsonElement nextElement))
-                        {
-                            element = nextElement;
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
-                }
-                return element.ToString();
-            }
-        }
-
-
-        async public Task<string> PostWithParameters(Dictionary<string, string> parameters, string url, string accept, string contentType)
-        {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                var content = new FormUrlEncodedContent(parameters);
-
-                content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-
-                
-                var response = await client.PostAsync(url, content);
-                response.EnsureSuccessStatusCode();
-
-                var responseContent = response.Content.ReadAsStringAsync().Result;
-                return responseContent;
-            }
-        }
-
-        async public Task<string> GetWithAuth(string auth, string url, string accept)
-        {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-                client.DefaultRequestHeaders.Add("Authorization", auth);
-
-
-
-                var response = await client.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-
-                var responseContent = await response.Content.ReadAsStringAsync();
-                return responseContent;
-            }
-        }
-
-        async public Task<string> PostWithJson(string json, string url, string accept, string contentType)
-        {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-
-                var content = new StringContent(json);
-
-                content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-
-                var response = await client.PostAsync(url, content);
-                response.EnsureSuccessStatusCode();
-
-                var responseContent = await response.Content.ReadAsStringAsync();
-                return responseContent;
             }
         }
     }

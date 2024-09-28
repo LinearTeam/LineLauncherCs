@@ -14,7 +14,7 @@
         <controls:Button x:Name="back" Margin="10,10,0,0" VerticalAlignment="Top" Height="50" Width="50" Click="back_Click">
             <controls:SymbolIcon Symbol="ArrowStepBack20" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" FontSize="30"/>
         </controls:Button>
-        <ui:ProgressRing x:Name="ring" IsIndeterminate="True" Height="130" Width="130" Margin="80,134,521,134" />
+        <ui:ProgressRing x:Name="ring" IsIndeterminate="False" Height="130" Width="130" Margin="80,134,521,134" />
         <TextBlock x:Name="processing" Text="" Foreground="White" FontSize="20"  HorizontalAlignment="Left" Margin="337,100,0,0" VerticalAlignment="Top" Height="34" Width="382"/>
         <TextBlock x:Name="processing_progress" Text="" Foreground="White" FontSize="20"  HorizontalAlignment="Left" Margin="337,280,0,0" VerticalAlignment="Top" Height="34" Width="382"/>
     </Grid>

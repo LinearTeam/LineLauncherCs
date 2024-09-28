@@ -1,7 +1,4 @@
-﻿using Neon.Downloader;
-using LMC.Account.OAuth;
-using LMC.Basic;
-using LMC.Pages;
+﻿using LMC.Basic;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,11 +14,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media;
-using System.Xml.Linq;
-using static LMC.Account.OAuth.OAuth;
 using Common;
 using LMC.Utils;
+using System.Windows.Threading;
 
 namespace LMC.Minecraft
 {
@@ -31,7 +26,6 @@ namespace LMC.Minecraft
     public class GameDownloader
     {
         public static String GamePath = @"./.minecraft";
-        private static HttpClient s_client = new HttpClient();
         private DownloadSource _downloadSource = new DownloadSource();
         private Logger _logger = new Logger("GD");
 
@@ -53,7 +47,7 @@ namespace LMC.Minecraft
 
         async public Task<String> GetVersionManifest()
         {
-            return await s_client.GetStringAsync(_downloadSource.VersionManifest);
+            return await HttpUtils.GetString(_downloadSource.VersionManifest);
         }
 
 
@@ -86,7 +80,7 @@ namespace LMC.Minecraft
                 }
             });
         }
-
+        /*
         public async Task DownloadGame(string versionId, string versionName, bool isOptifine, bool isFabric, bool isForge, string optifine = "", string fabric = "", string forge = "")
         {
             if (MainWindow.RunningTask) {
@@ -98,11 +92,11 @@ namespace LMC.Minecraft
             {
                 int id = new Random().Next(1000,9999);
                 _logger.Info($"新的原版游戏下载任务: {versionId} , 名称: {versionName}, pid:{id}");
-                await DownloadGame(versionId, versionName,id);
+                //await DownloadGame(versionId, versionName,id);
             }
             MainWindow.RunningTask = false;
         }
-
+        /*
         async private Task DownloadGame(string versionId, string versionName,int pid)
         {
             MainWindow.MainNagView.Navigate(typeof(DownloadingPage));
@@ -121,7 +115,7 @@ namespace LMC.Minecraft
             DownloadingPage.ProProg = "当前任务进度：  70%";
             string url = version.Url;
             _logger.Info("1" + " pid:" + pid); 
-            string versionIndexJson = await s_client.GetStringAsync(new Uri(url.Replace("https://piston-meta.mojang.com", _downloadSource.LauncherMeta)));
+            string versionIndexJson = await HttpUtils.GetString(new Uri(url.Replace("https://piston-meta.mojang.com", _downloadSource.LauncherMeta)));
             _logger.Info("2" + " pid:" + pid);
             JsonNode? jsonNode = JsonNode.Parse(versionIndexJson);
             jsonNode["id"] = versionName;
@@ -146,29 +140,30 @@ namespace LMC.Minecraft
             Directory.CreateDirectory($"{GamePath}/libraries");
             _logger.Info("4" + " pid:" + pid);
             string indexJson = File.ReadAllText($"{GamePath}/versions/{versionName}/{versionName}.json");
-            string librariesStr = GetValueFromJson(indexJson, "libraries");
+            string librariesStr = JsonUtils.GetValueFromJson(indexJson, "libraries");
             JsonArray larr = JsonArray.Parse(librariesStr).AsArray();
             Dictionary<string, string> libs = new Dictionary<string, string>();
             foreach (var lib in larr)
             {
                 string libStr = lib.ToJsonString();
-                if (GetValueFromJson(libStr, "downloads.artifact") != null)
+                
+                if (JsonUtils.GetValueFromJson(libStr, "downloads.artifact") != null)
                 {
-                    url = GetValueFromJson(libStr, "downloads.artifact.url").Replace("https://libraries.minecraft.net", _downloadSource.Libraries);
-                    path = $"{GamePath}/libraries/{GetValueFromJson(libStr, "downloads.artifact.path")}|{GetValueFromJson(libStr, "downloads.artifact.sha1")}";
+                    url = JsonUtils.GetValueFromJson(libStr, "downloads.artifact.url").Replace("https://libraries.minecraft.net", _downloadSource.Libraries);
+                    path = $"{GamePath}/libraries/{JsonUtils.GetValueFromJson(libStr, "downloads.artifact.path")}|{JsonUtils.GetValueFromJson(libStr, "downloads.artifact.sha1")}";
                     try { libs.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to libs dict" + " pid:" + pid); }
                 }
-                if (GetValueFromJson(libStr, "downloads.natives.windows") != null)
+                if (JsonUtils.GetValueFromJson(libStr, "downloads.natives.windows") != null)
                 {
-                    libStr = GetValueFromJson(libStr, $"downloads.classifiers.{GetValueFromJson(libStr, "downloads.natives.windows")}");
-                    url = GetValueFromJson(libStr, "url").Replace("https://libraries.minecraft.net", _downloadSource.Libraries);
-                    path = $"{GamePath}/libraries/{GetValueFromJson(libStr, "path")}|{GetValueFromJson(libStr, "sha1")}";
+                    libStr = JsonUtils.GetValueFromJson(libStr, $"downloads.classifiers.{JsonUtils.GetValueFromJson(libStr, "downloads.natives.windows")}");
+                    url = JsonUtils.GetValueFromJson(libStr, "url").Replace("https://libraries.minecraft.net", _downloadSource.Libraries);
+                    path = $"{GamePath}/libraries/{JsonUtils.GetValueFromJson(libStr, "path")}|{JsonUtils.GetValueFromJson(libStr, "sha1")}";
                     try { libs.Add(url, path); } catch { _logger.Warn("Failed to add " + url + " to libs dict" + " pid:" + pid); }
                 }
 
             }
             _logger.Info("5" + " pid:" + pid); 
-            libs.Add(GetValueFromJson(indexJson, "downloads.client.url"), $"{GamePath}/versions/{versionName}/{versionName}.jar|{GetValueFromJson(indexJson, "downloads.client.sha1")}");
+            libs.Add(JsonUtils.GetValueFromJson(indexJson, "downloads.client.url"), $"{GamePath}/versions/{versionName}/{versionName}.jar|{JsonUtils.GetValueFromJson(indexJson, "downloads.client.sha1")}");
             string backup;
             if (_downloadSource.SourceType == 0)
             {
@@ -188,9 +183,9 @@ namespace LMC.Minecraft
             //Assets Index
             DownloadingPage.ProProc = "当前进行中：    下载资源索引";
             DownloadingPage.ProProg = "当前任务进度：  0%";
-            url = GetValueFromJson(indexJson, "assetIndex.url");
-            string sha1 = GetValueFromJson(indexJson, "assetIndex.url");
-            path = $"{GamePath}/assets/indexes/{GetValueFromJson(indexJson, "assetIndex.id")}.json";
+            url = JsonUtils.GetValueFromJson(indexJson, "assetIndex.url");
+            string sha1 = JsonUtils.GetValueFromJson(indexJson, "assetIndex.url");
+            path = $"{GamePath}/assets/indexes/{JsonUtils.GetValueFromJson(indexJson, "assetIndex.id")}.json";
             if((await CalculateFileSHA1(path)).ToLower() != sha1.ToLower())
             {
                 libs.Clear();
@@ -203,7 +198,7 @@ namespace LMC.Minecraft
             DownloadingPage.ProProc = "当前进行中：    解析资源文件";
             DownloadingPage.ProProg = "当前任务进度：  0%";
 
-            string objects = GetValueFromJson(File.ReadAllText(path), "objects");
+            string objects = JsonUtils.GetValueFromJson(File.ReadAllText(path), "objects");
             Dictionary<string, string> assets = new Dictionary<string, string>();
             await Task.Run(() =>
             {
@@ -216,7 +211,7 @@ namespace LMC.Minecraft
                         int parsedFiles = 0;
                         foreach (JsonProperty property in root.EnumerateObject())
                         {
-                            string hash = GetValueFromJson(property.Value.ToString(), "hash");
+                            string hash = global::LMC.Utils.JsonUtils.GetValueFromJson(property.Value.ToString(), "hash");
                             url = $"{_downloadSource.ResourcesDownload}/{hash.Substring(0, 2)}/{hash}";
                             path = $"{GamePath}/assets/objects/{hash.Substring(0, 2)}/{hash}|{hash}";
                             try { assets.Add(url, path); } catch { _logger.Warn("无法将" + url + " 添加到资源字典 " + " pid:" + pid); }
@@ -262,7 +257,29 @@ namespace LMC.Minecraft
         {
             _remainingFiles = urlPathDictionary.Count;
             _totalFiles = urlPathDictionary.Count;
-            _debug.Clear(); 
+            _debug.Clear();
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(5);
+            timer.Tick += (s,e) => {
+                if (_remainingFiles <= 0) return;
+                _logger.Info($"剩余文件 {_remainingFiles} / {_totalFiles}" + " pid:" + pid);
+                if (_remainingFiles < 10)
+                {
+                    try
+                    {
+                        _debug.ForEach((kvp) =>
+                        {
+                            _logger.Info("剩余文件：" + kvp.Key + "  " + kvp.Value + " pid:" + pid);
+                        });
+                    }
+                    catch
+                    {
+                        _logger.Info(_debug.ToString() + " pid:" + pid);
+                        _debug.Clear();
+                    }
+                }
+            };
+            timer.Start();
             var task = Task.Run(async () =>
             { 
                 foreach(var kvp in urlPathDictionary)
@@ -277,26 +294,9 @@ namespace LMC.Minecraft
                 }
             });
             await task;
-            while (true)
-            {
-                if (_remainingFiles <= 0) break;    
-                _logger.Info($"剩余文件 {_remainingFiles} / {_totalFiles}" + " pid:" + pid);
-                if(_remainingFiles < 10)
-                {
-                    try
-                    {
-                        _debug.ForEach((kvp) =>
-                        {
-                            _logger.Info("剩余文件：" + kvp.Key + "  " + kvp.Value + " pid:" + pid);
-                        });
-                    }
-                    catch(Exception e) {
-                        _logger.Info(_debug.ToString() + " pid:" + pid);
-                        _debug.Clear();
-                    }
-                }
-                await Task.Delay(2000);
-            }
+            timer.Stop();
+            timer.IsEnabled = false;
+            timer = null;
         }
         private Dictionary<string, int> _debug = new Dictionary<string, int>();
         private async Task DownloadFileAsync(string url, string filePath,int pid , string defHost = "", string backupHost = "", List<string> cacheFiles = null)
@@ -362,6 +362,7 @@ namespace LMC.Minecraft
                                             }
                                         }
                       */
+                    /*
                     Downloader downloader = new Downloader(url, filePath);
                     downloader.Timeout = TimeSpan.FromSeconds(20);
                     await downloader.DownloadFileAsync();
@@ -425,7 +426,7 @@ namespace LMC.Minecraft
             try { _debug.Remove(url); } catch { }
 
         }
-
+        */
         public DVersion ParseManifest(string versionId, string manifest)
         {
             JsonDocument document = JsonDocument.Parse(manifest);
@@ -468,7 +469,9 @@ namespace LMC.Minecraft
 
         public (List<DVersion> normal, List<DVersion> alpha, List<DVersion> beta) ParseManifest(string manifest)
         {
-            JsonDocument document = JsonDocument.Parse(manifest);
+            try
+            {
+                JsonDocument document = JsonDocument.Parse(manifest);
             List<DVersion> normal = new List<DVersion>();
             List<DVersion> alpha = new List<DVersion>();
             List<DVersion> beta = new List<DVersion>();
@@ -507,28 +510,26 @@ namespace LMC.Minecraft
                 }
             }
             return (normal, alpha, beta);
+            }
+            catch (Exception e)
+            {
+                 Console.Write(e.ToString());
+                throw e;
+            }
+
         }
 
         async public Task<(List<string> forges, List<string> fabs, List<string> opts)> GetForgeFabricOptifineVersionList(string mcVersion)
         {
             //forge
-            string json;
-            using (var response = await s_client.GetAsync(_downloadSource.ForgeSupportedMc))
-            {
-                response.EnsureSuccessStatusCode();
-                json = await response.Content.ReadAsStringAsync();
-            }
+            string json = await HttpUtils.GetString(_downloadSource.ForgeSupportedMc);
             JsonDocument document = JsonDocument.Parse(json);
             JsonElement element = document.RootElement;
             string[] versions = JsonSerializer.Deserialize<string[]>(json);
             List<string> forges = new List<string>();
             if(Array.Exists(versions, version => version == mcVersion))
             {
-                using (var response = await s_client.GetAsync(_downloadSource.ForgeListViaMcVer.Replace("{mcversion}",mcVersion)))
-                {
-                    response.EnsureSuccessStatusCode();
-                    json = await response.Content.ReadAsStringAsync();
-                }
+                json = await HttpUtils.GetString(_downloadSource.ForgeListViaMcVer.Replace("{mcversion}",mcVersion));
                 document = JsonDocument.Parse(json);
                 foreach(JsonElement forgeVer in document.RootElement.EnumerateArray())
                 {
@@ -541,11 +542,7 @@ namespace LMC.Minecraft
                 forges.Add("N");
             }
             //optifine
-            using (var response = await s_client.GetAsync(_downloadSource.OptifineListViaMcVer.Replace("{mcversion}",mcVersion)))
-            {
-                response.EnsureSuccessStatusCode();
-                json = await response.Content.ReadAsStringAsync();
-            }
+            json = await HttpUtils.GetString(_downloadSource.OptifineListViaMcVer.Replace("{mcversion}", mcVersion));
             List<string> opts = new List<string>();
             if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(json.Trim()) || string.IsNullOrEmpty(json.Trim('[',']','{','}',' ')) || string.IsNullOrEmpty(json.Trim('[',']','{','}',' '))) { 
                 opts.Add("N");
@@ -561,11 +558,7 @@ namespace LMC.Minecraft
             }
             //fabric
             List<string> fabs = new List<string>();
-            using (var response = await s_client.GetAsync(_downloadSource.FabricManifest))
-            {
-                response.EnsureSuccessStatusCode();
-                json = await response.Content.ReadAsStringAsync();
-            }
+            json = await HttpUtils.GetString(_downloadSource.FabricManifest);
             document = JsonDocument.Parse(json);
             bool isEnable = false;
             foreach (JsonElement el in document.RootElement.GetProperty("game").EnumerateArray())

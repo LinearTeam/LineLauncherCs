@@ -102,7 +102,7 @@ namespace LMC
                 catch(Exception ex) { 
                     attempt++; 
                     errorMsg = ex.Message;
-                    s_logger.Warn($"Failed to load vaniila version list{ex.Message}\n{ex.StackTrace}\n on attempt {attempt}.");
+                    s_logger.Warn($"无法加载原版版本列表{ex.Message}\n{ex.StackTrace}\n 重试次数 {attempt}.");
                 }
             }
             await MainWindow.ShowMsgBox("错误",$"似乎在加载版本列表时发生了错误，信息如下：\n{errorMsg}\n请检查网络连接或尝试切换下载源，若仍然出现此问题请在 其他 -> 反馈 中进行反馈。"  ,"继续");

@@ -31,7 +31,7 @@ namespace LMC.Account
             {
                 Secrets.Write("acc_" + account.Id + "_" + account.Type, "id", account.Id);
             }
-            await AccountPage.RefreshAccounts(false);
+//            await AccountPage.RefreshAccounts(false);
         }
 
         public static void DeleteAccount(Account account)
