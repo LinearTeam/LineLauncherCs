@@ -7,7 +7,7 @@ Line Launcher（or LMC）is a Minecraft Launcher. This repository is its C# vers
 ## Code
 All codes in this repository are developed by [Huangyu](https://github.com/tmdakm)(Not related with YellowFish which developed another launcher).    
 It can launch\download\login Minecraft.    
-Uses .Net Framework v4.7.2 & WPF to develop GUI, GUI library is [WPF-UI](https://github.com/lepoco/wpfui).    
+Uses .Net Framework v4.7.2 & WPF to develop GUI, GUI library is [iNKORE.UI.WPF.Modern](https://github.com/iNKORE-NET/UI.WPF.Modern/).    
 When release, it use Costura.Fody to make only one exe file.    
 And, LMC C# is using a special file ``.line`` to save LMC Basic information(Log Number\Latest Launched Version\Player's Account and others). This is its format:    
 ```
