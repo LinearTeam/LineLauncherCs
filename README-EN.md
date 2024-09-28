@@ -28,7 +28,7 @@ anotherkey=anothervalue
 Welcome to submit Pull Requests\Issues or send email to <line@huangyu.win> if you want to let LMC better.  
 
 ## License
-Please comply with the content of the LICENSE(ENGLISH VERSION:LICENSE-EN) and put this repository's link if you want to fork or use codes in this repository.
+Please comply with the content of the LICENSE(ENGLISH VERSION:LICENSE-EN) and put this repository's link if you want to fork this repository or use LMC's codes.
 
 ## Debug arguments
 (It will enable in beta edition)
