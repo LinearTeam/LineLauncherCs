@@ -77,48 +77,95 @@ namespace LMC.Basic
             return hash.Substring(0,16);
         }
 
-        public async static Task<string> Export(string cause)
+        public static void Import(string file)
         {
-            s_logger.Info("正在导出隐私文件，原因:" + cause);
+            s_logger.Info("正在导入隐私文件：" + file);
+            if (!File.Exists(file))
+            {
+                return;
+            }
+            if (Directory.Exists("./LMC/temp/imp")) {
+                Directory.Delete("./LMC/temp/imp", true);
+            }
+            Directory.CreateDirectory("./LMC/temp/imp/");
+            ZipFile.ExtractToDirectory(file, "./LMC/temp/imp/");
+            string fromVer = s_lineFileParser.Read("./LMC/temp/imp/mf.line", "fromVer", "base");
             string enKey = string.Empty;
             using (SHA1 sha1 = SHA1.Create())
             {
-                byte[] hashBytes = sha1.ComputeHash(new ASCIIEncoding().GetBytes(MainWindow.LauncherVersion));
+                byte[] hashBytes = sha1.ComputeHash(new ASCIIEncoding().GetBytes(fromVer));
 
                 StringBuilder sb = new StringBuilder();
                 foreach (byte b in hashBytes)
                 {
                     sb.Append(b.ToString("x2"));
                 }
-                enKey = sb.ToString().Substring(0,16);
+                enKey = sb.ToString().Substring(0, 16);
             }
-            var sections = ReadSections();
-            string path = Directory.GetParent(s_path).FullName + $"/decrypted_secret.line";
-            File.Create(path).Close();
+            var sections = s_lineFileParser.GetSections("./LMC/temp/imp/scs.line");
             foreach (var section in sections)
             {
                 if (!string.IsNullOrEmpty(section))
                 {
-                    var keys = ReadKeySet(section);
+                    var keys = s_lineFileParser.GetKeySet("./LMC/temp/imp/scs.line", section);
                     foreach (var key in keys)
                     {
-                        var value = await Read(section, key);
-                        s_lineFileParser.Write(path, key, EncryptAes(value, enKey), section);
+                        string value = s_lineFileParser.Read("./LMC/temp/imp/scs.line", key, section);
+                        value = DecryptAes(value, enKey);
+                        Write(section, key, value);
                     }
                 }
             }
-            Directory.CreateDirectory("./LMC/temp/exp");
-            Directory.CreateDirectory("./LMC/export");
-            File.Create($"./LMC/temp/exp/mf.line").Close();
-            s_lineFileParser.Write($"./LMC/temp/exp/mf.line", "fromVer", MainWindow.LauncherVersion, "base");
-            string totalZip = $"{Directory.GetParent("./LMC/export/").FullName}/{new Random().Next(1000,9999)}.linesec";
-            File.Delete("./LMC/temp/exp/scs.line");
-            File.Move(path, $"./LMC/temp/exp/scs.line");
-            ZipFile.CreateFromDirectory($"./LMC/temp/exp",totalZip);
-            File.Delete("./LMC/temp/exp/scs.line");
-            File.Delete($"./LMC/temp/exp/mf.line");
-            Directory.Delete($"./LMC/temp/exp");
-            return totalZip;
+        }
+
+        public async static Task<string> Export(string cause)
+        {
+            try
+            {
+                s_logger.Info("正在导出隐私文件，原因:" + cause);
+                string enKey = string.Empty;
+                using (SHA1 sha1 = SHA1.Create())
+                {
+                    byte[] hashBytes = sha1.ComputeHash(new ASCIIEncoding().GetBytes(MainWindow.LauncherVersion));
+
+                    StringBuilder sb = new StringBuilder();
+                    foreach (byte b in hashBytes)
+                    {
+                        sb.Append(b.ToString("x2"));
+                    }
+                    enKey = sb.ToString().Substring(0, 16);
+                }
+                var sections = ReadSections();
+                string path = Directory.GetParent(s_path).FullName + $"/decrypted_secret.line";
+                File.Create(path).Close();
+                foreach (var section in sections)
+                {
+                    if (!string.IsNullOrEmpty(section))
+                    {
+                        var keys = ReadKeySet(section);
+                        foreach (var key in keys)
+                        {
+                            var value = await Read(section, key);
+                            s_lineFileParser.Write(path, key, EncryptAes(value, enKey), section);
+                        }
+                    }
+                }
+                Directory.CreateDirectory("./LMC/temp/exp");
+                Directory.CreateDirectory("./LMC/export");
+                File.Create($"./LMC/temp/exp/mf.line").Close();
+                s_lineFileParser.Write($"./LMC/temp/exp/mf.line", "fromVer", MainWindow.LauncherVersion, "base");
+                string totalZip = $"{Directory.GetParent("./LMC/export/").FullName}/{new Random().Next(1000, 9999)}.linesec";
+                File.Delete("./LMC/temp/exp/scs.line");
+                File.Move(path, $"./LMC/temp/exp/scs.line");
+                ZipFile.CreateFromDirectory($"./LMC/temp/exp", totalZip);
+                Directory.Delete($"./LMC/temp/exp", true);
+                return totalZip;
+            }
+            catch (Exception ex)
+            {
+                await MainWindow.ShowDialog("确定", $"导出失败，原因：\n{ex.Message}\n{ex.StackTrace}", "提示", ContentDialogButton.Close);
+                return string.Empty;
+            }
         }
 
         public static List<string> ReadKeySet(string section)
