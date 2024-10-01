@@ -18,6 +18,7 @@ namespace LMC.Pages
         public SettingPage()
         {
             InitializeComponent();
+            LoadSettings();
         }
 
         public static void LoadSettings()

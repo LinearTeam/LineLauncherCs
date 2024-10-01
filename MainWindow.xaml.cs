@@ -30,12 +30,9 @@ namespace LMC
         public MainWindow()
         {
             LineFileParser lfp = new LineFileParser();
-            Secrets.ReadKeySet("1");
             s_logger.Info("正在初始化主界面");
-            Secrets.Write("131", "ear", "ee");
-            Secrets.Write("131", "sear", "ee");
-            Secrets.Write("31", "eafr", "ee"); 
             InitializeComponent();
+            
         }
 
         public async static Task<ContentDialogResult> ShowDialog(string closeButtonText, string content, string title, ContentDialogButton defaultButton = ContentDialogButton.None, string primaryButtonText = null, string secondaryButtonText = null)
