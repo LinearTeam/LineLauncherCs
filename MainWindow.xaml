@@ -11,7 +11,7 @@
         ui:WindowHelper.FixMaximizedWindow="False"
         ui:WindowHelper.SystemBackdropType="Mica"
         ui:TitleBar.Height="36"
-        Title="MainWindow" Height="468" Width="775">
+        Title="Line Launcher" Height="468" Width="775">
     <ui:NavigationView IsPaneOpen="False" SelectionChanged="NavigationView_SelectionChanged" x:Name="MainNagV" IsBackButtonVisible="Collapsed">
         <ui:NavigationView.MenuItems>
             <ui:NavigationViewItem Content="主页" IsSelected="True" x:Name="HomeNagVi">

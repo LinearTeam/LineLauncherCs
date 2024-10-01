@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Documents;
+using System.Windows.Input;
 
 namespace LMC.Basic
 {
@@ -13,6 +13,46 @@ namespace LMC.Basic
         //|Key|:|Value|
         private const string _pattern = @"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|";
 
+        public List<string> GetKeySet(string path, string section)
+        {
+            var res = new List<string>();
+            if (!File.Exists(path))
+            {
+                Directory.CreateDirectory(Directory.GetParent(path).FullName);
+                File.Create(path).Close();
+                return res;
+            }
+            string startTag = $"|{section}|_start";
+            string endTag = $"|{section}|_end";
+            bool insection = false;
+
+            var lines = File.ReadAllLines(path);
+
+            foreach (var line in lines)
+            {
+                if (line.Trim() == startTag)
+                {
+                    insection = true;
+                    continue;
+                }
+                if (line.Trim() == endTag)
+                {
+                    insection = false;
+                    continue;
+                }
+
+                if (insection)
+                {
+                    var match = Regex.Match(line, _pattern);
+                    if (match.Success && !string.IsNullOrEmpty(match.Groups["key"].Value))
+                    {
+                        res.Add(match.Groups["key"].Value);
+                    }
+                }
+            }
+
+            return res;
+        }
         public List<string> GetSections(string path)
         {
             var lines = File.ReadAllLines(path);

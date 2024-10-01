@@ -1,7 +1,10 @@
-﻿using LMC.Minecraft;
+﻿using iNKORE.UI.WPF.Modern.Controls;
+using LMC.Minecraft;
+using LMC.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Management;
 using System.Security.Cryptography;
 
@@ -73,6 +76,56 @@ namespace LMC.Basic
             }
             return hash.Substring(0,16);
         }
+
+        public async static Task<string> Export(string cause)
+        {
+            s_logger.Info("正在导出隐私文件，原因:" + cause);
+            string enKey = string.Empty;
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                byte[] hashBytes = sha1.ComputeHash(new ASCIIEncoding().GetBytes(MainWindow.LauncherVersion));
+
+                StringBuilder sb = new StringBuilder();
+                foreach (byte b in hashBytes)
+                {
+                    sb.Append(b.ToString("x2"));
+                }
+                enKey = sb.ToString().Substring(0,16);
+            }
+            var sections = ReadSections();
+            string path = Directory.GetParent(s_path).FullName + $"/decrypted_secret.line";
+            File.Create(path).Close();
+            foreach (var section in sections)
+            {
+                if (!string.IsNullOrEmpty(section))
+                {
+                    var keys = ReadKeySet(section);
+                    foreach (var key in keys)
+                    {
+                        var value = await Read(section, key);
+                        s_lineFileParser.Write(path, key, EncryptAes(value, enKey), section);
+                    }
+                }
+            }
+            Directory.CreateDirectory("./LMC/temp/exp");
+            Directory.CreateDirectory("./LMC/export");
+            File.Create($"./LMC/temp/exp/mf.line").Close();
+            s_lineFileParser.Write($"./LMC/temp/exp/mf.line", "fromVer", MainWindow.LauncherVersion, "base");
+            string totalZip = $"{Directory.GetParent("./LMC/export/").FullName}/{new Random().Next(1000,9999)}.linesec";
+            File.Delete("./LMC/temp/exp/scs.line");
+            File.Move(path, $"./LMC/temp/exp/scs.line");
+            ZipFile.CreateFromDirectory($"./LMC/temp/exp",totalZip);
+            File.Delete("./LMC/temp/exp/scs.line");
+            File.Delete($"./LMC/temp/exp/mf.line");
+            Directory.Delete($"./LMC/temp/exp");
+            return totalZip;
+        }
+
+        public static List<string> ReadKeySet(string section)
+        {
+            return s_lineFileParser.GetKeySet(s_path, section);
+        }
+
         public static List<string> ReadSections()
         {
             return s_lineFileParser.GetSections(s_path);
@@ -81,10 +134,9 @@ namespace LMC.Basic
         {
             s_lineFileParser.DeleteSection(s_path,section);
         }
-
-        public static async void Backup(string cause)
+        public static async Task Backup(string cause)
         {
-            s_logger.Info("Copying secret file cause:" + cause);
+            s_logger.Info("正在备份隐私文件，原因:" + cause);
 
             await Task.Run(() => {File.Delete(Directory.GetParent(s_path).FullName + "/secret_backup.line"); File.Copy(s_path, Directory.GetParent(s_path).FullName + "/secret_backup.line"); });
             s_lineFileParser.Write(Directory.GetParent(s_path).FullName + "/secret_backup.line", "fromVersion", MainWindow.LauncherVersion, "backup");
@@ -100,16 +152,33 @@ namespace LMC.Basic
             s_lineFileParser.Write(s_path, key, totalStr, section);
             s_logger.Info(i++.ToString());
         }
-        public static string Read(string section, string key)
+        public async static Task<string> Read(string section, string key)
         {
             string strCpuID = GetDeviceCode();
             if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
             //            strCpuID = strCpuID.ToCharArray()[2].ToString() + strCpuID.ToCharArray()[4].ToString() + strCpuID.ToCharArray()[1].ToString() + strCpuID;
             string enStr = s_lineFileParser.Read(s_path, key, section);
-            if (enStr != string.Empty || enStr != null)
+            if (!string.IsNullOrEmpty(enStr))
             {
-                string totalStr = DecryptAes(enStr, strCpuID);
-                return totalStr;
+                try
+                {
+                    string totalStr = DecryptAes(enStr, strCpuID);
+                    return totalStr;
+                }
+                catch (Exception ex) {
+                    s_logger.Warn($"无法解密隐私文件：\n{ex.Message}\n{ex.StackTrace}");
+                    string content = $"在解密您的隐私文件（如账号）时出现了一些问题，这可能是由于您重新安装了系统或更换了设备所导致的，可以通过更换回原先的硬件并在 设置 -> 安全设置 -> 导出隐私文件 中导出隐私文件，并在更换至新硬件后"
+                        + $"在 设置 -> 安全设置 -> 导入隐私文件 中导入。是否要将目前未解密（也无法解密）的隐私文件备份？\n（解密时报错）\n{ex.Message}\n{ex.StackTrace}";
+                    string title = "提示";
+                    string backup = "备份";
+                    string close = "不备份";
+                    var res = await MainWindow.ShowDialog(close, content, title, ContentDialogButton.Primary, backup);
+                    if (res == ContentDialogResult.Primary)
+                    {
+                        await Backup("无法解密");
+                        System.Diagnostics.Process.Start("explorer", "/select," + Directory.GetParent(s_path).FullName + "\\secret_backup.line");
+                    }
+                }
             }
             return null;
         }

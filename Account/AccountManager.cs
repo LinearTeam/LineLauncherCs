@@ -74,16 +74,16 @@ namespace LMC.Account
                     account.Type = type; 
                     if (type==AccountType.OFFLINE)
                     {
-                        account.Id = Secrets.Read(section, "id");
+                        account.Id = await Secrets.Read(section, "id");
                         accounts.Add(account);
                         continue;
                     }
                     if(type==AccountType.AUTHLIB)
                     {
-                        account.AuthLib_authServer = Secrets.Read(section, "authServer");
-                        account.AuthLib_password = Secrets.Read(section, "authPassword");
-                        account.AuthLib_account= Secrets.Read(section, "authAccount");
-                        account.Id = Secrets.Read(section, "id");
+                        account.AuthLib_authServer = await Secrets.Read(section, "authServer");
+                        account.AuthLib_password = await Secrets.Read(section, "authPassword");
+                        account.AuthLib_account= await Secrets.Read(section, "authAccount");
+                        account.Id = await Secrets.Read(section, "id");
                         account.Uuid = section.Substring(4).Replace("_AUTHLIB", "");
                         accounts.Add(account);
                         continue;
@@ -92,13 +92,13 @@ namespace LMC.Account
                     {
                         if (refresh)
                         {
-                            string refreshToken = Secrets.Read(section, "refresh_token");
+                            string refreshToken = await Secrets.Read(section, "refresh_token");
                             OAuth.OAuth oa = new OAuth.OAuth();
                             var tokens = await oa.RefreshToken(refreshToken);
                             Secrets.Write(section, "refresh_token", tokens.refreshToken);
                             account.AccessToken = tokens.accessToken;
                         }
-                        account.Id = Secrets.Read(section, "id");
+                        account.Id = await Secrets.Read(section, "id");
                         account.Uuid = section.Substring(4).Replace("_MSA", "");
                         accounts.Add(account);
                     }
