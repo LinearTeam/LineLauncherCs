@@ -18,16 +18,21 @@ namespace LMC.Pages
         public SettingPage()
         {
             InitializeComponent();
+            s_theme = Theme;
             LoadSettings();
         }
 
         public static void LoadSettings()
         {
-            try
+            while (true)
             {
-                s_theme.IsOn = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
+                try
+                {
+                    s_theme.IsOn = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
+                    break;
+                }
+                catch { }
             }
-            catch { }
         }
 
         private void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
