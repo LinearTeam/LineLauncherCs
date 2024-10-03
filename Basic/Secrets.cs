@@ -68,12 +68,7 @@ namespace LMC.Basic
                 }
                 hash = sb.ToString();
             }
-            int i = 0;
-            while(hash.Length < 16)
-            {
-                hash += hash[i];
-                i++;
-            }
+            
             return hash.Substring(0,16);
         }
 
@@ -111,11 +106,12 @@ namespace LMC.Basic
                     foreach (var key in keys)
                     {
                         string value = s_lineFileParser.Read("./LMC/temp/imp/scs.line", key, section);
-                        value = DecryptAes(value, enKey);
+                        value = DecryptAes(value, enKey);   
                         Write(section, key, value);
                     }
                 }
             }
+            Directory.Delete("./LMC/temp/imp", true);
         }
 
         public async static Task<string> Export(string cause)

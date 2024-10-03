@@ -29,7 +29,6 @@ namespace LMC.Basic
         {
             return s_lineFileParser.GetKeySet(s_localPath, section);
         }
-
         public static List<string> ReadKeySetGlobal(string section)
         {
             return s_lineFileParser.GetKeySet(s_globalPath, section);

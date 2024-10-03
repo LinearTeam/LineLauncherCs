@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
       xmlns:local="clr-namespace:LMC.Pages"
       mc:Ignorable="d" 
@@ -10,6 +11,30 @@
       Title="账号管理">
 
     <Grid>
-        
+        <ikw:SimpleStackPanel Margin="30,10" Spacing="20" Orientation="Horizontal">
+            <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
+                <Grid.Effect>
+                    <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
+                </Grid.Effect>
+                <Image Source="/hutao.jpg" HorizontalAlignment="Center" VerticalAlignment="Top" Width="64" Height="64" Grid.Row="1" Grid.Column="1" Margin="0,25,0,0"/>
+<!--                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.NetworkConnected}" Margin="0,96,0,44"/> !-->
+                <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                    <TextBlock.Text>
+                        AzogMine
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+            <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
+                <Grid.Effect>
+                    <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
+                </Grid.Effect>
+                <Image Source="/LMC.png" HorizontalAlignment="Center" VerticalAlignment="Top" Width="64" Height="64" Grid.Row="1" Grid.Column="1" Margin="0,25,0,0"/>
+                <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                    <TextBlock.Text>
+                        I_Love_Ei
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+        </ikw:SimpleStackPanel>
     </Grid>
 </ui:Page>

@@ -2,10 +2,13 @@
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Shapes;
 using Common.Models;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
+using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 using MessageBox = iNKORE.UI.WPF.Modern.Controls.MessageBox;
 
 namespace LMC
@@ -16,6 +19,7 @@ namespace LMC
     public partial class MainWindow : Window
     {
         private static Logger s_logger = new Logger("MainUI");
+        private static Image s_background;
 
         public static string LauncherVersion = "2.0.0";
 
@@ -32,12 +36,13 @@ namespace LMC
             LineFileParser lfp = new LineFileParser();
             s_logger.Info("正在初始化主界面");
             InitializeComponent();
-            
+            s_background = BackGround;
         }
+
 
         public async static Task<ContentDialogResult> ShowDialog(string closeButtonText, string content, string title, ContentDialogButton defaultButton = ContentDialogButton.None, string primaryButtonText = null, string secondaryButtonText = null)
         {
-            int temp = new Random().Next(1000, 9999);
+            short temp = (short) new Random().Next(1000, 9999);
             s_logger.Info($"正在显示Dialog{temp}：\nContent: {content}\nTitle: {title}\nSecButton: {secondaryButtonText}\nPrimButton: {primaryButtonText}\nDef: {defaultButton}\nClose: {closeButtonText}");
             ContentDialog dialog = new ContentDialog();
             dialog.Content = content;
