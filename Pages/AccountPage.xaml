@@ -16,8 +16,24 @@
                 <Grid.Effect>
                     <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
                 </Grid.Effect>
+                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.AddFriend}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="70"/>
+                <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                    <TextBlock.Text>
+                        添加账号
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+            <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
+                <Grid.Effect>
+                    <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
+                </Grid.Effect>
                 <Image Source="/hutao.jpg" HorizontalAlignment="Center" VerticalAlignment="Top" Width="64" Height="64" Grid.Row="1" Grid.Column="1" Margin="0,25,0,0"/>
-<!--                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.NetworkConnected}" Margin="0,96,0,44"/> !-->
+                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.PassiveAuthentication}" Margin="0,136,4,4" HorizontalAlignment="Right"/>
+                <TextBlock Margin="28,101,28,28" TextAlignment="Center">
+                    <TextBlock.Text>
+                        微软账号
+                    </TextBlock.Text>
+                </TextBlock>
                 <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
                     <TextBlock.Text>
                         AzogMine
@@ -29,12 +45,88 @@
                     <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
                 </Grid.Effect>
                 <Image Source="/LMC.png" HorizontalAlignment="Center" VerticalAlignment="Top" Width="64" Height="64" Grid.Row="1" Grid.Column="1" Margin="0,25,0,0"/>
+                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.NetworkOffline}" Margin="0,136,4,4" HorizontalAlignment="Right"/>
+                <TextBlock Margin="28,101,28,28" TextAlignment="Center">
+                    <TextBlock.Text>
+                        离线账号
+                    </TextBlock.Text>
+                </TextBlock>
                 <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
                     <TextBlock.Text>
                         I_Love_Ei
                     </TextBlock.Text>
                 </TextBlock>
             </Grid>
+            <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
+                <Grid.Effect>
+                    <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
+                </Grid.Effect>
+                <Image Source="/hutao.jpg" HorizontalAlignment="Center" VerticalAlignment="Top" Width="64" Height="64" Grid.Row="1" Grid.Column="1" Margin="0,25,0,0"/>
+                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Library}" Margin="0,136,4,4" HorizontalAlignment="Right"/>
+                <TextBlock Margin="28,101,28,28" TextAlignment="Center">
+                    <TextBlock.Text>
+                        第三方账号
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                    <TextBlock.Text>
+                        O_Huangyu
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+
+            <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
+                <Grid.Effect>
+                    <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
+                </Grid.Effect>
+                <Image Source="/hutao.jpg" HorizontalAlignment="Center" VerticalAlignment="Top" Width="64" Height="64" Grid.Row="1" Grid.Column="1" Margin="0,25,0,0"/>
+                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.PassiveAuthentication}" Margin="0,136,4,4" HorizontalAlignment="Right"/>
+                <TextBlock Margin="28,101,28,28" TextAlignment="Center">
+                    <TextBlock.Text>
+                        微软账号
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                    <TextBlock.Text>
+                        AzogMine
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+            <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
+                <Grid.Effect>
+                    <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
+                </Grid.Effect>
+                <Image Source="/LMC.png" HorizontalAlignment="Center" VerticalAlignment="Top" Width="64" Height="64" Grid.Row="1" Grid.Column="1" Margin="0,25,0,0"/>
+                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.NetworkOffline}" Margin="0,136,4,4" HorizontalAlignment="Right"/>
+                <TextBlock Margin="28,101,28,28" TextAlignment="Center">
+                    <TextBlock.Text>
+                        离线账号
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                    <TextBlock.Text>
+                        I_Love_Ei
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+            <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
+                <Grid.Effect>
+                    <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
+                </Grid.Effect>
+                <Image Source="/hutao.jpg" HorizontalAlignment="Center" VerticalAlignment="Top" Width="64" Height="64" Grid.Row="1" Grid.Column="1" Margin="0,25,0,0"/>
+                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Library}" Margin="0,136,4,4" HorizontalAlignment="Right"/>
+                <TextBlock Margin="28,101,28,28" TextAlignment="Center">
+                    <TextBlock.Text>
+                        第三方账号
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Margin="0,121,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                    <TextBlock.Text>
+                        O_Huangyu
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+
         </ikw:SimpleStackPanel>
     </Grid>
 </ui:Page>
