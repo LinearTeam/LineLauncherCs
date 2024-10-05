@@ -1,11 +1,14 @@
 ﻿using iNKORE.UI.WPF.Controls;
 using iNKORE.UI.WPF.Converters;
+using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Common.IconKeys;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
+using LMC.Basic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,23 +30,67 @@ namespace LMC.Pages
     /// </summary>
     public partial class AccountPage : Page
     {
+        private static bool s_light = true;
         private static SimpleStackPanel s_stackPanel;
+        private static List<Grid> s_grids = new List<Grid>();
+
         public AccountPage()
         {
+            s_light = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
             InitializeComponent();
             s_stackPanel = ssp;
+
+            Grid addAccount = new Grid();
+            addAccount.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(40, 45, 57));
+            addAccount.HorizontalAlignment = HorizontalAlignment.Left;
+            addAccount.VerticalAlignment = VerticalAlignment.Top;
+            addAccount.Width = 140;
+            addAccount.Height = 160;
+            addAccount.MouseLeftButtonDown += Grid_MouseLeftButtonDown;
+
+            var effect = new DropShadowEffect();
+            effect.Color = s_light ? Colors.Gray : Colors.White;
+            effect.ShadowDepth = 0;
+            effect.BlurRadius = 7;
+            effect.Opacity = 0.5;
+            effect.Direction = 0;
+            addAccount.Effect = effect;
+            FontIcon icon = new FontIcon();
+            icon.FontSize = 70;
+            icon.HorizontalAlignment = HorizontalAlignment.Center;
+            icon.VerticalAlignment = VerticalAlignment.Center;
+            icon.Icon = SegoeFluentIcons.AddFriend;
+
+            TextBlock text = new TextBlock();
+            text.Text = "添加账号";
+            text.TextWrapping = TextWrapping.Wrap;
+            text.TextAlignment = TextAlignment.Center;
+            text.Margin = new Thickness(0, 121, 0, 0);
+            addAccount.Children.Add(icon);
+            addAccount.Children.Add(text);
+            s_stackPanel.Children.Add(addAccount);
+            s_grids.Add(addAccount);
+        }
+
+        public static void ChangeTheme(bool light)
+        {
+            s_light = light;
+            foreach (var grid in s_grids)
+            {
+                grid.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(35, 39, 52));
+            }
         }
 
         public static void AddAccount(Account.Account account)
         {
             Grid grid = new Grid();
-            grid.Background = new SolidColorBrush(Colors.White);
+            grid.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(40, 45, 57));
             grid.HorizontalAlignment = HorizontalAlignment.Left;
             grid.VerticalAlignment = VerticalAlignment.Top;
-            grid.Width = 120;
+            grid.Width = 140;
             grid.Height = 160;
             var effect = new DropShadowEffect();
-            effect.Color = Colors.Gray;
+            effect.Color = s_light ? Colors.Gray : Colors.White;
             effect.ShadowDepth = 0;
             effect.BlurRadius = 7;
             effect.Opacity = 0.5;
@@ -68,7 +115,7 @@ namespace LMC.Pages
             TextBlock type = new TextBlock();
             type.Margin = new Thickness(28, 101, 28, 28);
             type.TextAlignment = TextAlignment.Center;
-//            type.HorizontalAlignment = HorizontalAlignment.Stretch;
+
 
             if(account.Type == AccountType.MSA)
             {
@@ -96,6 +143,7 @@ namespace LMC.Pages
             grid.Children.Add(type);
             grid.Children.Add(name);
             s_stackPanel.Children.Add(grid);
+            s_grids.Add(grid);
         }
 
         private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

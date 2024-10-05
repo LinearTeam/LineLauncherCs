@@ -13,18 +13,7 @@
     <Grid>
         <ScrollViewer HorizontalScrollBarVisibility="Visible">
             <ikw:SimpleStackPanel Margin="30,10" Spacing="20" Orientation="Horizontal" x:Name="ssp">
-                <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White" MouseLeftButtonDown="Grid_MouseLeftButtonDown">
-                    <Grid.Effect>
-                        <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
-                    </Grid.Effect>
-                    <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.AddFriend}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="70"/>
-                    <TextBlock Margin="0,121,0,0" TextWrapping="Wrap" TextAlignment="Center">
-                        <TextBlock.Text>
-                            添加账号
-                        </TextBlock.Text>
-                    </TextBlock>
-                </Grid>
-                <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
+<!--                <Grid Width="120" Height="160" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White">
                     <Grid.Effect>
                         <DropShadowEffect Color="Gray" ShadowDepth="0" BlurRadius="7" Opacity="0.5" Direction="0"/>
                     </Grid.Effect>
@@ -127,7 +116,7 @@
                         </TextBlock.Text>
                     </TextBlock>
                 </Grid>
-
+            <!-->
             </ikw:SimpleStackPanel>
         </ScrollViewer>
     </Grid>
