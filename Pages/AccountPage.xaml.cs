@@ -78,6 +78,7 @@ namespace LMC.Pages
             foreach (var grid in s_grids)
             {
                 grid.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(35, 39, 52));
+                ((DropShadowEffect)grid.Effect).Color = s_light ? Colors.Gray : Colors.White;
             }
         }
 
