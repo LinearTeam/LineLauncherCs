@@ -33,20 +33,24 @@ namespace LMC.Pages
         private static bool s_light = true;
         private static SimpleStackPanel s_stackPanel;
         private static List<Grid> s_grids = new List<Grid>();
+        private static Grid s_addAccount = new Grid();
 
         public AccountPage()
         {
             s_light = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
             InitializeComponent();
             s_stackPanel = ssp;
+            AddGrid();
+        }
 
-            Grid addAccount = new Grid();
-            addAccount.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(40, 45, 57));
-            addAccount.HorizontalAlignment = HorizontalAlignment.Left;
-            addAccount.VerticalAlignment = VerticalAlignment.Top;
-            addAccount.Width = 140;
-            addAccount.Height = 160;
-            addAccount.MouseLeftButtonDown += Grid_MouseLeftButtonDown;
+        public static void AddGrid()
+        {
+            s_addAccount.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(40, 45, 57));
+            s_addAccount.HorizontalAlignment = HorizontalAlignment.Left;
+            s_addAccount.VerticalAlignment = VerticalAlignment.Top;
+            s_addAccount.Width = 140;
+            s_addAccount.Height = 160;
+            s_addAccount.MouseLeftButtonDown += Grid_MouseLeftButtonDown;
 
             var effect = new DropShadowEffect();
             effect.Color = s_light ? Colors.Gray : Colors.White;
@@ -54,7 +58,7 @@ namespace LMC.Pages
             effect.BlurRadius = 7;
             effect.Opacity = 0.5;
             effect.Direction = 0;
-            addAccount.Effect = effect;
+            s_addAccount.Effect = effect;
             FontIcon icon = new FontIcon();
             icon.FontSize = 70;
             icon.HorizontalAlignment = HorizontalAlignment.Center;
@@ -66,10 +70,34 @@ namespace LMC.Pages
             text.TextWrapping = TextWrapping.Wrap;
             text.TextAlignment = TextAlignment.Center;
             text.Margin = new Thickness(0, 121, 0, 0);
-            addAccount.Children.Add(icon);
-            addAccount.Children.Add(text);
-            s_stackPanel.Children.Add(addAccount);
-            s_grids.Add(addAccount);
+            s_addAccount.Children.Add(icon);
+            s_addAccount.Children.Add(text);
+            s_stackPanel.Children.Add(s_addAccount);
+        }
+
+        public async static Task RefreshAccounts()
+        {
+            var accs = await AccountManager.GetAccounts(false);
+            foreach (var acc in accs)
+            {
+                AddAccount(acc);
+            }
+        }
+
+        public static void RefreshUi()
+        {
+            if (s_stackPanel == null) return;
+            foreach (var grid in s_grids)
+            {
+                try
+                {
+                    if (!s_stackPanel.Children.Contains(grid))
+                    {
+                        s_stackPanel.Children.Add(grid);
+                    }
+                }
+                catch { }
+            }
         }
 
         public static void ChangeTheme(bool light)
@@ -80,6 +108,7 @@ namespace LMC.Pages
                 grid.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(35, 39, 52));
                 ((DropShadowEffect)grid.Effect).Color = s_light ? Colors.Gray : Colors.White;
             }
+            s_addAccount.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(35, 39, 52));
         }
 
         public static void AddAccount(Account.Account account)
@@ -143,11 +172,11 @@ namespace LMC.Pages
             grid.Children.Add(icon);
             grid.Children.Add(type);
             grid.Children.Add(name);
-            s_stackPanel.Children.Add(grid);
             s_grids.Add(grid);
+            RefreshUi();
         }
 
-        private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private static void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             Account.Account account = new Account.Account();
             account.Id = "Fuck";
@@ -158,7 +187,7 @@ namespace LMC.Pages
             account2.Type = AccountType.MSA;
 
             Account.Account account3 = new Account.Account();
-            account3.Id = "shit";
+            account3.Id = "Shit";
             account3.Type = AccountType.AUTHLIB;
             Random random = new Random();
             int i = random.Next(0, 3);
