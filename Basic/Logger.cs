@@ -9,6 +9,7 @@ namespace LMC.Basic
     public class Logger
     {
         public static string LogNum = "1";
+        public static string LoggerVersion = "L2A4";
         private string _module;
         private string _logFile;
         private BlockingCollection<string> _logQueue;

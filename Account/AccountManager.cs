@@ -11,15 +11,40 @@ using System.Threading.Tasks;
 namespace LMC.Account
 {
     public enum AccountType{MSA, OFFLINE, AUTHLIB};
-
     public class AccountManager
     {
+        public static Dictionary<string, Account> RefreshedAccounts = new Dictionary<string, Account>();
+    
         private static Logger s_logger = new Logger("AM");
-        async public static Task AddAccount(Account account, string refreshToken = null)
+
+        public static string GetKey(Account account)
+        {
+            if (account.Type == AccountType.MSA)
+            {
+                return $"{account.Uuid}_MSA";
+            }
+            if (account.Type == AccountType.AUTHLIB)
+            {
+                return $"{account.Uuid}_AUTHLIB";
+            }
+            else
+            {
+                return $"{account.Id}_Offline";
+            }
+        }
+        public static void AddAccount(Account account, string refreshToken = null, bool onlyAddToList = false)
         {
             if(account.Type == AccountType.MSA)
             {
-                Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "refresh_token", refreshToken);
+                if (RefreshedAccounts.ContainsKey(GetKey(account))) { RefreshedAccounts.Remove(GetKey(account)); }
+                RefreshedAccounts.Add(GetKey(account), account);
+                if (onlyAddToList) {
+                    return;
+                }
+                if (refreshToken != null)
+                {
+                    Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "refresh_token", refreshToken);
+                }
                 Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "id", account.Id);
             }
             if (account.Type == AccountType.AUTHLIB) {
@@ -27,11 +52,16 @@ namespace LMC.Account
                 Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "authPassword", account.AuthLib_password);
                 Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "authAccount", account.AuthLib_account);
                 Secrets.Write("acc_" + account.Uuid + "_" + account.Type, "id", account.Id);
+                if (RefreshedAccounts.ContainsKey(GetKey(account))) { RefreshedAccounts.Remove(GetKey(account)); }
+                RefreshedAccounts.Add(GetKey(account), account);
             }
             if (account.Type == AccountType.OFFLINE)
             {
                 Secrets.Write("acc_" + account.Id + "_" + account.Type, "id", account.Id);
+                if (RefreshedAccounts.ContainsKey(GetKey(account))) { RefreshedAccounts.Remove(GetKey(account)); }
+                RefreshedAccounts.Add(GetKey(account), account);
             }
+
         }
 
         public static void DeleteAccount(Account account)
@@ -40,16 +70,20 @@ namespace LMC.Account
             if (account.Type == AccountType.MSA)
             {
                 section = "acc_" + account.Uuid + "_" + account.Type;
+                RefreshedAccounts.Remove(GetKey(account));
             }
             if (account.Type == AccountType.AUTHLIB)
             {
                 section = "acc_" + account.Uuid + "_" + account.Type;
+                RefreshedAccounts.Remove(GetKey(account));
             }
             if (account.Type == AccountType.OFFLINE)
             {
                 section = "acc_" + account.Id + "_" + account.Type;
+                RefreshedAccounts.Remove(GetKey(account));
             }
             Secrets.DeleteSection(section);
+
         }
 
 
@@ -76,6 +110,7 @@ namespace LMC.Account
                     {
                         account.Id = await Secrets.Read(section, "id");
                         accounts.Add(account);
+                        AddAccount(account);
                         continue;
                     }
                     if(type==AccountType.AUTHLIB)
@@ -86,6 +121,7 @@ namespace LMC.Account
                         account.Id = await Secrets.Read(section, "id");
                         account.Uuid = section.Substring(4).Replace("_AUTHLIB", "");
                         accounts.Add(account);
+                        AddAccount(account);
                         continue;
                     }
                     if(type==AccountType.MSA)
@@ -97,10 +133,11 @@ namespace LMC.Account
                             var tokens = await oa.RefreshToken(refreshToken);
                             Secrets.Write(section, "refresh_token", tokens.refreshToken);
                             account.AccessToken = tokens.accessToken;
-                        }
+                        };
                         account.Id = await Secrets.Read(section, "id");
                         account.Uuid = section.Substring(4).Replace("_MSA", "");
                         accounts.Add(account);
+                        AddAccount(account);
                     }
                 }
             }

@@ -19,7 +19,7 @@ namespace LMC.Utils
         private DispatcherTimer _timer = new DispatcherTimer();
         public Downloader(Uri url, string path)
         {
-            Headers.Add("User-Agent", $"LMC/C{MainWindow.LauncherVersion}");           
+            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}");           
             this._url = url;
             this._path = path;
             _timer.Tick += TimeoutCheck;
@@ -27,7 +27,7 @@ namespace LMC.Utils
         
         public Downloader(string url, string path)
         {
-            Headers.Add("User-Agent", $"LMC/C{MainWindow.LauncherVersion}");
+            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}");
             this._url = new Uri(url);
             this._path = path;
             _timer.Tick += TimeoutCheck;

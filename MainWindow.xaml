@@ -39,7 +39,7 @@
                 </ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="账号管理" x:Name="AccountNagVi">
                     <ui:NavigationViewItem.Icon>
-                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.SwitchUser}"/>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.People}"/>
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
@@ -57,7 +57,7 @@
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
             </ui:NavigationView.FooterMenuItems>
-            <ui:Frame x:Name="MainFrame"/>
+            <ui:Frame x:Name="MainFrm"/>
         </ui:NavigationView>
     </Grid>
 </Window>

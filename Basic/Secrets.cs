@@ -122,7 +122,7 @@ namespace LMC.Basic
                 string enKey = string.Empty;
                 using (SHA1 sha1 = SHA1.Create())
                 {
-                    byte[] hashBytes = sha1.ComputeHash(new ASCIIEncoding().GetBytes(MainWindow.LauncherVersion));
+                    byte[] hashBytes = sha1.ComputeHash(new ASCIIEncoding().GetBytes(App.LauncherVersion));
 
                     StringBuilder sb = new StringBuilder();
                     foreach (byte b in hashBytes)
@@ -149,7 +149,7 @@ namespace LMC.Basic
                 Directory.CreateDirectory("./LMC/temp/exp");
                 Directory.CreateDirectory("./LMC/export");
                 File.Create($"./LMC/temp/exp/mf.line").Close();
-                s_lineFileParser.Write($"./LMC/temp/exp/mf.line", "fromVer", MainWindow.LauncherVersion, "base");
+                s_lineFileParser.Write($"./LMC/temp/exp/mf.line", "fromVer", App.LauncherVersion, "base");
                 string totalZip = $"{Directory.GetParent("./LMC/export/").FullName}/{new Random().Next(1000, 9999)}.linesec";
                 File.Delete("./LMC/temp/exp/scs.line");
                 File.Move(path, $"./LMC/temp/exp/scs.line");
@@ -182,7 +182,7 @@ namespace LMC.Basic
             s_logger.Info("正在备份隐私文件，原因:" + cause);
 
             await Task.Run(() => {File.Delete(Directory.GetParent(s_path).FullName + "/secret_backup.line"); File.Copy(s_path, Directory.GetParent(s_path).FullName + "/secret_backup.line"); });
-            s_lineFileParser.Write(Directory.GetParent(s_path).FullName + "/secret_backup.line", "fromVersion", MainWindow.LauncherVersion, "backup");
+            s_lineFileParser.Write(Directory.GetParent(s_path).FullName + "/secret_backup.line", "fromVersion", App.LauncherVersion, "backup");
         }
 
         public static void Write(string section, string key, string value)

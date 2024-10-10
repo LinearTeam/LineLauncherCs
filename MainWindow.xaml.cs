@@ -10,6 +10,9 @@ using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 using MessageBox = iNKORE.UI.WPF.Modern.Controls.MessageBox;
+using Frame = iNKORE.UI.WPF.Modern.Controls.Frame;
+using LMC.Account;
+using LMC.Pages;
 
 namespace LMC
 {
@@ -20,9 +23,6 @@ namespace LMC
     {
         private static Logger s_logger = new Logger("MainUI");
         private static Image s_background;
-
-        public static string LauncherVersion = "2.0.0";
-
         public Pages.AboutPage AboutPage = new Pages.AboutPage();
         public Pages.AccountPage AccountPage = new Pages.AccountPage();
         public Pages.HomePage HomePage = new Pages.HomePage();
@@ -30,15 +30,32 @@ namespace LMC
         public Pages.ProfilePage ProfilePage = new Pages.ProfilePage();
         public Pages.SettingPage SettingPage = new Pages.SettingPage();
         public Pages.LaunchPage LaunchPage = new Pages.LaunchPage();
+        public static Pages.AddAccountPage AddAccountPage = new Pages.AddAccountPage();
+
+        public static Frame MainFrame;
 
         public MainWindow()
         {
-            LineFileParser lfp = new LineFileParser();
-            s_logger.Info("正在初始化主界面");
-            InitializeComponent();
-            s_background = BackGround;
+            try
+            {
+                LineFileParser lfp = new LineFileParser();
+                s_logger.Info("正在初始化主界面");
+                AccountManager.GetAccounts(true);
+                InitializeComponent();
+                s_background = BackGround;
+                MainFrame = MainFrm;
+                
+                Secrets.GetDeviceCode();
+            }
+            catch {
+                Environment.Exit(1);
+            }
         }
 
+        public static void AddAccPage()
+        {
+            MainFrame.Navigate(AddAccountPage);
+        }
 
         public async static Task<ContentDialogResult> ShowDialog(string closeButtonText, string content, string title, ContentDialogButton defaultButton = ContentDialogButton.None, string primaryButtonText = null, string secondaryButtonText = null)
         {
@@ -66,7 +83,7 @@ namespace LMC
             return res;
         }
 
-        private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        private async void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             Page? page = null;
             var item = args.SelectedItem;
@@ -104,7 +121,20 @@ namespace LMC
                 MainNagV.Header = page.Title;
                 MainFrame.Navigate(page);
             }
+        }
 
+        public async static void ShowMsgBox(string title, string content, Action action = null)
+        {
+            s_logger.Info($"正在显示MsgBox：" +
+                $"\nTitle: {title}" +
+                $"\nContent: {content}" +
+                $"\nAction: {action.GetType()}");
+            var msgButton = MessageBoxButton.OK;
+            var res = MessageBox.Show(content,title, msgButton);
+            if (action != null)
+            {
+                action.Invoke();
+            }
         }
     }
 }

@@ -31,16 +31,27 @@ namespace LMC.Pages
     public partial class AccountPage : Page
     {
         private static bool s_light = true;
-        private static SimpleStackPanel s_stackPanel;
+        private static WrapPanel s_stackPanel;
         private static List<Grid> s_grids = new List<Grid>();
         private static Grid s_addAccount = new Grid();
+        private static List<string> s_addedAccounts = new List<string>();
+        private static Style s_triggerStyle;
+
 
         public AccountPage()
         {
             s_light = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
             InitializeComponent();
             s_stackPanel = ssp;
+            s_triggerStyle = (Style)MainGrid.FindResource("TriggerStyle");
             AddGrid();
+            this.Loaded += AccountPage_Loaded;
+            
+        }
+
+        private async void AccountPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            await RefreshAccounts();
         }
 
         public static void AddGrid()
@@ -73,7 +84,10 @@ namespace LMC.Pages
             s_addAccount.Children.Add(icon);
             s_addAccount.Children.Add(text);
             s_stackPanel.Children.Add(s_addAccount);
+            s_addAccount.Margin = new Thickness(5);
+            s_addAccount.Style = s_triggerStyle;
         }
+        
 
         public async static Task RefreshAccounts()
         {
@@ -109,10 +123,13 @@ namespace LMC.Pages
                 ((DropShadowEffect)grid.Effect).Color = s_light ? Colors.Gray : Colors.White;
             }
             s_addAccount.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(35, 39, 52));
+            ((DropShadowEffect)s_addAccount.Effect).Color = s_light ? Colors.Gray : Colors.White;
         }
 
         public static void AddAccount(Account.Account account)
         {
+            if (s_addedAccounts.Contains(account.Id + account.Type.ToString())) return;
+            s_addedAccounts.Add(account.Id + account.Type.ToString());
             Grid grid = new Grid();
             grid.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(40, 45, 57));
             grid.HorizontalAlignment = HorizontalAlignment.Left;
@@ -172,36 +189,45 @@ namespace LMC.Pages
             grid.Children.Add(icon);
             grid.Children.Add(type);
             grid.Children.Add(name);
+            grid.Margin = new Thickness(5);
+            grid.Style = s_triggerStyle;
             s_grids.Add(grid);
             RefreshUi();
         }
 
         private static void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            /*
             Account.Account account = new Account.Account();
-            account.Id = "Fuck";
+            account.Id = "Fuck" + new Random().Next(0,1000);
             account.Type = AccountType.OFFLINE;
 
             Account.Account account2 = new Account.Account();
-            account2.Id = "Cnm";
+            account2.Id = "Cnm" + new Random().Next(0, 1000);
             account2.Type = AccountType.MSA;
 
             Account.Account account3 = new Account.Account();
-            account3.Id = "Shit";
+            account3.Id = "Lib" + new Random().Next(0, 1000);
             account3.Type = AccountType.AUTHLIB;
             Random random = new Random();
             int i = random.Next(0, 3);
             if (i == 0)
             {
-                AddAccount(account);
+                AddAccount(account3);
             }
             else if (i == 1)
             {
-                AddAccount(account2);
+                AddAccount(account3);
             }
             else { 
                 AddAccount(account3);
-            }
+            }*/
+            MainWindow.AddAccPage();
+        }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            s_stackPanel.MaxWidth = this.ActualWidth - 50;
         }
     }
 }

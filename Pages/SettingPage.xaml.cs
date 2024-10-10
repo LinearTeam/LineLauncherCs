@@ -41,6 +41,7 @@ namespace LMC.Pages
             ThemeManager.Current.ApplicationTheme = Theme.IsOn ? ApplicationTheme.Light : ApplicationTheme.Dark;
             Config.WriteGlobal("ui", "theme", Theme.IsOn ? "light" : "dark");
             AccountPage.ChangeTheme(Theme.IsOn);
+            AddAccountPage.ChangeTheme(Theme.IsOn);
         }
 
         private async void Button_Click_1(object sender, RoutedEventArgs e)

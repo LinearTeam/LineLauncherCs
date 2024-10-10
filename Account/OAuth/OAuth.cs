@@ -14,66 +14,80 @@ namespace LMC.Account.OAuth
         private String _loginUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=1cbfda79-fc84-47f9-8110-f924da9841ec&response_type=code&redirect_uri=http://127.0.0.1:40935&response_mode=query&scope=XboxLive.offline_access";
         private Logger _logger = new Logger("OA");
         private static bool s_isOaIng = false;
-        async public Task<(int done, Account account,string refreshtoken)> StartOA()
+        private static HttpListener s_listener;
+        private static bool s_cancel = false;
+        async public Task<(int done, Account account,string refreshtoken)> StartOA(Action whenGotCode)
         {
-
+            _logger.Info("开始进行微软登录，方式授权代码流");
             HttpListener listener = new HttpListener();
+            s_listener = listener;
             try
             {
-                var t = await StepOne(listener);
+                var t = await StepOne(listener, whenGotCode);
                 listener.Stop();
+                //0 - done;1 - unknown exception;2 - nomc;3 - no code
                 return (0, t.account, t.refreshtoken); 
             } catch(Exception e) {
-                _logger.Warn(e.Message);    
+                if(e.Message.Contains("Do not have mc"))
+                {
+                    _logger.Warn("登录失败，原因：用户没有购买MC");
+                    return (2, null, null);
+                }
+                if (e.Message.Contains("No code"))
+                {
+                    _logger.Warn($"登录失败，原因：无法提取授权码");
+                    return (3, null, null);
+                }
+                _logger.Warn(e.Message);
+                _logger.Warn(e.StackTrace);
+                if (e.InnerException != null)
+                {
+                    _logger.Warn(e.InnerException.Message);
+                    _logger.Warn(e.InnerException.StackTrace);
+                }
                 listener.Stop();
                 return (1,null,null); 
             };
         }
-        /*
-        public async static Task OA()
+        public static bool CanOA()
+        {
+            return !s_isOaIng;
+        }
+        public static void CancelOA()
+        {
+            s_cancel = true;
+            try
+            {
+                s_listener.Stop();
+                new Logger("OA").Info("正在终止微软登录请求");
+            }
+            catch { }
+        }
+        public async static Task OA(Action<(int done, Account account, string refreshToken)> whenDone, Action whenGotCode)
         {
             if(s_isOaIng == true)
             {
-                await MainWindow.ShowMsgBox("提示", "你正在进行一个微软登录操作，请勿重复登录", "确认");
                 return;
             }
             s_isOaIng = true;
+            s_cancel = false;
             
-            //await MainWindow.showMsgBox(MainWindow.i18NTools.getString("lmc.messages.msastart.title"), MainWindow.i18NTools.getString("lmc.messages.msastart.msg"), MainWindow.i18NTools.getString("lmc.messages.continue"));
-
-            MainWindow.InfoBar.Message = "正在进行微软登录...";
-            MainWindow.InfoBar.IsOpen = true;
-            MainWindow.InfoBar.IsClosable = false;
-            MainWindow.InfoBar.Severity = InfoBarSeverity.Warning;
-            MainWindow.MainNagView.Navigate(typeof(AccountPage));
             OAuth oa = new OAuth();
-            var t = await oa.StartOA();
-            if (t.done == 0)
-            {
-                string rt = t.refreshtoken;
-                LMC.Account.Account a = t.account;
-                await AccountManager.AddAccount(a, rt);
-                MainWindow.InfoBar.Severity = InfoBarSeverity.Success;
-                MainWindow.InfoBar.Message = $"微软登录成功！   Id : {a.Id}   Uuid : {a.Uuid}";;
-                MainWindow.InfoBar.IsClosable = true;
-                s_isOaIng = false;
-                return;
-            }
-            MainWindow.InfoBar.Severity = InfoBarSeverity.Error;
-            MainWindow.InfoBar.Message = "登录失败，请检查网络连接或反馈此问题！";
-            MainWindow.InfoBar.IsClosable = true;
+            var t = await oa.StartOA(whenGotCode);
+            whenDone(t);
             s_isOaIng = false;
         }
-*/
-        async private Task<(Account account,string refreshtoken)> StepOne(HttpListener listener)
+
+        async private Task<(Account account,string refreshtoken)> StepOne(HttpListener listener, Action whenGotCode)
         {
+            if (s_cancel) { return (null, null); }
             _logger.Info("MSL step 1");
             string url = "http://127.0.0.1:40935/";
             System.Diagnostics.Process.Start("explorer.exe", $"\"{_loginUrl}\"");
 
             listener.Prefixes.Add(url);
             listener.Start();
-            _logger.Info("Listening...");
+            _logger.Info("监听中");
 
             HttpListenerContext context = await listener.GetContextAsync();
             HttpListenerRequest request = context.Request;
@@ -90,10 +104,11 @@ namespace LMC.Account.OAuth
                 System.IO.Stream output = response.OutputStream;
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
-                _logger.Info("Server stopped.");
+                whenGotCode();
+                _logger.Info("服务器已停止，监听成功 ");
                 _logger.Info("MSL step 2");
                 var t = await StepTwo(code);
-                if (!t.haveMc)
+                if (!t.haveMc && t.name != null)
                 {
                     throw new Exception("Do not have mc");
                 }
@@ -113,12 +128,13 @@ namespace LMC.Account.OAuth
                 System.IO.Stream output = response.OutputStream;
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
-                _logger.Warn("MSL Error:no code");
+                _logger.Warn("MSL失败，没有检测到Code");
                 throw new Exception("No code : " + request.ToString());
             }
         }
         async public Task<(string uuid, string name, string mcatoken, string refreshtoken,bool haveMc)> StepTwo(string code)
         {
+            if (s_cancel) { return (null, null, null, null, false); }
             string url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
             var parameters = new Dictionary<string, string>
             {
@@ -155,6 +171,7 @@ namespace LMC.Account.OAuth
         }
         async public Task<(string uuid, string name, string mcatoken)> StepThree(string token)
         {
+            if (s_cancel) { return (null, null, null); }
             string json = "{" +
                 "\"Properties\": {" +
                     "\"AuthMethod\": \"RPS\"," +
@@ -172,6 +189,7 @@ namespace LMC.Account.OAuth
 
         async public Task<(string uuid, string name, string mcatoken)> StepFour(string tokenth)
         {
+            if (s_cancel) { return (null, null, null); }
             string json = "{" +
                 "\"Properties\": {" +
                     "\"SandboxId\": \"RETAIL\"," +
@@ -189,6 +207,7 @@ namespace LMC.Account.OAuth
         }
         async public Task<(string uuid,string name,string mcatoken)> StepFive(string tokenf, string uhs)
         {
+            if (s_cancel) { return (null, null, null); }
             string json = "{ \"identityToken\": \"XBL3.0 x=" + uhs + $";{tokenf}\"" + "}";
             string url = "https://api.minecraftservices.com/authentication/login_with_xbox";
             string contenttype = "application/json";
@@ -204,6 +223,7 @@ namespace LMC.Account.OAuth
         }
         async public Task<(bool, string, string)> StepSix(string tokenf)
         {
+            if (s_cancel) { return (false, null, null); }
             string url = "https://api.minecraftservices.com/entitlements/mcstore";
             string accept = "application/json";
             string checkres = await HttpUtils.GetWithAuth($"Bearer {tokenf}", url, accept);

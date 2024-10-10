@@ -12,17 +12,15 @@ namespace LMC.Utils
        
         static HttpUtils(){
             _httpClient.DefaultRequestHeaders.Accept.Clear();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", $"LMC/C{MainWindow.LauncherVersion}");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", $"LMC/C{App.LauncherVersion}");
         }
 
         public async static Task<string> GetWithAuth(string auth, string url, string accept)
         {
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", auth);
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
-            _httpClient.DefaultRequestHeaders.Add("Authorization", auth);
-
-
-
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
