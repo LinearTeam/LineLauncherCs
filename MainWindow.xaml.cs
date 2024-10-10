@@ -83,7 +83,7 @@ namespace LMC
             return res;
         }
 
-        private async void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             Page? page = null;
             var item = args.SelectedItem;
@@ -123,7 +123,7 @@ namespace LMC
             }
         }
 
-        public async static void ShowMsgBox(string title, string content, Action action = null)
+        public static void ShowMsgBox(string title, string content, Action action = null)
         {
             s_logger.Info($"正在显示MsgBox：" +
                 $"\nTitle: {title}" +

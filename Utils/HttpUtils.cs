@@ -73,10 +73,10 @@ namespace LMC.Utils
 
 
             var response = await _httpClient.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
-
             var responseContent = response.Content.ReadAsStringAsync().Result;
             return responseContent;
+            
+            
         }
     }
 }

@@ -6,6 +6,8 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
+using System.ComponentModel.Design;
+using Common;
 
 namespace LMC.Account.OAuth
 {
@@ -16,6 +18,89 @@ namespace LMC.Account.OAuth
         private static bool s_isOaIng = false;
         private static HttpListener s_listener;
         private static bool s_cancel = false;
+
+        //0 - success, 1 - pending, 2 - expired, 3 - deny
+        async public Task<(string refreshToken, string accessToken, int result)> CheckResult(string deviceCode)
+        {
+            _logger.Info("正在检查设备代码流验证结果");
+            string url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
+            string contentType = "application/x-www-form-urlencoded";
+            string accept = "application/json";
+            var parameters = new Dictionary<string, string> {
+                { "grant_type" , "urn:ietf:params:oauth:grant-type:device_code" },
+                { "client_id" , "1cbfda79-fc84-47f9-8110-f924da9841ec"},
+                { "device_code" , deviceCode }
+            };
+            var res = await HttpUtils.PostWithParameters(parameters, url, accept, contentType);
+            if (res.Contains("authorization_pending"))
+            {
+                _logger.Info("结果：pending");
+                return (null, null, 1);
+            }
+            if (res.Contains("authorization_declined"))
+            {
+                _logger.Info("结果：deny");
+                return (null, null, 3);
+            }
+            if (res.Contains("expired_token"))
+            {
+                _logger.Info("结果：expired");
+                return (null, null, 2);
+            }
+            _logger.Info("结果：success");
+            return (JsonUtils.GetValueFromJson(res, "refresh_token"), JsonUtils.GetValueFromJson(res, "access_token"), 0);
+        }
+
+        async public Task<(string usercode, string msg, string devicecode, string verificationurl, int interval)> DeviceCodeOA()
+        {
+            _logger.Info("开始进行微软登录，方式设备代码流");
+            var parameters = new Dictionary<string, string>
+            {
+                { "client_id", "1cbfda79-fc84-47f9-8110-f924da9841ec" },
+                { "scope", "XboxLive.signin offline_access" }
+            };
+            var res = await HttpUtils.PostWithParameters(parameters, "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode?mkt=zh-CN", "application/json", "application/x-www-form-urlencoded");
+            string usercode = JsonUtils.GetValueFromJson(res, "user_code");
+            string devicecode = JsonUtils.GetValueFromJson(res, "device_code");
+            string msg = JsonUtils.GetValueFromJson(res, "message");
+            string url = JsonUtils.GetValueFromJson(res, "verification_url");
+            int interval = int.Parse(JsonUtils.GetValueFromJson(res, "interval"));
+            _logger.Info("获取到设备代码");
+            return (usercode, msg, devicecode, url, interval);
+        }
+
+        public async Task<(int done, Account account)> StartOA(string accessToken)
+        {
+            _logger.Info("开始进行设备代码流验证");
+            try
+            {
+                var t = await StepThree(accessToken);
+                Account account = new Account();
+                account.Type = AccountType.MSA;
+                account.AccessToken = t.mcatoken;
+                account.Id = t.name;
+                account.Uuid = t.uuid;
+                //0 - done;1 - unknown exception;2 - nomc;3 - no code
+                return (0, account);
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("Do not have mc"))
+                {
+                    _logger.Warn("登录失败，原因：用户没有购买MC");
+                    return (2, null);
+                }
+                _logger.Warn(e.Message);
+                _logger.Warn(e.StackTrace);
+                if (e.InnerException != null)
+                {
+                    _logger.Warn(e.InnerException.Message);
+                    _logger.Warn(e.InnerException.StackTrace);
+                }
+                return (1, null);
+            };
+        }
+
         async public Task<(int done, Account account,string refreshtoken)> StartOA(Action whenGotCode)
         {
             _logger.Info("开始进行微软登录，方式授权代码流");
@@ -56,10 +141,10 @@ namespace LMC.Account.OAuth
         public static void CancelOA()
         {
             s_cancel = true;
+            new Logger("OA").Info("正在终止微软登录请求");
             try
             {
                 s_listener.Stop();
-                new Logger("OA").Info("正在终止微软登录请求");
             }
             catch { }
         }
@@ -92,11 +177,19 @@ namespace LMC.Account.OAuth
             HttpListenerContext context = await listener.GetContextAsync();
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
+            string rawUrl = request.RawUrl;
 
             if (request.QueryString["code"] != null)
             {
                 string code = request.QueryString["code"];
-                string responseString = "<html><body><center><h1>您已登录您的微软账号至Line Launcher，可以关闭此界面。</h1></center></body></html>";
+                _logger.Info("已获取用户返回值，正在重定向");
+                response.Redirect("done");
+                response.StatusCode = (int)HttpStatusCode.Redirect;
+                response.Close();
+                context = await listener.GetContextAsync();
+                request = context.Request;
+                response = context.Response;
+                string responseString = "<html><body><center><h1>您已登录您的微软账号至Line Launcher，可以关闭此界面。</h1></center></body></html><!--" + rawUrl + "-->";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -120,7 +213,13 @@ namespace LMC.Account.OAuth
             }
             else
             {
-                string responseString = "<html><body><center><h1>登录失败，请重试或提交反馈！</h1><center></body></html>";
+                response.Redirect("error");
+                response.StatusCode = (int)HttpStatusCode.Redirect;
+                response.Close();
+                context = await listener.GetContextAsync();
+                request = context.Request;
+                response = context.Response;
+                string responseString = "<html><body><center><h1>登录失败，请重试或提交反馈！</h1><center></body></html><!--" + rawUrl + "-->";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -129,7 +228,7 @@ namespace LMC.Account.OAuth
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
                 _logger.Warn("MSL失败，没有检测到Code");
-                throw new Exception("No code : " + request.ToString());
+                throw new Exception("No code : " + rawUrl);
             }
         }
         async public Task<(string uuid, string name, string mcatoken, string refreshtoken,bool haveMc)> StepTwo(string code)

@@ -72,7 +72,7 @@ namespace LMC.Pages
             ofd.Title = "选择文件";
             ofd.CheckPathExists = true;
             ofd.Multiselect = false;
-            ofd.Filter = "Line隐私文件包|*.linesec";
+            ofd.Filter = "Line隐私文件包|*.linesec|Zip压缩档|*.zip|所有文件|*";
             ofd.DefaultExt = Directory.GetParent("./LMC").FullName;
             if (ofd.ShowDialog() == true)
             {

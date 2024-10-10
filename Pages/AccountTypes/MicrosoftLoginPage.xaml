@@ -11,10 +11,11 @@
       Title="添加账号">
     <ScrollViewer>
         <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="30">
-            <TextBlock Text="接下来会跳转到微软的登录界面，请在其中登录并授权LMC访问您的账号以完成登录操作。" TextWrapping="Wrap" FontSize="20" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,50"/>
+            <TextBlock Text="授权代码流相对自动化，但在部分设备上可能不支持。&#13;设备代码流相对麻烦(但不多)，但是大部分设备上都支持。" TextWrapping="Wrap" FontSize="20" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,50"/>
             <ikw:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="30">
                 <Button VerticalAlignment="Bottom" Content="上一步" Click="Button_Click"/>
-                <Button VerticalAlignment="Bottom" Content="打开网页" Click="Button_Click_1"/>
+                <Button VerticalAlignment="Bottom" Content="以授权代码流登录" Click="Button_Click_1"/>
+                <Button VerticalAlignment="Bottom" Content="以设备代码流登录" Click="Button_Click_2"/>
             </ikw:SimpleStackPanel>
         </Grid>
     </ScrollViewer>
