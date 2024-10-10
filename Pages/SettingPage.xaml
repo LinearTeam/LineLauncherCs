@@ -4,16 +4,25 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+      xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:local="clr-namespace:LMC.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="设置">
 
     <Grid>
-        <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="40,40,0,0"  Content="外观设置" FontSize="20"/>
-        <ui:ToggleSwitch x:Name="Theme" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="50,80,0,0" FontSize="15" OnContent="亮色主题" OffContent="深色主题" Toggled="ToggleSwitch_Toggled"/>
-        <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="40,151,0,0"  Content="安全设置" FontSize="20"/>
-        <Button Content="导出隐私文件" Margin="40,205,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
-        <Button Content="导入隐私文件" Margin="160,205,0,0" VerticalAlignment="Top" Click="Button_Click"/>
+        <ScrollViewer>
+            <ikw:SimpleStackPanel Orientation="Vertical">
+                <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="20" Content="外观设置" FontSize="20"/>
+                <WrapPanel x:Name="w1" Orientation="Horizontal">
+                    <ui:ToggleSwitch x:Name="Theme" VerticalAlignment="Top" Margin="30,0,0,0" FontSize="15" OnContent="亮色主题" OffContent="深色主题" Toggled="ToggleSwitch_Toggled"/>
+                </WrapPanel>
+                <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="20"  Content="安全设置" FontSize="20"/>
+                <WrapPanel x:Name="w2" Orientation="Horizontal" >
+                    <Button Content="导出隐私文件" VerticalAlignment="Top" Click="Button_Click_1" Margin="30,0,0,0"/>
+                    <Button Content="导入隐私文件" VerticalAlignment="Top" Click="Button_Click" Margin="10,0,0,0"/>
+                </WrapPanel>
+            </ikw:SimpleStackPanel>
+        </ScrollViewer>
     </Grid>
 </ui:Page>

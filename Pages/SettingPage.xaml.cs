@@ -20,6 +20,7 @@ namespace LMC.Pages
         {
             InitializeComponent();
             s_theme = Theme;
+            this.SizeChanged += Page_SizeChange;
             LoadSettings();
         }
 
@@ -34,6 +35,15 @@ namespace LMC.Pages
                 }
                 catch { }
             }
+        }
+
+        private void Page_SizeChange(object s, RoutedEventArgs e)
+        {
+            
+            w1.MaxWidth = this.ActualWidth - 50;
+            w2.MaxWidth = this.ActualWidth - 50;
+            w1.MaxHeight = this.ActualHeight - 30;
+            w2.MaxHeight = this.ActualHeight - 30;
         }
 
         private void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
@@ -54,7 +64,7 @@ namespace LMC.Pages
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            var res = await MainWindow.ShowDialog("取消", "接下来请选择以 .linesec 结尾的 LMC 隐私文件，随后会导入所选文件中记录的内容(如账号)，这会将已有名称相同、类型相同的账号覆盖，当前不存在的则不会覆盖，是否继续？", "提示", ContentDialogButton.Primary, "继续");
+            var res = await MainWindow.ShowDialog("取消", "接下来请选择以 .linesec 结尾的 LMC 隐私文件，随后会导入所选文件中记录的内容(如账号)，这会将已有名称相同、类型相同的账号覆盖，隐私文件中没有记录的则不会覆盖，是否继续？", "提示", ContentDialogButton.Primary, "继续");
             if (res == ContentDialogResult.None) { return; }
 
             OpenFileDialog ofd = new OpenFileDialog();

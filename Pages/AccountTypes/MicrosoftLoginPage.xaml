@@ -9,12 +9,13 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="添加账号">
-    
-    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="30">
-        <TextBlock Text="接下来会跳转到微软的登录界面，请在其中登录并授权LMC访问您的账号以完成登录操作。" TextWrapping="Wrap" FontSize="20" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,50"/>
-        <ikw:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="30">
-            <Button VerticalAlignment="Bottom" Content="上一步" Click="Button_Click"/>
-            <Button VerticalAlignment="Bottom" Content="打开网页" Click="Button_Click_1"/>
-        </ikw:SimpleStackPanel>
-    </Grid>
+    <ScrollViewer>
+        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="30">
+            <TextBlock Text="接下来会跳转到微软的登录界面，请在其中登录并授权LMC访问您的账号以完成登录操作。" TextWrapping="Wrap" FontSize="20" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,50"/>
+            <ikw:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="30">
+                <Button VerticalAlignment="Bottom" Content="上一步" Click="Button_Click"/>
+                <Button VerticalAlignment="Bottom" Content="打开网页" Click="Button_Click_1"/>
+            </ikw:SimpleStackPanel>
+        </Grid>
+    </ScrollViewer>
 </ui:Page>

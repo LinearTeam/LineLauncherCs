@@ -11,7 +11,9 @@
         ui:WindowHelper.FixMaximizedWindow="False"
         ui:WindowHelper.SystemBackdropType="Mica"
         ui:TitleBar.Height="36"
-        Title="Line Launcher" Height="468" Width="775" Icon="/LMC.png">
+        Title="Line Launcher" Height="468" Width="775" Icon="/LMC.png"
+        MinHeight="300"
+        MinWidth="300">
     <Grid>
         <Image x:Name="BackGround" Source="./LMC.png"/>
         <ui:NavigationView IsPaneOpen="False" SelectionChanged="NavigationView_SelectionChanged" x:Name="MainNagV" IsBackButtonVisible="Collapsed">
