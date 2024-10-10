@@ -52,11 +52,12 @@ namespace LMC.Pages.AccountTypes
             s_contentDialog.Title = "微软登录";
             var content = new SimpleStackPanel();
             content.Orientation = Orientation.Vertical;
-            var label = new Label();
-            label.FontSize = 12;
-            label.Content = "正在等待用户操作...";
+            var text = new TextBlock();
+            text.FontSize = 12;
+            text.Text = "正在等待用户操作...";
+            text.TextWrapping = TextWrapping.Wrap;
             content.Spacing = 30;
-            content.Children.Add(label);
+            content.Children.Add(text);
             var progressBar = new ProgressBar();
             progressBar.IsIndeterminate = true;
             content.Children.Add(progressBar);
@@ -72,7 +73,7 @@ namespace LMC.Pages.AccountTypes
                 if(res.done == 0)
                 {
                     AccountManager.AddAccount(res.account, res.refreshToken);
-                    label.Content = "登录成功！";
+                    text.Text = "登录成功！";
                     progressBar.IsIndeterminate = false;
                     s_contentDialog.CloseButtonText = "确认";
                     var button = new Button();
@@ -81,14 +82,14 @@ namespace LMC.Pages.AccountTypes
                 if (res.done == 1)
                 {
                     progressBar.ShowError = true;
-                    label.Content = "登录失败！请检查网络连接并重试，若仍无法登录请反馈此Bug。";
+                    text.Text = "登录失败！请检查网络连接并重试，若仍无法登录请反馈此Bug。";
                     s_contentDialog.CloseButtonText = "确认";
                     return;
                 }
                 if(res.done == 2)
                 {
                     progressBar.ShowError = true;
-                    label.Content = "登录失败！可能是由于该账号没有购买Minecraft导致的，若购买，请前往官网进行一次登录并设置档案名后重试。";
+                    text.Text = "登录失败！可能是由于该账号没有购买Minecraft导致的，若购买，请前往官网进行一次登录并设置档案名后重试。";
                     s_contentDialog.CloseButtonText = "确认";
                     var button = new Button();
                     button.HorizontalAlignment = HorizontalAlignment.Right;
@@ -100,8 +101,16 @@ namespace LMC.Pages.AccountTypes
                     content.Children.Add(button);
                     return;
                 }
+                if(res.done == 3)
+                {
+
+                    progressBar.ShowError = true;
+                    text.Text = "登录失败！回调地址被以不正确的方式访问，导致无法识别授权码参数，请重试。除非特别确定问题与启动器有关，否则请勿反馈此问题。";
+                    s_contentDialog.CloseButtonText = "确认";
+                    return;
+                }
             }, () => {
-                label.Content = "已获取到授权码，正在登录...";
+                text.Text = "已获取到授权码，正在登录...";
             });
         }
     }
