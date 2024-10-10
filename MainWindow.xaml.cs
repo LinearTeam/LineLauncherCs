@@ -13,6 +13,7 @@ using MessageBox = iNKORE.UI.WPF.Modern.Controls.MessageBox;
 using Frame = iNKORE.UI.WPF.Modern.Controls.Frame;
 using LMC.Account;
 using LMC.Pages;
+using LMC.Utils;
 
 namespace LMC
 {
@@ -40,12 +41,13 @@ namespace LMC
             {
                 LineFileParser lfp = new LineFileParser();
                 s_logger.Info("正在初始化主界面");
+                AccountManager.GetAccounts(false);
                 AccountManager.GetAccounts(true);
                 InitializeComponent();
                 s_background = BackGround;
                 MainFrame = MainFrm;
-                
                 Secrets.GetDeviceCode();
+                HttpUtils.GetString("https://sessionserver.mojang.com/session/minecraft/profile/7b7af94aa35b400da06f14d9b6a946c7");
             }
             catch {
                 Environment.Exit(1);

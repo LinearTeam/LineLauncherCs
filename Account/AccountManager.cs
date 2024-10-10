@@ -1,12 +1,19 @@
 ﻿
 using LMC.Account.OAuth;
 using LMC.Basic;
+using LMC.Minecraft;
 using LMC.Pages;
+using LMC.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace LMC.Account
 {
@@ -85,7 +92,58 @@ namespace LMC.Account
             Secrets.DeleteSection(section);
 
         }
+        
+        async public static Task DownloadSkin(Account account)
+        {
+            var res = await HttpUtils.GetString("https://sessionserver.mojang.com/session/minecraft/profile/" + account.Uuid);
+            var base64 = JsonUtils.GetValueFromJson(res, "properties[0].value");
+            string skinJson = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
+            string skinUrl = JsonUtils.GetValueFromJson(skinJson, "textures.SKIN.url");
+            Directory.CreateDirectory("./LMC/cache/" + account.Uuid);
+            Downloader downloader = new Downloader(skinUrl, "./LMC/cache/" + account.Uuid + "/skin.png");
+            await downloader.DownloadFileAsync();
+        }
 
+        async public static Task<WriteableBitmap> GetAvatar(Account account)
+        {
+            string skinPath = "./LMC/cache/" + account.Uuid + "/skin.png";
+            if (!File.Exists(skinPath))
+            {
+                await DownloadSkin(account);
+            }
+            BitmapImage skinImage = new BitmapImage();
+            using (FileStream fs = new FileStream(skinPath, FileMode.Open, FileAccess.Read))
+            {
+                skinImage.BeginInit();
+                skinImage.CacheOption = BitmapCacheOption.OnLoad;
+                skinImage.StreamSource = fs;
+                skinImage.EndInit();
+            }
+
+            Int32Rect headArea = new Int32Rect(8, 8, 8, 8);
+
+            Int32Rect hatArea = new Int32Rect(40, 8, 8, 8);
+
+            CroppedBitmap croppedHead = new CroppedBitmap(skinImage, headArea);
+
+            CroppedBitmap croppedHat = new CroppedBitmap(skinImage, hatArea);
+
+            WriteableBitmap finalImage = new WriteableBitmap(8, 8, skinImage.DpiX, skinImage.DpiY, PixelFormats.Pbgra32, null);
+
+            finalImage.WritePixels(headArea, GetPixels(croppedHead), croppedHead.PixelWidth * 4, 0);
+
+            finalImage.WritePixels(headArea, GetPixels(croppedHat), croppedHat.PixelWidth * 4, 0);
+
+            return finalImage;
+        }
+
+        private static byte[] GetPixels(CroppedBitmap croppedBitmap)
+        {
+            int stride = croppedBitmap.PixelWidth * (croppedBitmap.Format.BitsPerPixel / 8);
+            byte[] pixels = new byte[croppedBitmap.PixelHeight * stride];
+            croppedBitmap.CopyPixels(pixels, stride, 0);
+            return pixels;
+        }
 
         async public static Task<List<Account>> GetAccounts(bool refresh)
         {
@@ -136,6 +194,7 @@ namespace LMC.Account
                         };
                         account.Id = await Secrets.Read(section, "id");
                         account.Uuid = section.Substring(4).Replace("_MSA", "");
+                        DownloadSkin(account);
                         accounts.Add(account);
                         AddAccount(account);
                     }

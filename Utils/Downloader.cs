@@ -12,7 +12,7 @@ namespace LMC.Utils
 {
     public class Downloader : WebClient
     {
-        public TimeSpan Timeout { get; set; }
+        public TimeSpan Timeout = TimeSpan.FromSeconds(10);
         private Uri _url;
         private string _path;
         private bool _done = false;
@@ -35,6 +35,9 @@ namespace LMC.Utils
 
         private void TimeoutCheck(object sender, EventArgs args)
         {
+            if (Timeout.TotalSeconds == 0) {
+                return;
+            }
             if (!_done) { throw new TimeoutException($"在下载文件{_url}到{_path}时，耗时超过{Timeout.TotalSeconds}秒。"); }
             else { _timer.Stop(); _timer.IsEnabled = false; }
         }
@@ -45,6 +48,9 @@ namespace LMC.Utils
             _timer.Start();
             _timer.IsEnabled = true;
             Directory.CreateDirectory(Directory.GetParent(this._path).FullName);
+            if (File.Exists(this._path)) { 
+                File.Delete(this._path);
+            }
             byte[] buffer = await DownloadDataTaskAsync(this._url);
             File.WriteAllBytes(this._path, buffer);
             _done = true;

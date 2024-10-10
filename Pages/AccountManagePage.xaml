@@ -4,12 +4,20 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+      xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:local="clr-namespace:LMC.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="启动">
-
     <Grid>
-
+        <ikw:SimpleStackPanel HorizontalAlignment="Stretch" Spacing="30" Margin="20,30">
+            <Image x:Name="avat" Source="/hutao.jpg" Width="128" Height="128" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <ikw:SimpleStackPanel>
+                <TextBlock FontSize="30" TextAlignment="Center" TextWrapping="Wrap" Text="AzogMine" x:Name="id"/>
+                <TextBlock TextAlignment="Center" TextWrapping="Wrap" Text="微软账号" FontSize="25" x:Name="type"/>
+            </ikw:SimpleStackPanel>
+        </ikw:SimpleStackPanel>
+        <Button VerticalAlignment="Bottom" Margin="10,10,70,10" HorizontalAlignment="Right" Content="删除该账号" Foreground="Red" Click="Button_Click"/>
+        <Button VerticalAlignment="Bottom" Margin="10" HorizontalAlignment="Right" Content="返回" Click="Button_Click_1"/>
     </Grid>
 </ui:Page>

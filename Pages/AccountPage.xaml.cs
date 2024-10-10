@@ -91,6 +91,10 @@ namespace LMC.Pages
 
         public async static Task RefreshAccounts()
         {
+            s_addedAccounts.Clear();
+            s_grids.Clear();
+            s_stackPanel.Children.Clear();
+            s_stackPanel.Children.Add(s_addAccount);
             var accs = await AccountManager.GetAccounts(false);
             foreach (var acc in accs)
             {
@@ -126,7 +130,7 @@ namespace LMC.Pages
             ((DropShadowEffect)s_addAccount.Effect).Color = s_light ? Colors.Gray : Colors.White;
         }
 
-        public static void AddAccount(Account.Account account)
+        public async static void AddAccount(Account.Account account)
         {
             if (s_addedAccounts.Contains(account.Id + account.Type.ToString())) return;
             s_addedAccounts.Add(account.Id + account.Type.ToString());
@@ -144,11 +148,16 @@ namespace LMC.Pages
             effect.Direction = 0;
             grid.Effect = effect;
             Image avator = new Image();
-            BitmapImage source = new BitmapImage();
-            source.BeginInit();
-            source.UriSource = new Uri(@"E:\codes\line\LineLauncherCs\hutao.jpg");
-            source.EndInit();
-            avator.Source = source;
+            var bitmap = new BitmapImage();
+            bitmap.UriSource = new Uri(@"E:\codes\line\LineLauncherCs\hutao.jpg");
+            if(account.Type == AccountType.MSA)
+            {
+                avator.Source = await AccountManager.GetAvatar(account);
+            }
+            else
+            {
+                avator.Source = bitmap;
+            }
             avator.VerticalAlignment = VerticalAlignment.Top;
             avator.HorizontalAlignment = HorizontalAlignment.Center;
             avator.Width = 64;
@@ -162,6 +171,9 @@ namespace LMC.Pages
             TextBlock type = new TextBlock();
             type.Margin = new Thickness(28, 101, 28, 28);
             type.TextAlignment = TextAlignment.Center;
+            grid.MouseLeftButtonDown += (s, e) => {
+                MainWindow.MainFrame.Navigate(new AccountManagePage(account));
+            };
 
 
             if(account.Type == AccountType.MSA)

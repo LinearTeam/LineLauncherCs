@@ -117,8 +117,11 @@ namespace LMC.Pages.AccountTypes
             });
         }
 
+        bool cancel = false;
+
         private async void Button_Click_2(object sender, RoutedEventArgs e)
         {
+            cancel = false;
             if (!OAuth.CanOA())
             {
                 await MainWindow.ShowDialog("确认", "似乎发生了意想不到的情况，即在点击开始登录时已经有一个登录请求正在进行，请反馈此问题。", "提示", ContentDialogButton.Close);
@@ -140,10 +143,6 @@ namespace LMC.Pages.AccountTypes
             content.Children.Add(progressBar);
             s_contentDialog.Content = content;
             s_contentDialog.CloseButtonText = "取消";
-            s_contentDialog.Closed += (a, b) =>
-            {
-                OAuth.CancelOA();
-            };
             s_contentDialog.ShowAsync();
 
             OAuth oa = new OAuth();
@@ -172,6 +171,7 @@ namespace LMC.Pages.AccountTypes
             Dictionary<string, string> result = new Dictionary<string, string>();
             timer.Interval = TimeSpan.FromSeconds(res.interval);
             timer.Tick += async (a, b) => {
+                if (cancel) return;
                 var r = await oa.CheckResult(res.devicecode);
                 if (r.result == 1)
                 {
@@ -198,8 +198,10 @@ namespace LMC.Pages.AccountTypes
             };
             timer.Start();
 
+
             while (true)
             {
+                if(cancel) return;
                 await Task.Delay(1000);
                 if (timer.IsEnabled == false)
                 {
