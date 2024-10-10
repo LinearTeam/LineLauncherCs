@@ -98,6 +98,7 @@
                     </ikw:SimpleStackPanel>
                 </Grid>
             </ikw:SimpleStackPanel>
+            <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Content="上一步" Margin="0,0,30,30" Click="Button_Click"/>
         </Grid>
     </ScrollViewer>
 </ui:Page>

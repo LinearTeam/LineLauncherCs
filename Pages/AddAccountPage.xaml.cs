@@ -67,5 +67,10 @@ namespace LMC.Pages
         {
 
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.MainFrame.Navigate(MainWindow.AccountPage);
+        }
     }
 }

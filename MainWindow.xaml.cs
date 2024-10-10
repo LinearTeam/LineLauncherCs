@@ -23,13 +23,13 @@ namespace LMC
     {
         private static Logger s_logger = new Logger("MainUI");
         private static Image s_background;
-        public Pages.AboutPage AboutPage = new Pages.AboutPage();
-        public Pages.AccountPage AccountPage = new Pages.AccountPage();
-        public Pages.HomePage HomePage = new Pages.HomePage();
-        public Pages.DownloadPage DownloadPage = new Pages.DownloadPage();
-        public Pages.ProfilePage ProfilePage = new Pages.ProfilePage();
-        public Pages.SettingPage SettingPage = new Pages.SettingPage();
-        public Pages.LaunchPage LaunchPage = new Pages.LaunchPage();
+        public static Pages.AboutPage AboutPage = new Pages.AboutPage();
+        public static Pages.AccountPage AccountPage = new Pages.AccountPage();
+        public static Pages.HomePage HomePage = new Pages.HomePage();
+        public static Pages.DownloadPage DownloadPage = new Pages.DownloadPage();
+        public static Pages.ProfilePage ProfilePage = new Pages.ProfilePage();
+        public static Pages.SettingPage SettingPage = new Pages.SettingPage();
+        public static Pages.LaunchPage LaunchPage = new Pages.LaunchPage();
         public static Pages.AddAccountPage AddAccountPage = new Pages.AddAccountPage();
 
         public static Frame MainFrame;
