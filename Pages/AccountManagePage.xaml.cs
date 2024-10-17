@@ -30,7 +30,6 @@ namespace LMC.Pages
             if(acc.Type == AccountType.MSA)
             {
                 type.Text = "微软账号";
-                avat.Source = AccountManager.GetAvatar(acc).Result;
             }
             if (acc.Type == AccountType.OFFLINE)
             {
@@ -41,6 +40,15 @@ namespace LMC.Pages
                 type.Text = "第三方账号";
             }
             id.Text = acc.Id;
+            this.Loaded += AccountManagePage_Loaded;
+        }
+
+        private async void AccountManagePage_Loaded(object sender, RoutedEventArgs e)
+        { 
+            if (s_account.Type == AccountType.MSA)
+            {
+                avat.Source = await AccountManager.GetAvatarAsync(s_account, 128);
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

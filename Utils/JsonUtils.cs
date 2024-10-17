@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LMC.Basic;
+using System;
 using System.Text.Json;
 
 namespace LMC.Utils
@@ -8,40 +9,47 @@ namespace LMC.Utils
 
         public static string GetValueFromJson(string jsonString, string path)
         {
-            using (JsonDocument document = JsonDocument.Parse(jsonString))
+            try
             {
-                string[] keys = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-                JsonElement element = document.RootElement;
-                foreach (var key in keys)
+                using (JsonDocument document = JsonDocument.Parse(jsonString))
                 {
-                    if (key.Contains("["))
+                    string[] keys = path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                    JsonElement element = document.RootElement;
+                    foreach (var key in keys)
                     {
-                        var parts = key.Split(new char[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
-                        var arrayKey = parts[0];
-                        var index = int.Parse(parts[1]);
+                        if (key.Contains("["))
+                        {
+                            var parts = key.Split(new char[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+                            var arrayKey = parts[0];
+                            var index = int.Parse(parts[1]);
 
-                        if (element.TryGetProperty(arrayKey, out JsonElement arrayElement) && arrayElement.ValueKind == JsonValueKind.Array)
-                        {
-                            element = arrayElement[index];
+                            if (element.TryGetProperty(arrayKey, out JsonElement arrayElement) && arrayElement.ValueKind == JsonValueKind.Array)
+                            {
+                                element = arrayElement[index];
+                            }
+                            else
+                            {
+                                return null;
+                            }
                         }
                         else
                         {
-                            return null;
+                            if (element.TryGetProperty(key, out JsonElement nextElement))
+                            {
+                                element = nextElement;
+                            }
+                            else
+                            {
+                                return null;
+                            }
                         }
                     }
-                    else
-                    {
-                        if (element.TryGetProperty(key, out JsonElement nextElement))
-                        {
-                            element = nextElement;
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
+                    return element.ToString();
                 }
-                return element.ToString();
+            }
+            catch (Exception ex) {
+                new Logger("JU").Warn("解析json失败：" + ex.Message + "\n" + ex.StackTrace);
+                return string.Empty;
             }
         }
     }

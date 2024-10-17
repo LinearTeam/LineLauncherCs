@@ -47,7 +47,14 @@ namespace LMC
                 s_background = BackGround;
                 MainFrame = MainFrm;
                 Secrets.GetDeviceCode();
-                HttpUtils.GetString("https://sessionserver.mojang.com/session/minecraft/profile/7b7af94aa35b400da06f14d9b6a946c7");
+                var accounts = AccountManager.GetAccounts(false).Result;
+                foreach ( var account in accounts)
+                {
+                    if(account.Type == AccountType.MSA)
+                    {
+                        AccountManager.GetAvatarAsync(account,64);
+                    }
+                }
             }
             catch {
                 Environment.Exit(1);

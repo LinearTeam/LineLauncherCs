@@ -7,7 +7,9 @@ using LMC.Account;
 using LMC.Basic;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,6 +35,7 @@ namespace LMC.Pages
         private static bool s_light = true;
         private static WrapPanel s_stackPanel;
         private static List<Grid> s_grids = new List<Grid>();
+        private static Grid s_mainGrid;
         private static Grid s_addAccount = new Grid();
         private static List<string> s_addedAccounts = new List<string>();
         private static Style s_triggerStyle;
@@ -42,6 +45,7 @@ namespace LMC.Pages
         {
             s_light = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
             InitializeComponent();
+            s_mainGrid = MainGrid;
             s_stackPanel = ssp;
             s_triggerStyle = (Style)MainGrid.FindResource("TriggerStyle");
             AddGrid();
@@ -148,15 +152,21 @@ namespace LMC.Pages
             effect.Direction = 0;
             grid.Effect = effect;
             Image avator = new Image();
-            var bitmap = new BitmapImage();
-            bitmap.UriSource = new Uri(@"E:\codes\line\LineLauncherCs\hutao.jpg");
-            if(account.Type == AccountType.MSA)
+            avator.Source = ((Image) s_mainGrid.FindResource("AvatarImage")).Source;
+            if (account.Type == AccountType.MSA)
             {
-                avator.Source = await AccountManager.GetAvatar(account);
-            }
-            else
-            {
-                avator.Source = bitmap;
+                if(!File.Exists(".\\LMC\\cache\\" + account.Uuid + "\\avat-64.png"))
+                {
+                    MainWindow.AccountPage.Dispatcher.BeginInvoke(new Action(async () =>
+                    {
+                        await AccountManager.GetAvatarAsync(account, 64);
+                        RefreshAccounts();
+                    }));
+                }
+                else
+                {
+                    avator.Source = AccountManager.GetAvatarAsync(account, 64).Result;
+                }
             }
             avator.VerticalAlignment = VerticalAlignment.Top;
             avator.HorizontalAlignment = HorizontalAlignment.Center;

@@ -36,7 +36,7 @@ namespace LMC.Utils
             var responseContent = await response.Content.ReadAsStringAsync();
             return responseContent;
         }
-
+                
         public async static Task<string> GetString(Uri url)
         {
             _httpClient.DefaultRequestHeaders.Accept.Clear();

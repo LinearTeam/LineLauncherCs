@@ -12,6 +12,7 @@
 
     <Grid x:Name="MainGrid">
         <Grid.Resources>
+            <Image x:Key="AvatarImage" Source="/steve.png"/>
             <Style x:Key="TriggerStyle" TargetType="FrameworkElement">
                 <Setter Property="RenderTransformOrigin" Value="0.5,0.5">
                 </Setter>

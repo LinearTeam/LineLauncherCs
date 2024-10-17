@@ -85,18 +85,18 @@ namespace LMC.Pages.AccountTypes
                 if (res.done == 1)
                 {
                     progressBar.ShowError = true;
-                    text.Text = "登录失败！请检查网络连接并重试，若仍无法登录请反馈此Bug。";
+                    text.Text = "登录失败！请检查网络连接并重试，若仍无法登录请反馈此 Bug 。";
                     s_contentDialog.CloseButtonText = "确认";
                     return;
                 }
                 if(res.done == 2)
                 {
                     progressBar.ShowError = true;
-                    text.Text = "登录失败！可能是由于该账号没有购买Minecraft导致的，若购买，请前往官网进行一次登录并设置档案名后重试。";
+                    text.Text = "登录失败！可能是由于该账号没有购买 Minecraft 导致的，若购买，请前往官网进行一次登录并设置档案名后重试。";
                     s_contentDialog.CloseButtonText = "确认";
                     var button = new Button();
                     button.HorizontalAlignment = HorizontalAlignment.Right;
-                    button.Content = "打开MC官网";
+                    button.Content = "打开 MC 官网";
                     button.Click += (a, b) => {
 
                         System.Diagnostics.Process.Start("explorer.exe", "\"https://www.minecraft.net/profile\"");
@@ -188,7 +188,7 @@ namespace LMC.Pages.AccountTypes
                 {
                     content.Children.Remove(stackpanel);
                     progressBar.ShowError = true;
-                    text.Text = "登录失败，用户在浏览器中拒绝授权，请重新登录并允许LMC访问用户信息。";
+                    text.Text = "登录失败，用户在浏览器中拒绝授权，请重新登录并允许 LMC 访问用户信息。";
                     return;
                 }
                 result.Add("a", r.accessToken);
@@ -207,6 +207,8 @@ namespace LMC.Pages.AccountTypes
                 {
                     string atoken = result["a"];
                     string rtoken = result["r"];
+                    text.Text = "已获取令牌，正在登录...";
+                    content.Children.Remove(stackpanel);
                     var r = await oa.StartOA(atoken);
                     if (r.done == 0)
                     {
@@ -214,21 +216,19 @@ namespace LMC.Pages.AccountTypes
                         text.Text = "登录成功！";
                         progressBar.IsIndeterminate = false;
                         s_contentDialog.CloseButtonText = "确认";
-                        content.Children.Remove(stackpanel);
                         return;
                     }
                     if (r.done == 1)
                     {
                         progressBar.ShowError = true;
-                        text.Text = "登录失败！请检查网络连接并重试，若仍无法登录请反馈此Bug。";
+                        text.Text = "登录失败！请检查网络连接并重试，若仍无法登录请反馈此 Bug 。";
                         s_contentDialog.CloseButtonText = "确认";
-                        content.Children.Remove(stackpanel);
                         return;
                     }
                     if (r.done == 2)
                     {
                         progressBar.ShowError = true;
-                        text.Text = "登录失败！可能是由于该账号没有购买Minecraft导致的，若购买，请前往官网进行一次登录并设置档案名后重试。";
+                        text.Text = "登录失败！可能是由于该账号没有购买 Minecraft 导致的，若购买，请前往官网进行一次登录并设置档案名后重试。";
                         s_contentDialog.CloseButtonText = "确认";
                         button.HorizontalAlignment = HorizontalAlignment.Right;
                         button.Content = "打开MC官网";
