@@ -4,12 +4,30 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+      xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:local="clr-namespace:LMC.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="关于">
 
-    <Grid>
-        
+    <Grid Margin="40,20,20,20">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+            <ikw:SimpleStackPanel Orientation="Vertical" Spacing="3">
+                <Expander x:Name="AboutExpander" Background="#1D2027" FlowDirection="RightToLeft" SizeChanged="Expander_SizeChanged">
+                    <Expander.Header>
+                        <Grid HorizontalAlignment="Left">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="280" x:Name="CD"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="30" FlowDirection="LeftToRight" Grid.Column="1" x:Name="SSP">
+                                <Image Source="/LMC.png" Width="64" Height="64" Stretch="UniformToFill"/>
+                                <Label Content="Line Launcher（C# ， 或 Line Minecraft launCher）" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </ikw:SimpleStackPanel>
+                        </Grid>
+                    </Expander.Header>
+                </Expander>
+            </ikw:SimpleStackPanel>
+        </ScrollViewer>
     </Grid>
 </ui:Page>

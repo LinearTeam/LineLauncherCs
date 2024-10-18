@@ -25,5 +25,10 @@ namespace LMC.Pages
         {
             InitializeComponent();
         }
+
+        private void Expander_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            CD.Width = new GridLength(AboutExpander.ActualWidth - SSP.ActualWidth - 30);
+        }
     }
 }
