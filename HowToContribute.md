@@ -44,3 +44,7 @@ x:Name等项应尽量简便、不易与代码混淆。但是不要过于简便�
 可以但不建议使用普通的纯文字Message，如 feat: Microsoft Login。
 
 尽量使用中文。
+
+
+
+# 千万补药使用其他语言的dll（除非everything这种）、exe等来辅助程序！！！ #
