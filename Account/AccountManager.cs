@@ -98,8 +98,24 @@ namespace LMC.Account
         async public static Task DownloadAvatar(Account account, int size)
         {
             Directory.CreateDirectory("./LMC/cache/" + account.Uuid);
-            Downloader downloader = new Downloader("https://crafatar.com/avatars/" + account.Uuid + "?size=" + size, "./LMC/cache/" + account.Uuid + $"/avat-{size}.png");
-            await downloader.DownloadFileAsync();
+            int i = 0;
+
+            while (true)
+            {
+                i++;
+                try
+                {
+                    Downloader downloader = new Downloader("https://crafatar.com/avatars/" + account.Uuid + "?size=" + size, "./LMC/cache/" + account.Uuid + $"/avat-{size}.png");
+                    await downloader.DownloadFileAsync();
+                }
+                catch (Exception ex)
+                {
+                    s_logger.Warn("下载头像失败：" + ex.Message + "\n" + ex.StackTrace);
+                    if(i > 9) {
+                        await MainWindow.ShowDialog("确认", "获取用户头像失败，原因：" + ex.Message + "\n" + ex.StackTrace, "错误");
+                    }
+                }
+            }
         }
 
         async public static Task<BitmapImage> GetAvatarAsync(Account account, int size)

@@ -24,11 +24,24 @@ namespace LMC.Pages
         public AboutPage()
         {
             InitializeComponent();
+            SizeChanged += AboutPage_SizeChanged;
+            double width = this.Width;
+            this.Width = 800;
+            AboutPage_SizeChanged(null, null);
+            Task.Run(async () => {
+                await Task.Delay(20);
+                this.Width = width;
+                AboutPage_SizeChanged(null, null);
+            });
         }
 
-        private void Expander_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void AboutPage_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            CD.Width = new GridLength(AboutExpander.ActualWidth - SSP.ActualWidth - 30);
+            try
+            {
+                CD.Width = new GridLength(AboutExpander.ActualWidth - SSP.ActualWidth - 30);
+            }catch { }
+        
         }
     }
 }

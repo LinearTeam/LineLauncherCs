@@ -12,7 +12,7 @@ namespace LMC.Utils
 {
     public class Downloader : WebClient
     {
-        public TimeSpan Timeout = TimeSpan.FromSeconds(10);
+        public TimeSpan Timeout = TimeSpan.FromSeconds(60);
         private Uri _url;
         private string _path;
         private bool _done = false;
