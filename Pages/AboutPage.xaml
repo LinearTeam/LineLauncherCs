@@ -15,7 +15,7 @@
         <ScrollViewer HorizontalScrollBarVisibility="Auto">
             <ikw:SimpleStackPanel Orientation="Vertical" Spacing="3">
                 <Border HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#1D2027" x:Name="BD">
-                    <Expander x:Name="AboutExpander" Background="#1D2027" FlowDirection="RightToLeft" HorizontalAlignment="Stretch" Margin="0,0,20,0">
+                    <Expander x:Name="AboutExpander" Background="#1D2027" FlowDirection="RightToLeft" HorizontalAlignment="Stretch" Margin="0,0,20,0" Collapsed="AboutExpander_Collapsed" Expanded="AboutExpander_Expanded">
                         <Expander.Header>
                             <Grid HorizontalAlignment="Left">
                                 <Grid.ColumnDefinitions>
@@ -24,13 +24,32 @@
                                 </Grid.ColumnDefinitions>
                                 <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="30" FlowDirection="LeftToRight" Grid.Column="1" x:Name="SSP">
                                     <Image Source="/LMC.png" Width="64" Height="64" Stretch="UniformToFill"/>
-                                    <ikw:SimpleStackPanel Margin="10">
                                         <Label Content="Line Launcher（C# ， 或 Line Minecraft launCher C#）" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Label HorizontalAlignment="Right" Content="{x:Static app:App.LauncherVersion}" Margin="0,0,20,0"/>
-                                    </ikw:SimpleStackPanel>
                                 </ikw:SimpleStackPanel>
                             </Grid>
                         </Expander.Header>
+                        <ikw:SimpleStackPanel Orientation="Vertical" Spacing="3">
+                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="40">
+                                <ikw:SimpleStackPanel>
+                                    <ikw:SimpleStackPanel Orientation="Horizontal">
+                                        <Label Content="{x:Static app:App.LauncherVersion}"/>
+                                        <Label Content="：版本号"/>
+                                    </ikw:SimpleStackPanel>
+                                    <ikw:SimpleStackPanel Orientation="Horizontal">
+                                        <Label Content="{x:Static app:App.LauncherVersionType}"/>
+                                        <Label Content="：版本类型"/>
+                                    </ikw:SimpleStackPanel>
+                                    <ikw:SimpleStackPanel Orientation="Horizontal">
+                                        <Label Content="{x:Static app:App.LauncherBuildVersion}"/>
+                                        <Label Content="：构建号"/>
+                                    </ikw:SimpleStackPanel>
+                                    <Label Content="使用Apache2.0协议"/>
+                                </ikw:SimpleStackPanel>
+                                <Button Content="检查更新"/>
+                                <Button Content="查看GitHub仓库"/>
+                                <Button Content="查看Apache2.0协议"/>
+                            </ikw:SimpleStackPanel>
+                        </ikw:SimpleStackPanel>
                     </Expander>
                 </Border>    
             </ikw:SimpleStackPanel>

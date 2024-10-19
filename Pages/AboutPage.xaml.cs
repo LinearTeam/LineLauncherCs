@@ -43,5 +43,15 @@ namespace LMC.Pages
             }catch { }
         
         }
+
+        private void AboutExpander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            AboutExpander.Margin = new Thickness(0,0,20,0);
+        }
+
+        private void AboutExpander_Expanded(object sender, RoutedEventArgs e)
+        {
+            AboutExpander.Margin = new Thickness(0, 0, 20, 20);
+        }
     }
 }
