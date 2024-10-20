@@ -1,5 +1,10 @@
-﻿using System;
+﻿using iNKORE.UI.WPF.Controls;
+using iNKORE.UI.WPF.Modern.Controls;
+using LMC.Basic;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,6 +57,62 @@ namespace LMC.Pages
         private void AboutExpander_Expanded(object sender, RoutedEventArgs e)
         {
             AboutExpander.Margin = new Thickness(0, 0, 20, 20);
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer", "\"https://www.apache.org/licenses/LICENSE-2.0\"");
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer", "\"https://www.github.com/LinearTeam/LineLauncherCs\"");
+        }
+
+        private async void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            ContentDialog dialog = new ContentDialog();
+            dialog.Title = "检查更新";
+            var content = new SimpleStackPanel();
+            content.Orientation = Orientation.Vertical;
+            content.Spacing = 20;
+            var label = new Label();
+            label.Content = "检查中...";
+            var pb = new ProgressRing();
+            content.Children.Add(label);
+            content.Children.Add(pb);
+            pb.IsIndeterminate = true;
+            dialog.Content = content;
+            dialog.ShowAsync();
+            var ver = await UpdateChecker.Check();
+            dialog.Title = "更新";
+            if(ver == null)
+            {
+                dialog.CloseButtonText = "确认";
+                dialog.Content = "检查失败！获取的版本内容为空！";
+                return;
+            }
+
+            if(ver.Version != App.LauncherVersion && ver.Build == App.LauncherBuildVersion)
+            {
+                dialog.CloseButtonText = "确认";
+                dialog.Content = "当前是最新版！";
+                return;
+            }
+
+            if (!ver.SecurityOrEmergency)
+            {
+                dialog.Content = $"发现新的非紧急更新版！\n版本号：{ver.Version}\n类型：{ver.Type}\n构建号：{ver.Build}";
+                dialog.CloseButtonText = "取消";
+                dialog.PrimaryButtonText = "更新";
+                dialog.DefaultButton = ContentDialogButton.Primary;
+                dialog.PrimaryButtonClick += async (s, e) =>
+                {
+                    dialog.Content = content;
+                    label.Content = "更新中...";
+                    await UpdateChecker.Update(ver);
+                };
+            }
         }
     }
 }

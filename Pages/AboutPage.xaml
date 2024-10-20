@@ -29,7 +29,7 @@
                             </Grid>
                         </Expander.Header>
                         <ikw:SimpleStackPanel Orientation="Vertical" Spacing="3">
-                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="40">
+                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="30">
                                 <ikw:SimpleStackPanel>
                                     <ikw:SimpleStackPanel Orientation="Horizontal">
                                         <Label Content="{x:Static app:App.LauncherVersion}"/>
@@ -44,10 +44,12 @@
                                         <Label Content="：构建号"/>
                                     </ikw:SimpleStackPanel>
                                     <Label Content="使用Apache2.0协议"/>
+                                    <Label Content="Copyright © 2024 LinearTeam 版权所有"/>
+                                    <Label Content=".All rights reserved"/>
                                 </ikw:SimpleStackPanel>
-                                <Button Content="检查更新"/>
-                                <Button Content="查看GitHub仓库"/>
-                                <Button Content="查看Apache2.0协议"/>
+                                <Button Content="检查更新" Click="Button_Click_2"/>
+                                <Button Content="查看GitHub仓库" Click="Button_Click_1"/>
+                                <Button Content="查看Apache2.0协议" Click="Button_Click"/>
                             </ikw:SimpleStackPanel>
                         </ikw:SimpleStackPanel>
                     </Expander>

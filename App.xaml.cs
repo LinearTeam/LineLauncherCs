@@ -15,8 +15,8 @@ namespace LMC
         private LineFileParser _lineFileParser = new LineFileParser();
 
         public static string LauncherVersion = "2.0.0";
-        public static string LauncherVersionType = "Alpha";
-        public static string LauncherBuildVersion = "0000";
+        public static string LauncherVersionType = "alpha";
+        public static string LauncherBuildVersion = "0003";
 
         protected override void OnStartup(StartupEventArgs e)
         {
