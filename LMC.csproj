@@ -290,6 +290,7 @@
     </ApplicationDefinition>
     <Compile Include="Basic\Config.cs" />
     <Compile Include="Basic\UpdateChecker.cs" />
+    <Compile Include="Minecraft\GameInstanceLauncher.cs" />
     <Compile Include="Pages\AccountTypes\MicrosoftLoginPage.xaml.cs">
       <DependentUpon>MicrosoftLoginPage.xaml</DependentUpon>
     </Compile>
