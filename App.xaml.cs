@@ -17,7 +17,7 @@ namespace LMC
 
         public static string LauncherVersion = "2.0.0";
         public static string LauncherVersionType = "alpha";
-        public static string LauncherBuildVersion = "0003";
+        public static string LauncherBuildVersion = "0004";
 
         protected override void OnStartup(StartupEventArgs e)
         {

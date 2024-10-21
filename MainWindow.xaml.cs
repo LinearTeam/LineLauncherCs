@@ -49,7 +49,7 @@ namespace LMC
                 if (File.Exists($"./LMC/update.bat"))
                 {
                     File.Delete($"./LMC/update.bat");
-                    ShowDialog("确认", $"更新成功，LMC已更新至{App.LauncherVersion}-{App.LauncherVersionType}，构建号{App.LauncherBuildVersion}", "提示");
+                    ShowDialog("确认", $"更新成功，可以关闭CMD命令行窗口，LMC已更新至{App.LauncherVersion}-{App.LauncherVersionType}，构建号{App.LauncherBuildVersion}", "提示");
                 }
                 Secrets.GetDeviceCode();
                 var accounts = AccountManager.GetAccounts(false).Result;

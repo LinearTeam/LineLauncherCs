@@ -58,11 +58,16 @@ namespace LMC.Basic
             await downloader.DownloadFileAsync();
             string fullPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string fileName = Path.GetFileName(fullPath);
-            File.WriteAllText("./LMC/update.bat", $"TASKKILL /F /IM \"{fileName}\" /T\ndel \"{fullPath}\"\ncopy \"./{version.Version}.exe\" \"{fullPath}\"\ndel \"./{version.Version}.exe\"\nstart {fullPath}");
+            File.WriteAllText("./LMC/update.bat", $"@echo off\necho 正在更新...\ntitle 更新中\nTASKKILL /F /IM \"{fileName}\" /T\ntimeout /t 2 /nobreak\ndel \"{fullPath}\"\ncopy \"{Path.GetFullPath("./LMC/" + version.Version + ".exe")}\" \"{fullPath}\"\ndel \"{Path.GetFullPath("./LMC/" + version.Version + ".exe")}\"\nstart {fullPath}", new UTF8Encoding(false));
             ProcessStartInfo psi = new ProcessStartInfo();
-            psi.FileName = "./LMC/update.bat";
             psi.CreateNoWindow = true;
+            psi.FileName = "cmd.exe";
+            psi.Arguments = $"/C start {Path.GetFullPath("./LMC/update.bat")}";
+            psi.WindowStyle = ProcessWindowStyle.Hidden;
+            psi.UseShellExecute = true;
             Process.Start(psi);
+            Environment.Exit(0);
         }
     }
 }
+ 
