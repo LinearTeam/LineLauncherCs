@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 
 namespace LMC.Utils
@@ -12,7 +13,7 @@ namespace LMC.Utils
        
         static HttpUtils(){
             _httpClient.DefaultRequestHeaders.Accept.Clear();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", $"LMC/C{App.LauncherVersion}");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", $"LMC/C{App.LauncherVersion}-{App.LauncherVersionType} (Mozilla/5.0 {App.LauncherBuildVersion})");
         }
 
         public async static Task<string> GetWithAuth(string auth, string url, string accept)
@@ -75,8 +76,6 @@ namespace LMC.Utils
             var response = await _httpClient.PostAsync(url, content);
             var responseContent = response.Content.ReadAsStringAsync().Result;
             return responseContent;
-            
-            
         }
     }
 }

@@ -16,47 +16,61 @@ namespace LMC.Utils
         private Uri _url;
         private string _path;
         private bool _done = false;
-        private DispatcherTimer _timer = new DispatcherTimer();
+        private bool _exception = false;
+        private Exception _ex;
+
         public Downloader(Uri url, string path)
         {
             Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}");           
             this._url = url;
             this._path = path;
-            _timer.Tick += TimeoutCheck;
         }
         
         public Downloader(string url, string path)
         {
-            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}");
+            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}-{App.LauncherVersionType} (Mozilla/5.0 {App.LauncherBuildVersion})");
             this._url = new Uri(url);
             this._path = path;
-            _timer.Tick += TimeoutCheck;
         }
 
-        private void TimeoutCheck(object sender, EventArgs args)
+        private async Task Download()
         {
-            if (Timeout.TotalSeconds == 0) {
-                return;
+            try
+            {
+                byte[] buffer = await DownloadDataTaskAsync(this._url);
+                File.WriteAllBytes(this._path, buffer);
+                _done = true;
+                buffer = null;
             }
-            if (!_done) { throw new TimeoutException($"在下载文件{_url}到{_path}时，耗时超过{Timeout.TotalSeconds}秒。"); }
-            else { _timer.Stop(); _timer.IsEnabled = false; }
+            catch (Exception ex) {
+                _exception = true;
+                _ex = ex;
+            }
         }
 
         public async Task DownloadFileAsync()
         {
-            _timer.Interval = Timeout;
-            _timer.Start();
-            _timer.IsEnabled = true;
             Directory.CreateDirectory(Directory.GetParent(this._path).FullName);
-            if (File.Exists(this._path)) { 
+            if (File.Exists(this._path)) {
                 File.Delete(this._path);
             }
-            byte[] buffer = await DownloadDataTaskAsync(this._url);
-            File.WriteAllBytes(this._path, buffer);
-            _done = true;
-            _timer.Stop();
-            _timer.IsEnabled= false;
-            buffer = null;
+            var start = DateTime.Now;
+            Download();
+            while (true)
+            {
+                await Task.Delay(20);
+                if (_done)
+                {
+                    return;
+                }
+                else if(_exception) {
+                    throw _ex;
+                }else if(DateTime.Now.Subtract(start).TotalMilliseconds >= Timeout.TotalMilliseconds)
+                {
+                    this.Dispose();
+                    throw new TimeoutException($"下载文件{_url}到{_path}时超时");
+                }
+            }
         }
     }
 }

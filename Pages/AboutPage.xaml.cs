@@ -93,7 +93,7 @@ namespace LMC.Pages
                 return;
             }
 
-            if(ver.Version != App.LauncherVersion && ver.Build == App.LauncherBuildVersion)
+            if(ver.Version == App.LauncherVersion && ver.Build == App.LauncherBuildVersion)
             {
                 dialog.CloseButtonText = "确认";
                 dialog.Content = "当前是最新版！";
@@ -110,7 +110,13 @@ namespace LMC.Pages
                 {
                     dialog.Content = content;
                     label.Content = "更新中...";
-                    await UpdateChecker.Update(ver);
+                    try
+                    {
+                        await UpdateChecker.Update(ver);
+                    }
+                    catch (Exception ex) {
+                        new Logger("AP-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
+                    }
                 };
             }
         }

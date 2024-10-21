@@ -1,4 +1,5 @@
-﻿using LMC.Basic;
+﻿using Common;
+using LMC.Basic;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -47,8 +48,8 @@ namespace LMC
 
 
             Logger logger = new Logger("A");
-            logger.Info($"日志记录开始 程序版本: {LauncherVersion} 记录器版本: {Logger.LoggerVersion} 日志编号: {Logger.LogNum} ，正在初始化程序");
-
+            logger.Info($"日志记录开始 程序版本: {LauncherVersion} 构建号: {LauncherBuildVersion} 版本类型: {LauncherVersionType} 记录器版本: {Logger.LoggerVersion} 日志编号: {Logger.LogNum} ，正在初始化程序");
+            
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
         }
@@ -56,7 +57,7 @@ namespace LMC
         protected override void OnExit(ExitEventArgs e)
         {
             Logger logger = new Logger("A");
-            logger.Info($"日志记录结束 程序版本: {LauncherVersion} 记录器版本: {Logger.LoggerVersion} 日志编号: {Logger.LogNum} ，正在退出程序");
+            logger.Info($"日志记录结束 程序版本: {LauncherVersion} 构建号: {LauncherBuildVersion} 版本类型: {LauncherVersionType} 记录器版本: {Logger.LoggerVersion} 日志编号: {Logger.LogNum} ，正在退出程序");
             base.OnExit(e);
         }
 
@@ -113,23 +114,23 @@ namespace LMC
                                 var log = File.ReadAllText($"./LMC/logs/latest.log");
                                 writer.Write(log);
                             }
-                            entry = archive.CreateEntry($"logs/crash_report.log");
+                            entry = archive.CreateEntry($"logs/crash_report.cr");
                             using (StreamWriter writer = new StreamWriter(entry.Open()))
                             {
                                 writer.WriteLine("LMC Crashed.");
                                 writer.WriteLine($"Caused By: {ex.Message}");
                                 writer.WriteLine($"StackTrace: \n{ex.StackTrace}");
                                 writer.WriteLine(ex.InnerException == null ? "No InnerException" : $"InnerException: {ex.InnerException.Message}\nStackTrace: \n{ex.InnerException.StackTrace}");
-                                writer.WriteLine($"Launcher Version: {LauncherVersion} Logger Version: {Logger.LoggerVersion}");
+                                writer.WriteLine($"Launcher Version: {LauncherVersion} BuildNumber: {LauncherBuildVersion} VersionType: {LauncherVersionType} Logger Version: {Logger.LoggerVersion}");
                             }
-                            entry = archive.CreateEntry($"logs/exception_object.log");
+                            entry = archive.CreateEntry($"logs/exception_object.o");
                             using (StreamWriter writer = new StreamWriter(entry.Open()))
                             {
-                                writer.Write(ex);
+                                writer.Write(ex.ToJson());
                             }
                         }
                     }
-                    System.Diagnostics.Process.Start("explorer", "/select," + Directory.GetCurrentDirectory() + @"\LMC\FeedbackPack_反馈包_PleaseUpload_请上传.zip");
+                    System.Diagnostics.Process.Start("explorer", "/select," + Directory.GetCurrentDirectory() + @"\LMC\s反馈包_请上传_FeedbackPack_PleaseUpload.zip");
                 }
                 catch{}
             });
