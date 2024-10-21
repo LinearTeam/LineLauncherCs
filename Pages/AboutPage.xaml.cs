@@ -119,6 +119,25 @@ namespace LMC.Pages
                     }
                 };
             }
+            else
+            {
+                dialog.Content = $"发现新的紧急更新版！\n版本号：{ver.Version}\n类型：{ver.Type}\n构建号：{ver.Build}";
+                dialog.PrimaryButtonText = "更新";
+                dialog.DefaultButton = ContentDialogButton.Primary;
+                dialog.PrimaryButtonClick += async (s, e) =>
+                {
+                    dialog.Content = content;
+                    label.Content = "更新中...";
+                    try
+                    {
+                        await UpdateChecker.Update(ver);
+                    }
+                    catch (Exception ex)
+                    {
+                        new Logger("AP-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
+                    }
+                };
+            }
         }
     }
 }
