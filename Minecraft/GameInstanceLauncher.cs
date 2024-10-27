@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Numerics;
@@ -141,7 +142,7 @@ namespace LMC.Minecraft
             _minecraftCommandLine.Append("version", _mcVer);
             _minecraftCommandLine.Append("assetIndex", JsonUtils.GetValueFromJson(jsonString, "assets"));
             _minecraftCommandLine.Append("assetsIndex", JsonUtils.GetValueFromJson(jsonString, "assets"));
-            _minecraftCommandLine.Append("assetsDir", $"{_mcDir}/assets/objects");
+            _minecraftCommandLine.Append("assetsDir", $"{_mcDir}/assets");
             _minecraftCommandLine.Append("gameDir", $"{_mcDir}/versions/{_mcVer}");
 
             string librariesStr = JsonUtils.GetValueFromJson(jsonString, "libraries");
@@ -198,16 +199,15 @@ namespace LMC.Minecraft
             return classPathArgs;
         }
 
-        public void organizeArgs()
+        public void OrganizeArgs()
         {
             GenerateUserInfo();
             GenerateWindowArgs();
             GenerateJvmArgs();
             string totalCommand = _jvmCommandLine.GetLiteralCommand() + GenerateClassPaths() + _minecraftCommandLine.GetLiteralCommand();
-        }
-        public void p()
-        {
-            s_logger.Info(_jvmCommandLine.GetLiteralCommand() + _minecraftCommandLine.GetLiteralCommand());
+            File.WriteAllText("./LMC/LatestLaunch.bat", totalCommand);
+            string fullPath = Directory.GetParent("./LMC/LatestLaunch.bat").FullName + "\\LatestLaunch.bat";
+            Process.Start(fullPath);
         }
     }
 
@@ -223,8 +223,8 @@ namespace LMC.Minecraft
             a["accessToken"] = "3153145";
             b["width"] = "873";
             b["height"] = "508";
-            GameInstanceLauncher example = new GameInstanceLauncher("D:/HMCL/.minecraft", "1.21.1", "E:\\Java22\\bin\\java.exe", a, "4096", b, c);
-            example.organizeArgs();
+            GameInstanceLauncher example = new GameInstanceLauncher("D:/LMC/.minecraft", "1.12.2", "E:\\Java22\\bin\\java.exe", a, "4096", b, c);
+            example.OrganizeArgs();
         }
     }
 }
