@@ -51,6 +51,18 @@
                                 <Button Content="查看GitHub仓库" Click="Button_Click_1"/>
                                 <Button Content="查看Apache2.0协议" Click="Button_Click"/>
                             </ikw:SimpleStackPanel>
+                            <ikw:SimpleStackPanel HorizontalAlignment="Center" Spacing="7" Orientation="Horizontal" FlowDirection="LeftToRight">
+                                <ikw:SimpleStackPanel Spacing="3" Orientation="Vertical">
+                                    <Image Source="/hutao.jpg" Width="80"/>
+                                    <Label Content="皇鱼" HorizontalAlignment="Center"/>
+                                    <Label Content="@tmdakm，主开发者" HorizontalAlignment="Center"/>
+                                </ikw:SimpleStackPanel>
+                                <ikw:SimpleStackPanel Spacing="3" Orientation="Vertical">
+                                    <Image Source="/junse.jpg" Width="80"/>
+                                    <Label Content="Junse(影宝)" HorizontalAlignment="Center"/>
+                                    <TextBlock TextWrapping="Wrap" Text="@iLoveEi，帮忙写前面那个懒得写的东西" MaxWidth="200" HorizontalAlignment="Center"/>
+                                </ikw:SimpleStackPanel>
+                            </ikw:SimpleStackPanel>
                         </ikw:SimpleStackPanel>
                     </Expander>
                 </Border>    

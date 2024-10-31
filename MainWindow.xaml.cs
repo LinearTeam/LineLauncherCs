@@ -14,6 +14,7 @@ using Frame = iNKORE.UI.WPF.Modern.Controls.Frame;
 using LMC.Account;
 using LMC.Pages;
 using LMC.Utils;
+using System.Reflection.Emit;
 
 namespace LMC
 {
@@ -46,25 +47,106 @@ namespace LMC
                 InitializeComponent();
                 s_background = BackGround;
                 MainFrame = MainFrm;
+                double width;
+                if(double.TryParse(Config.ReadGlobal("window", "width"), out width))
+                {
+                    this.Width = width;
+                }
+                double height;
+                if (double.TryParse(Config.ReadGlobal("window", "height"), out height))
+                {
+                    this.Height = height;
+                }
                 if (File.Exists($"./LMC/update.bat"))
                 {
                     File.Delete($"./LMC/update.bat");
-                    ShowDialog("确认", $"更新成功，可以关闭CMD命令行窗口，LMC已更新至{App.LauncherVersion}-{App.LauncherVersionType}，构建号{App.LauncherBuildVersion}", "提示");
+                    ShowDialog("确认", $"更新成功，可以关闭CMD命令行窗口，LMC已更新至{App.LauncherVersion}-{App.LauncherVersionType}，构建号{App.LauncherBuildVersion}，更新内容：\n{App.LauncherUpdateLog}", "提示");
                 }
                 Secrets.GetDeviceCode();
                 var accounts = AccountManager.GetAccounts(false).Result;
-                foreach ( var account in accounts)
+                foreach (var account in accounts)
                 {
-                    if(account.Type == AccountType.MSA)
+                    if (account.Type == AccountType.MSA)
                     {
-                        AccountManager.GetAvatarAsync(account,64);
+                        AccountManager.GetAvatarAsync(account, 64);
                     }
                 }
+                this.Loaded += MainWindow_Loaded;
+                this.SizeChanged += MainWindow_SizeChanged;
             }
             catch {
                 Environment.Exit(1);
             }
         }
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            double width = this.ActualWidth;
+            double height = this.ActualHeight;
+            Config.WriteGlobal("window", "width", width.ToString());
+            Config.WriteGlobal("window", "height", height.ToString());
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            s_logger.Info("正在检查更新");
+            try
+            {
+                var ver = await UpdateChecker.Check();
+
+                if (ver == null)
+                {
+                    throw new Exception("检查更新失败，版本为空");
+                }
+                if (ver.Type == App.LauncherVersionType && ver.Version == App.LauncherVersion && ver.Build == App.LauncherBuildVersion) {
+                    s_logger.Info("当前是最新版");
+                    return;
+                }
+                if (!ver.SecurityOrEmergency)
+                {
+                    var res = await ShowDialog("取消", $"发现新的非紧急更新版！\n版本号：{ver.Version}\n类型：{ver.Type}\n构建号：{ver.Build}", "更新", ContentDialogButton.Primary, "更新");
+                    if (res == ContentDialogResult.Primary)
+                    {
+                        try
+                        {
+                            await UpdateChecker.Update(ver);
+                        }
+                        catch (Exception ex)
+                        {
+                            new Logger("MW-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
+                        }
+                    }
+                }
+                else
+                {
+                    ContentDialog dialog = new ContentDialog();
+                    dialog.Title = "更新";
+                    dialog.Content = $"发现新的紧急更新版！\n版本号：{ver.Version}\n类型：{ver.Type}\n构建号：{ver.Build}";
+                    dialog.PrimaryButtonText = "更新";
+                    dialog.DefaultButton = ContentDialogButton.Primary;
+                    dialog.PrimaryButtonClick += async (s, e) =>
+                    {
+                        try
+                        {
+                            await UpdateChecker.Update(ver);
+                        }
+                        catch (Exception ex)
+                        {
+                            new Logger("AP-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
+                        }
+                    };
+                    dialog.ShowAsync();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                s_logger.Error("更新检查失败：" + ex.Message + "\n" + ex.StackTrace);
+                ShowDialog("确认", $"更新检查失败：{ex.Message}\n{ex.StackTrace}", "错误");
+            }
+
+        }
+    
 
         public static void AddAccPage()
         {

@@ -50,7 +50,7 @@ namespace LMC.Pages
             s_triggerStyle = (Style)MainGrid.FindResource("TriggerStyle");
             AddGrid();
             this.Loaded += AccountPage_Loaded;
-            
+            ChangeTheme(s_light);
         }
 
         private async void AccountPage_Loaded(object sender, RoutedEventArgs e)

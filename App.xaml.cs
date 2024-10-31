@@ -15,9 +15,19 @@ namespace LMC
     {
         private LineFileParser _lineFileParser = new LineFileParser();
 
-        public static string LauncherVersion = "2.0.0";
+        public static string LauncherVersion = "2.0.1";
         public static string LauncherVersionType = "alpha";
-        public static string LauncherBuildVersion = "0004";
+        public static string LauncherBuildVersion = "0005";
+        public static string LauncherUpdateLog =
+@"    新功能：
+        ✨ 存储并在启动时加载窗口大小
+        ✨ 打开启动器时检查更新
+        ✨ 更新完成后提示更新日志 (就是这个)
+    修复BUG：
+        🐛 关于界面在亮色主题下无法正常显示
+    其他：
+        💄 作者信息
+";
 
         protected override void OnStartup(StartupEventArgs e)
         {

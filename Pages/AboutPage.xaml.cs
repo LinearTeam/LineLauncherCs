@@ -1,4 +1,5 @@
 ﻿using iNKORE.UI.WPF.Controls;
+using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
 using System;
@@ -14,6 +15,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -26,9 +28,18 @@ namespace LMC.Pages
     /// </summary>
     public partial class AboutPage : Page
     {
+        private static bool s_light = true;
+        private static Expander s_aboutExpander;
+        private static Border s_border;
+
+
         public AboutPage()
         {
+            s_light = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
             InitializeComponent();
+            s_aboutExpander = AboutExpander;
+            s_border = BD;
+            ChangeTheme(s_light);
             SizeChanged += AboutPage_SizeChanged;
             double width = this.Width;
             this.Width = 800;
@@ -38,6 +49,14 @@ namespace LMC.Pages
                 this.Width = width;
                 AboutPage_SizeChanged(null, null);
             });
+        }
+
+
+        public static void ChangeTheme(bool light)
+        {
+            s_light = light;
+            s_border.Background = s_light ? new SolidColorBrush(Color.FromRgb(240, 243, 249)) : new SolidColorBrush(Color.FromRgb(29,32,39));
+            s_aboutExpander.Background = s_light ? new SolidColorBrush(Color.FromRgb(240, 243, 249)) : new SolidColorBrush(Color.FromRgb(29, 32, 39));
         }
 
         private void AboutPage_SizeChanged(object sender, SizeChangedEventArgs e)
