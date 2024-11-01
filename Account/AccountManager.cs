@@ -21,6 +21,8 @@ namespace LMC.Account
     public enum AccountType{MSA, OFFLINE, AUTHLIB};
     public class AccountManager
     {
+        public static List<string> GotAvatarsAccount = new List<string>();
+
         public static Dictionary<string, Account> RefreshedAccounts = new Dictionary<string, Account>();
     
         private static Logger s_logger = new Logger("AM");
@@ -97,6 +99,7 @@ namespace LMC.Account
         
         async public static Task DownloadAvatar(Account account, int size)
         {
+            
             Directory.CreateDirectory("./LMC/cache/" + account.Uuid);
             int i = 0;
 
@@ -123,14 +126,18 @@ namespace LMC.Account
             string avatarPath = "./LMC/cache/" + account.Uuid + $"/avat-{size}.png";
             if (!File.Exists(avatarPath))
             {
-                await DownloadAvatar(account, size);
+                if (!GotAvatarsAccount.Contains(account.Uuid))
+                {
+                    await DownloadAvatar(account, size);
+                    GotAvatarsAccount.Add(account.Uuid);
+                }
             }
             else
             {
+                
                 File.Copy(avatarPath, avatarPath + ".temp", true);
                 
                 avatarPath = avatarPath + ".temp";
-                DownloadAvatar(account,size);
             }
             BitmapImage avatarImage = new BitmapImage();
             using (FileStream fs = new FileStream(avatarPath, FileMode.Open, FileAccess.Read))
