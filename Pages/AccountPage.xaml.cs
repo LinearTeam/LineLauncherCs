@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -125,6 +126,7 @@ namespace LMC.Pages
         public static void ChangeTheme(bool light)
         {
             s_light = light;
+
             foreach (var grid in s_grids)
             {
                 grid.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(35, 39, 52));

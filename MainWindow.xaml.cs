@@ -15,6 +15,9 @@ using LMC.Account;
 using LMC.Pages;
 using LMC.Utils;
 using System.Reflection.Emit;
+using iNKORE.UI.WPF.Modern;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media.Media3D;
 
 namespace LMC
 {
@@ -45,6 +48,10 @@ namespace LMC
                 AccountManager.GetAccounts(false);
                 AccountManager.GetAccounts(true);
                 InitializeComponent();
+                var light = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
+                ThemeManager.Current.ApplicationTheme = light ? ApplicationTheme.Light : ApplicationTheme.Dark;
+                SettingPage.Theme.IsOn = light;
+
                 s_background = BackGround;
                 MainFrame = MainFrm;
                 double width;
