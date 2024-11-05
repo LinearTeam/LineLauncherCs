@@ -115,7 +115,7 @@ namespace LMC.Account
                 {
                     s_logger.Warn("下载头像失败：" + ex.Message + "\n" + ex.StackTrace);
                     if(i > 9) {
-                        await MainWindow.ShowDialog("确认", "获取用户头像失败，原因：" + ex.Message + "\n" + ex.StackTrace, "错误");
+                        return;
                     }
                 }
             }

@@ -221,31 +221,6 @@ namespace LMC.Pages
 
         private static void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            /*
-            Account.Account account = new Account.Account();
-            account.Id = "Fuck" + new Random().Next(0,1000);
-            account.Type = AccountType.OFFLINE;
-
-            Account.Account account2 = new Account.Account();
-            account2.Id = "Cnm" + new Random().Next(0, 1000);
-            account2.Type = AccountType.MSA;
-
-            Account.Account account3 = new Account.Account();
-            account3.Id = "Lib" + new Random().Next(0, 1000);
-            account3.Type = AccountType.AUTHLIB;
-            Random random = new Random();
-            int i = random.Next(0, 3);
-            if (i == 0)
-            {
-                AddAccount(account3);
-            }
-            else if (i == 1)
-            {
-                AddAccount(account3);
-            }
-            else { 
-                AddAccount(account3);
-            }*/
             MainWindow.AddAccPage();
         }
 
