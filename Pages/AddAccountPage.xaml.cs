@@ -3,21 +3,14 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
 using LMC.Pages.AccountTypes;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using LMC.Account;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages
@@ -66,7 +59,9 @@ namespace LMC.Pages
             MainWindow.MainFrame.Navigate(MicrosoftLoginPage);
         }
 
-        private void offline_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private static bool s_isValid = false;
+        
+        private void offline_MouseLeftButtonDown(object sender, MouseButtonEventArgs ignored)
         {
             ContentDialog dialog = new ContentDialog();
             dialog.Title = "离线登录";
@@ -84,6 +79,7 @@ namespace LMC.Pages
             Label label = new Label();
             label.Content = "请输入ID！";
             label.Foreground = new SolidColorBrush(Colors.Red);
+            s_isValid = false;
             panel.Children.Add(label);
             SimpleStackPanel buttons = new SimpleStackPanel();
             buttons.Orientation = Orientation.Horizontal;
@@ -100,6 +96,45 @@ namespace LMC.Pages
             panel.Children.Add(buttons);
             dialog.Content = panel;
             dialog.ShowAsync();
+            box.TextChanged += (s,e) =>
+            {
+                var text = box.Text;
+                if (string.IsNullOrEmpty(text))
+                {
+                    label.Content = "请输入ID！";
+                    s_isValid = false;
+                    label.Foreground = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                
+                if (!Regex.IsMatch(text, @"^[a-zA-Z0-9_]+$"))
+                {
+                    label.Content = "ID仅允许数字、字母、下划线！";
+                    s_isValid = false;
+                    label.Foreground = new SolidColorBrush(Colors.Red);
+                }
+                else
+                {
+                    label.Content = "ID可用！";
+                    s_isValid = true;
+                    label.Foreground = new SolidColorBrush(Colors.LimeGreen);
+                }
+            };
+            cancel.Click += (s, e) =>
+            {
+                dialog.Hide();
+            };
+            ok.Click += (s, e) =>
+            {
+                if(!s_isValid) return;
+                dialog.Hide();
+                string id = box.Text;
+                Account.Account account = new Account.Account();
+                account.Id = id;
+                account.Type = AccountType.OFFLINE;
+                AccountManager.AddAccount(account);
+                MainWindow.ShowDialog("确认", "账号添加成功！","提示");
+            };
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

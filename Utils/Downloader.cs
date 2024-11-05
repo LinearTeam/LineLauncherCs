@@ -21,7 +21,7 @@ namespace LMC.Utils
 
         public Downloader(Uri url, string path)
         {
-            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}");           
+            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion} ({App.LauncherBuildVersion})");           
             this._url = url;
             this._path = path;
         }

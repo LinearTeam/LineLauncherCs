@@ -11,7 +11,7 @@
       Title="启动">
     <Grid>
         <ikw:SimpleStackPanel HorizontalAlignment="Stretch" Spacing="30" Margin="20,30">
-            <Image x:Name="avat" Source="/steve.jpg" Width="128" Height="128" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Image x:Name="avat" Source="/steve.png" Width="128" Height="128" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <ikw:SimpleStackPanel>
                 <TextBlock FontSize="30" TextAlignment="Center" TextWrapping="Wrap" Text="AzogMine" x:Name="id"/>
                 <TextBlock TextAlignment="Center" TextWrapping="Wrap" Text="微软账号" FontSize="25" x:Name="type"/>

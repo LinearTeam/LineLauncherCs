@@ -61,7 +61,7 @@ namespace LMC.Basic
             }
             catch (Exception ex)
             {
-                MainWindow.ShowMsgBox("错误",$"更新失败: {ex.Message}\n:{ex.StackTrace}");
+                MainWindow.ShowDialog("确认",$"更新失败: {ex.Message}\n:{ex.StackTrace}","错误");
                 return;
             }
 
