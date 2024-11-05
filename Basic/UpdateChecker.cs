@@ -55,10 +55,28 @@ namespace LMC.Basic
         {
             string path = "./LMC/" + version.Version + ".exe";
             Downloader downloader = new Downloader(useGit ? version.GitUrl : version.HyuUrl, path);
-            await downloader.DownloadFileAsync();
+            try
+            {
+                await downloader.DownloadFileAsync();
+            }
+            catch (Exception ex)
+            {
+                MainWindow.ShowMsgBox("错误",$"更新失败: {ex.Message}\n:{ex.StackTrace}");
+                return;
+            }
+
             string fullPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string fileName = Path.GetFileName(fullPath);
-            File.WriteAllText("./LMC/update.bat", $"@echo off\necho Updating...\ntitle Updating\nTASKKILL /F /IM \"{fileName}\" /T\ntimeout /t 2 /nobreak\ndel \"{fullPath}\"\ncopy \"{Path.GetFullPath("./LMC/" + version.Version + ".exe")}\" \"{fullPath}\"\ndel \"{Path.GetFullPath("./LMC/" + version.Version + ".exe")}\"\nstart {fullPath}", new UTF8Encoding(false));
+            File.WriteAllText("./LMC/update.bat", @$"
+@echo off
+echo Updating...
+title Updating
+TASKKILL /F /IM {"\"" + fileName + "\""} /T
+timeout /t 2 /nobreak
+del {"\"" + fullPath + "\""}
+copy {"\"" + Path.GetFullPath("./LMC/" + version.Version + ".exe")+ "\""} {"\"" + fullPath + "\""}
+del {"\"" + Path.GetFullPath("./LMC/" + version.Version + ".exe") + "\""}
+start {"\"" + fullPath + "\""}", new UTF8Encoding(false));
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.CreateNoWindow = true;
             psi.FileName = "cmd.exe";
