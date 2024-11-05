@@ -291,6 +291,11 @@
     <Compile Include="Basic\Config.cs" />
     <Compile Include="Basic\UpdateChecker.cs" />
     <Compile Include="Minecraft\GameLauncher.cs" />
+    <Compile Include="Minecraft\GamePath.cs" />
+    <Compile Include="Minecraft\LocalProfile.cs" />
+    <Compile Include="Minecraft\ModLoader.cs" />
+    <Compile Include="Minecraft\ProfileManager.cs" />
+    <Compile Include="Minecraft\ProfileStatus.cs" />
     <Compile Include="Pages\AccountTypes\MicrosoftLoginPage.xaml.cs">
       <DependentUpon>MicrosoftLoginPage.xaml</DependentUpon>
     </Compile>
