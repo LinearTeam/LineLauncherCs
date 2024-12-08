@@ -1,11 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using LMC.Basic;
+using LMC.Utils;
 
 namespace LMC.Minecraft
 {
     public class ProfileManager
     {
+        private static Logger s_logger = new Logger("PROFMAN");
         public static List<GamePath> GetGamePaths()
         {
             List<GamePath> gamePaths = new List<GamePath>();
@@ -22,11 +26,50 @@ namespace LMC.Minecraft
 
         public static List<LocalProfile> GetProfiles(GamePath gamePath)
         {
+            s_logger.Info("加载档案中 : " + gamePath.Path);
             List<LocalProfile> profiles = new List<LocalProfile>();
             var dirs = Directory.GetDirectories(gamePath.Path);
             foreach (var dir in dirs)
             {
+                if (!File.Exists(Path.Combine(dir, $"{dir.Split('\\').Last()}.json")))
+                {
+                    LocalProfile profile = new LocalProfile();
+                    profile.Status = ProfileStatus.NoJson;
+                    profile.Path = dir;
+                    profile.GamePath = gamePath;
+                    profile.Name = dir.Split('\\').Last();
+                    profiles.Add(profile);
+                    continue;
+                }
+
+                if (!File.Exists(Path.Combine(dir, $"{dir.Split('\\').Last()}.jar")))
+                {
+                    LocalProfile profile = new LocalProfile();
+                    profile.Path = dir;
+                    profile.GamePath = gamePath;
+                    profile.Name = dir.Split('\\').Last();
+                    profile.Status = ProfileStatus.NoJar;
+                    profiles.Add(profile);
+                    continue;
+                }
                 
+                LocalProfile p = new LocalProfile();
+                p.Path = dir;
+                p.GamePath = gamePath;
+                p.Name = dir.Split('\\').Last();
+
+                try
+                {
+                    p.Version = GetProfileVersion(dir);
+                }
+                catch (UnknownVersionException e)
+                {
+                    p.Status = ProfileStatus.Unknown;
+                    profiles.Add(p);
+                    s_logger.Warn($"发现一个未知版本的档案: {dir}");
+                    continue;
+                }
+				
             }
             return profiles;
         }
@@ -53,10 +96,14 @@ namespace LMC.Minecraft
                 }
                 if (!string.IsNullOrEmpty(version)) return version;
             }
+
+
+            if (!string.IsNullOrEmpty(JsonUtils.GetValueFromJson(File.ReadAllText($"{filePath}/{filePath.Split('\\').Last()}.json"), "clientVersion")))
+            {
+                return JsonUtils.GetValueFromJson(File.ReadAllText($"{filePath}/{filePath.Split('\\').Last()}.json"), "clientVersion");
+            }
             
-            
-            
-            return version;
+            throw new UnknownVersionException("Failed to parse profile version", filePath);
         }
     }
 }

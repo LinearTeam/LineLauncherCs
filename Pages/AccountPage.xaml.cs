@@ -157,18 +157,7 @@ namespace LMC.Pages
             avator.Source = ((Image) s_mainGrid.FindResource("AvatarImage")).Source;
             if (account.Type == AccountType.MSA)
             {
-                if(!File.Exists(".\\LMC\\cache\\" + account.Uuid + "\\avat-64.png"))
-                {
-                    MainWindow.AccountPage.Dispatcher.BeginInvoke(new Action(async () =>
-                    {
-                        await AccountManager.GetAvatarAsync(account, 64);
-                        RefreshAccounts();
-                    }));
-                }
-                else
-                {
-                    avator.Source = AccountManager.GetAvatarAsync(account, 64).Result;
-                }
+                Task.Run(async () => avator.Source = await AccountManager.GetAvatarAsync(account, 64));
             }
             avator.VerticalAlignment = VerticalAlignment.Top;
             avator.HorizontalAlignment = HorizontalAlignment.Center;

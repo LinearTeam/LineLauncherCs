@@ -1,0 +1,79 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 浅色模式资源 -->
+    <ResourceDictionary x:Key="LightTheme">
+        <SolidColorBrush x:Key="ExpanderHeaderBackground" Color="White" />
+        <SolidColorBrush x:Key="ExpanderHeaderForeground" Color="Black" />
+        <SolidColorBrush x:Key="ExpanderContentBackground" Color="LightGray" />
+    </ResourceDictionary>
+
+    <!-- 深色模式资源 -->
+    <ResourceDictionary x:Key="DarkTheme">
+        <SolidColorBrush x:Key="ExpanderHeaderBackground" Color="DarkSlateGray" />
+        <SolidColorBrush x:Key="ExpanderHeaderForeground" Color="White" />
+        <SolidColorBrush x:Key="ExpanderContentBackground" Color="DimGray" />
+    </ResourceDictionary>
+
+    <!-- Expander 动画 -->
+    <Storyboard x:Key="ExpanderAnimation">
+        <DoubleAnimation Storyboard.TargetProperty="Height" From="0" To="Auto" Duration="0:0:0.3" />
+    </Storyboard>
+
+    <!-- Expander 样式 -->
+    <Style TargetType="Expander" BasedOn="{StaticResource {x:Type Expander}}">
+        <Setter Property="Background" Value="{DynamicResource ExpanderHeaderBackground}" />
+        <Setter Property="Foreground" Value="{DynamicResource ExpanderHeaderForeground}" />
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="Padding" Value="10" />
+        <Setter Property="IsExpanded" Value="False" />
+        <Setter Property="Height" Value="0" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}" BorderBrush="Gray" BorderThickness="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Header -->
+                                <ToggleButton x:Name="ExpanderHeader" Content="{TemplateBinding Header}" 
+                                              Background="Transparent" Foreground="{TemplateBinding Foreground}" 
+                                              HorizontalAlignment="Stretch" VerticalAlignment="Center" 
+                                              ClickMode="Press">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0" VerticalAlignment="Center" />
+                                                <Path Grid.Column="1" VerticalAlignment="Center" 
+                                                      HorizontalAlignment="Center" Data="M0,0 L8,8 L16,0 Z" 
+                                                      Fill="{TemplateBinding Foreground}" 
+                                                      RenderTransformOrigin="0.5,0.5">
+                                                    <Path.RenderTransform>
+                                                        <RotateTransform Angle="0" x:Name="ArrowRotate" />
+                                                    </Path.RenderTransform>
+                                                </Path>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+
+                                <Border Grid.Row="1" Background="{DynamicResource ExpanderContentBackground}">
+                                    <ContentPresenter x:Name="ExpanderContent" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
