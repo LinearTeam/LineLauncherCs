@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -64,11 +65,6 @@ namespace LMC
                 {
                     this.Height = height;
                 }
-                if (File.Exists($"./LMC/update.bat"))
-                {
-                    File.Delete($"./LMC/update.bat");
-                    ShowDialog("确认", $"更新成功，可以关闭CMD命令行窗口，LMC已更新至{App.LauncherVersion}-{App.LauncherVersionType}，构建号{App.LauncherBuildVersion}，更新内容：\n{App.LauncherUpdateLog}", "提示");
-                }
                 Secrets.GetDeviceCode();
                 var accounts = AccountManager.GetAccounts(false).Result;
                 foreach (var account in accounts)
@@ -107,6 +103,18 @@ namespace LMC
                 }
                 if (ver.Type == App.LauncherVersionType && ver.Version == App.LauncherVersion && ver.Build == App.LauncherBuildVersion) {
                     s_logger.Info("当前是最新版");
+                    
+                    if (File.Exists($"./LMC/update.bat"))
+                    {
+                        File.Delete($"./LMC/update.bat");
+                        var res = await ShowDialog("确认",
+                            $"更新成功，可以关闭CMD命令行窗口，LMC已更新至{App.LauncherVersion}-{App.LauncherVersionType}，构建号{App.LauncherBuildVersion}，更新内容：\n{App.LauncherUpdateLog}", "提示",
+                            ContentDialogButton.Close, "打开GitHub");
+                        if (res == ContentDialogResult.Primary)
+                        {
+                            Process.Start("explorer", "\"https://www.github.com/LinearTeam/LineLauncherCs/releases/latest\"");
+                        }
+                    }
                     return;
                 }
                 if (!ver.SecurityOrEmergency)

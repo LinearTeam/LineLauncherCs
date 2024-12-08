@@ -21,14 +21,14 @@ namespace LMC.Utils
 
         public Downloader(Uri url, string path)
         {
-            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion} ({App.LauncherBuildVersion})");           
+            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}-{App.LauncherBuildVersion} (Mozilla/5.0)");           
             this._url = url;
             this._path = path;
         }
         
         public Downloader(string url, string path)
         {
-            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}-{App.LauncherVersionType} (Mozilla/5.0 {App.LauncherBuildVersion})");
+            Headers.Add("User-Agent", $"LMC/C{App.LauncherVersion}-{App.LauncherBuildVersion} (Mozilla/5.0)");
             this._url = new Uri(url);
             this._path = path;
         }

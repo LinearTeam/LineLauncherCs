@@ -13,7 +13,7 @@ namespace LMC.Utils
        
         static HttpUtils(){
             _httpClient.DefaultRequestHeaders.Accept.Clear();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", $"LMC/C{App.LauncherVersion} ({App.LauncherBuildVersion})");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", $"LMC/C{App.LauncherVersion}-{App.LauncherBuildVersion} (Mozilla/5.0)");
         }
 
         public async static Task<string> GetWithAuth(string auth, string url, string accept)

@@ -27,6 +27,7 @@ namespace LMC
         🐛 关于界面在亮色主题下无法正常显示
     其他：
         💄 作者信息
+    详细内容查看GitHub
 ";
 
         protected override void OnStartup(StartupEventArgs e)
