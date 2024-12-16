@@ -92,7 +92,7 @@ namespace LMC.Pages
             pb.IsIndeterminate = true;
             dialog.Content = content;
             dialog.ShowAsync();
-            var ver = await UpdateChecker.Check();
+            var ver = await Updater.Check();
             dialog.Title = "更新";
             if(ver == null)
             {
@@ -120,7 +120,7 @@ namespace LMC.Pages
                     label.Content = "更新中...";
                     try
                     {
-                        await UpdateChecker.Update(ver);
+                        await Updater.Update(ver);
                     }
                     catch (Exception ex) {
                         new Logger("AP-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
@@ -138,7 +138,7 @@ namespace LMC.Pages
                     label.Content = "更新中...";
                     try
                     {
-                        await UpdateChecker.Update(ver);
+                        await Updater.Update(ver);
                     }
                     catch (Exception ex)
                     {

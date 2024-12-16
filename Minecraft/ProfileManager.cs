@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using LMC.Basic;
 using LMC.Utils;
 
@@ -24,11 +25,11 @@ namespace LMC.Minecraft
             return gamePaths;
         }
 
-        public static List<LocalProfile> GetProfiles(GamePath gamePath)
+        public async static Task<List<LocalProfile>> GetProfiles(GamePath gamePath)
         {
             s_logger.Info("加载档案中 : " + gamePath.Path);
             List<LocalProfile> profiles = new List<LocalProfile>();
-            var dirs = Directory.GetDirectories(gamePath.Path);
+            var dirs = Directory.GetDirectories(gamePath.Path + "\\versions\\");
             foreach (var dir in dirs)
             {
                 if (!File.Exists(Path.Combine(dir, $"{dir.Split('\\').Last()}.json")))
@@ -60,7 +61,7 @@ namespace LMC.Minecraft
 
                 try
                 {
-                    p.Version = GetProfileVersion(dir);
+                    p.Version = await GetProfileVersion(dir);
                 }
                 catch (UnknownVersionException e)
                 {
@@ -69,12 +70,18 @@ namespace LMC.Minecraft
                     s_logger.Warn($"发现一个未知版本的档案: {dir}");
                     continue;
                 }
+                catch (Exception e)
+                {
+                    p.Status = ProfileStatus.Unknown;
+                    profiles.Add(p);
+                    s_logger.Warn($"在解析档案版本 {dir} 时遇到未知错误： {e.Message}\n{e.StackTrace}");
+                }
 				
             }
             return profiles;
         }
 
-        public static string GetProfileVersion(string filePath)
+        public async static Task<string> GetProfileVersion(string filePath)
         {
             string version = "";
             if (File.Exists(filePath + "\\LMC\\version.line"))
@@ -84,8 +91,10 @@ namespace LMC.Minecraft
                 if (!string.IsNullOrEmpty(version)) return version;
             }
 
+            
             if (File.Exists(filePath + "\\PCL\\Setup.ini"))
             {
+                var releaseTime = "";
                 var lines = File.ReadLines($"{filePath}/PCL/Setup.ini");
                 foreach (var line in lines)
                 {
@@ -93,8 +102,49 @@ namespace LMC.Minecraft
                     {
                         version = line.Substring(16);
                     }
+
+                    if (line.StartsWith("ReleaseTime:"))
+                    {
+                        releaseTime = line.Substring(12);
+                    }
                 }
-                if (!string.IsNullOrEmpty(version)) return version;
+                if (!string.IsNullOrEmpty(version) && version != "Old") return version;
+                if (!string.IsNullOrEmpty(releaseTime))
+                {
+                    GameDownloader gd = new GameDownloader();
+                    gd.Bmclapi();
+                    var manifest = await gd.GetVersionManifest();
+                    var parsed = gd.ParseManifest(manifest);
+                    foreach (var ver in parsed.normal)
+                    {
+                        DateTime date = DateTime.Parse(ver.ReleaseTime, null, System.Globalization.DateTimeStyles.RoundtripKind);
+                        DateTime pclTime = DateTime.ParseExact(releaseTime, "yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+                        if (date.CompareTo(pclTime) == 0)
+                        {
+                            version = ver.Id;
+                        }
+                    }
+                    foreach (var ver in parsed.alpha)
+                    {
+                        DateTime date = DateTime.Parse(ver.ReleaseTime, null, System.Globalization.DateTimeStyles.RoundtripKind);
+                        DateTime pclTime = DateTime.ParseExact(releaseTime, "yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+                        if (date.CompareTo(pclTime) == 0)
+                        {
+                            version = ver.Id;
+                        }
+                    }
+                    foreach (var ver in parsed.beta)
+                    {
+                        DateTime date = DateTime.Parse(ver.ReleaseTime, null, System.Globalization.DateTimeStyles.RoundtripKind);
+                        DateTime pclTime = DateTime.ParseExact(releaseTime, "yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+                        if (date.CompareTo(pclTime) == 0)
+                        {
+                            version = ver.Id;
+                        }
+                    }
+                    //上述为屎山
+                }
+                if (!string.IsNullOrEmpty(version) && version != "Old") return version;
             }
 
 

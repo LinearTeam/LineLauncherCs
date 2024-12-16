@@ -19,6 +19,7 @@ using System.Reflection.Emit;
 using iNKORE.UI.WPF.Modern;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Media3D;
+using LMC.Minecraft;
 
 namespace LMC
 {
@@ -55,16 +56,25 @@ namespace LMC
 
                 s_background = BackGround;
                 MainFrame = MainFrm;
-                double width;
-                if(double.TryParse(Config.ReadGlobal("window", "width"), out width))
+                if (Config.ReadGlobal("window", "maximized") == "1")
                 {
-                    this.Width = width;
+                    WindowState = WindowState.Maximized;
                 }
-                double height;
-                if (double.TryParse(Config.ReadGlobal("window", "height"), out height))
+                else
                 {
-                    this.Height = height;
+                    double width;
+                    if (double.TryParse(Config.ReadGlobal("window", "width"), out width))
+                    {
+                        this.Width = width;
+                    }
+
+                    double height;
+                    if (double.TryParse(Config.ReadGlobal("window", "height"), out height))
+                    {
+                        this.Height = height;
+                    }
                 }
+
                 Secrets.GetDeviceCode();
                 var accounts = AccountManager.GetAccounts(false).Result;
                 foreach (var account in accounts)
@@ -76,10 +86,16 @@ namespace LMC
                 }
                 this.Loaded += MainWindow_Loaded;
                 this.SizeChanged += MainWindow_SizeChanged;
+                this.StateChanged += MainWindow_StateChanged;
             }
             catch {
                 Environment.Exit(1);
             }
+        }
+
+        private void MainWindow_StateChanged(object sender, EventArgs e)
+        {
+            Config.WriteGlobal("window", "maximized", WindowState == WindowState.Maximized ? "1" : "0");
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -90,12 +106,13 @@ namespace LMC
             Config.WriteGlobal("window", "height", height.ToString());
         }
 
+
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             s_logger.Info("正在检查更新");
             try
             {
-                var ver = await UpdateChecker.Check();
+                var ver = await Updater.Check();
 
                 if (ver == null)
                 {
@@ -124,7 +141,7 @@ namespace LMC
                     {
                         try
                         {
-                            await UpdateChecker.Update(ver);
+                            await Updater.Update(ver);
                         }
                         catch (Exception ex)
                         {
@@ -143,7 +160,7 @@ namespace LMC
                     {
                         try
                         {
-                            await UpdateChecker.Update(ver);
+                            await Updater.Update(ver);
                         }
                         catch (Exception ex)
                         {
@@ -159,7 +176,6 @@ namespace LMC
                 s_logger.Error("更新检查失败：" + ex.Message + "\n" + ex.StackTrace);
                 ShowDialog("确认", $"更新检查失败：{ex.Message}\n{ex.StackTrace}", "错误");
             }
-
         }
     
 

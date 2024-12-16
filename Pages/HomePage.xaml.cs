@@ -1,4 +1,6 @@
-﻿using Page = iNKORE.UI.WPF.Modern.Controls.Page;
+﻿using System.Windows;
+using LMC.Minecraft;
+using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages
 {
@@ -11,5 +13,6 @@ namespace LMC.Pages
         {
             InitializeComponent();
         }
+
     }
 }

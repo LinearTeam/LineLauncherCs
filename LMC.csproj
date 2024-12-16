@@ -290,7 +290,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Basic\Config.cs" />
-    <Compile Include="Basic\UpdateChecker.cs" />
+    <Compile Include="Basic\Updater.cs" />
     <Compile Include="Minecraft\GameLauncher.cs" />
     <Compile Include="Minecraft\GamePath.cs" />
     <Compile Include="Minecraft\LocalProfile.cs" />
