@@ -56,7 +56,7 @@ namespace LMC.Pages
 
         private void microsoft_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            MainWindow.MainFrame.Navigate(MicrosoftLoginPage);
+            MainWindow.Navigate(MicrosoftLoginPage);
         }
 
         private static bool s_isValid = false;
@@ -139,7 +139,7 @@ namespace LMC.Pages
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.MainFrame.Navigate(MainWindow.AccountPage);
+            MainWindow.Navigate(MainWindow.AccountPage);
         }
     }
 }

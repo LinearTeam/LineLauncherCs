@@ -1,29 +1,15 @@
-﻿using iNKORE.UI.WPF.Controls;
-using iNKORE.UI.WPF.Converters;
-using iNKORE.UI.WPF.Modern;
+﻿using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Common.IconKeys;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
 using LMC.Basic;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages
@@ -173,7 +159,7 @@ namespace LMC.Pages
             type.Margin = new Thickness(28, 101, 28, 28);
             type.TextAlignment = TextAlignment.Center;
             grid.MouseLeftButtonDown += (s, e) => {
-                MainWindow.MainFrame.Navigate(new AccountManagePage(account));
+                MainWindow.Navigate(new AccountManagePage(account));
             };
 
 

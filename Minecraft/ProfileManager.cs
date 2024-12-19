@@ -81,16 +81,16 @@ namespace LMC.Minecraft
             return profiles;
         }
 
-        public async static Task<string> GetProfileVersion(string filePath)
+        public async static Task<string> GetProfileVersion(string filePath, bool write = false)
         {
             string version = "";
             if (File.Exists(filePath + "\\LMC\\version.line"))
             {
                 LineFileParser lineFileParser = new LineFileParser();
-                version = lineFileParser.Read($"{filePath}/LMC/version.line", "name", "base");
+                version = lineFileParser.Read($"{filePath}/LMC/version.line", "id", "base");
                 if (!string.IsNullOrEmpty(version)) return version;
             }
-
+            if(write) Directory.CreateDirectory(filePath + "\\LMC");
             
             if (File.Exists(filePath + "\\PCL\\Setup.ini"))
             {
@@ -108,7 +108,18 @@ namespace LMC.Minecraft
                         releaseTime = line.Substring(12);
                     }
                 }
-                if (!string.IsNullOrEmpty(version) && version != "Old") return version;
+
+                if (!string.IsNullOrEmpty(version) && version != "Old")
+                {
+                    
+                    if (write)
+                    {
+                        LineFileParser lineFileParser = new LineFileParser();
+                        File.Create($"{filePath}/LMC/version.line").Close();
+                        lineFileParser.Write($"{filePath}/LMC/version.line", "id", "base", version);
+                    }
+                    return version;
+                }
                 if (!string.IsNullOrEmpty(releaseTime))
                 {
                     GameDownloader gd = new GameDownloader();
@@ -144,7 +155,18 @@ namespace LMC.Minecraft
                     }
                     //上述为屎山
                 }
-                if (!string.IsNullOrEmpty(version) && version != "Old") return version;
+
+                if (!string.IsNullOrEmpty(version) && version != "Old")
+                {
+                    if (write)
+                    {
+                        LineFileParser lineFileParser = new LineFileParser();
+                        File.Create($"{filePath}/LMC/version.line").Close();
+                        lineFileParser.Write($"{filePath}/LMC/version.line", "id", "base", version);
+                    }
+
+                    return version;
+                }
             }
 
 

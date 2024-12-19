@@ -41,6 +41,7 @@ namespace LMC.Pages
             }
             id.Text = acc.Id;
             this.Loaded += AccountManagePage_Loaded;
+            this.Title = "账号管理 > " + acc.Id;
         }
 
         private async void AccountManagePage_Loaded(object sender, RoutedEventArgs e)
@@ -60,7 +61,7 @@ namespace LMC.Pages
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            MainWindow.MainFrame.Navigate(MainWindow.AccountPage);
+            MainWindow.Navigate(MainWindow.AccountPage);
         }
     }
 }

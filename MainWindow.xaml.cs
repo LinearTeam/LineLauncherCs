@@ -4,22 +4,14 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
-using Common.Models;
+using System.Windows.Input;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 using MessageBox = iNKORE.UI.WPF.Modern.Controls.MessageBox;
 using Frame = iNKORE.UI.WPF.Modern.Controls.Frame;
 using LMC.Account;
-using LMC.Pages;
-using LMC.Utils;
-using System.Reflection.Emit;
 using iNKORE.UI.WPF.Modern;
-using System.Windows.Controls.Primitives;
-using System.Windows.Media.Media3D;
-using LMC.Minecraft;
 
 namespace LMC
 {
@@ -38,8 +30,13 @@ namespace LMC
         public static Pages.SettingPage SettingPage = new Pages.SettingPage();
         public static Pages.LaunchPage LaunchPage = new Pages.LaunchPage();
         public static Pages.AddAccountPage AddAccountPage = new Pages.AddAccountPage();
-
+        
+        private static NavigationViewItem s_lastSelectedItem;
+        
+        private static Page s_lastPage;
+        
         public static Frame MainFrame;
+        public static NavigationView MainNagView;
 
         public MainWindow()
         {
@@ -56,6 +53,7 @@ namespace LMC
 
                 s_background = BackGround;
                 MainFrame = MainFrm;
+                MainNagView = MainNagV;
                 if (Config.ReadGlobal("window", "maximized") == "1")
                 {
                     WindowState = WindowState.Maximized;
@@ -87,12 +85,26 @@ namespace LMC
                 this.Loaded += MainWindow_Loaded;
                 this.SizeChanged += MainWindow_SizeChanged;
                 this.StateChanged += MainWindow_StateChanged;
+                this.KeyDown += MainWindow_KeyDown;
             }
             catch {
                 Environment.Exit(1);
             }
         }
 
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                if (s_lastPage != null)
+                {
+                    Navigate(s_lastPage);
+                    MainNagView.SelectedItem = s_lastSelectedItem;
+                }
+                e.Handled = true;
+            }
+        }
+        
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
             Config.WriteGlobal("window", "maximized", WindowState == WindowState.Maximized ? "1" : "0");
@@ -181,7 +193,7 @@ namespace LMC
 
         public static void AddAccPage()
         {
-            MainFrame.Navigate(AddAccountPage);
+            Navigate(AddAccountPage);
         }
 
         public async static Task<ContentDialogResult> ShowDialog(string closeButtonText, string content, string title, ContentDialogButton defaultButton = ContentDialogButton.None, string primaryButtonText = null, string secondaryButtonText = null)
@@ -210,6 +222,17 @@ namespace LMC
             return res;
         }
 
+        public static void Navigate(Page page)
+        {
+            if (MainFrame.Content != null && MainFrame.Content is Page)
+            {
+                s_lastPage = MainFrame.Content as Page;
+                s_lastSelectedItem = MainNagView.SelectedItem as NavigationViewItem;
+            }
+            MainNagView.Header = page.Title;
+            MainFrame.Navigate(page);
+        }
+        
         private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             Page? page = null;
@@ -245,8 +268,7 @@ namespace LMC
 
             if (page != null)
             {
-                MainNagV.Header = page.Title;
-                MainFrame.Navigate(page);
+                Navigate(page);
             }
         }
 
