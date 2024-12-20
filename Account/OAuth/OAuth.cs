@@ -334,7 +334,6 @@ namespace LMC.Account.OAuth
                 url = "https://api.minecraftservices.com/minecraft/profile";
                 string profileres = await HttpUtils.GetWithAuth($"Bearer {tokenf}", url, accept);
                 bool haveMc = haveItems && itemsElement.GetArrayLength() > 0 && !profileres.Contains("NOT_FOUND");
-                Console.WriteLine("Does Minecraft have : " + haveMc.ToString());
                 if (haveMc)
                 {
                     string uuid = JsonUtils.GetValueFromJson(profileres, "id");

@@ -128,13 +128,21 @@ namespace LMC.Account
                 await DownloadAvatar(account, size);
             }
             BitmapImage avatarImage = new BitmapImage();
-            using (FileStream fs = new FileStream(avatarPath, FileMode.Open, FileAccess.Read))
+            try
             {
-                avatarImage.BeginInit();
-                avatarImage.CacheOption = BitmapCacheOption.OnLoad;
-                avatarImage.StreamSource = fs;
-                avatarImage.EndInit();
+                using (FileStream fs = new FileStream(avatarPath, FileMode.Open, FileAccess.Read))
+                {
+                    avatarImage.BeginInit();
+                    avatarImage.CacheOption = BitmapCacheOption.OnLoad;
+                    avatarImage.StreamSource = fs;
+                    avatarImage.EndInit();
+                }
             }
+            catch (Exception ex)
+            {
+                s_logger.Warn("读取头像失败：" + ex.Message + "\n" + ex.StackTrace);
+            }
+
             return avatarImage;
         }
 
