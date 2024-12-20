@@ -12,6 +12,7 @@ using MessageBox = iNKORE.UI.WPF.Modern.Controls.MessageBox;
 using Frame = iNKORE.UI.WPF.Modern.Controls.Frame;
 using LMC.Account;
 using iNKORE.UI.WPF.Modern;
+using LMC.Minecraft;
 
 namespace LMC
 {
@@ -121,6 +122,7 @@ namespace LMC
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            throw new UnknownVersionException("1","");
             s_logger.Info("正在检查更新");
             try
             {

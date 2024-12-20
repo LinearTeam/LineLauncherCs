@@ -1,10 +1,11 @@
 ﻿using Common;
 using LMC.Basic;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Windows;
-using MessageBox = iNKORE.UI.WPF.Modern.Controls.MessageBox;
+
 
 namespace LMC
 {
@@ -125,23 +126,35 @@ namespace LMC
                                 var log = File.ReadAllText($"./LMC/logs/latest.log");
                                 writer.Write(log);
                             }
-                            entry = archive.CreateEntry($"logs/crash_report.cr");
+                            entry = archive.CreateEntry($"info/crash_report.cr");
                             using (StreamWriter writer = new StreamWriter(entry.Open()))
                             {
                                 writer.WriteLine("LMC Crashed.");
+                                var list = new List<string>();
+                                list.Add("Let's speak English");
+                                list.Add("You can try Loser Launcher Maybe?");
+                                list.Add("WHAT THE FUCK");
+                                list.Add("Okay, let's use WinUi 3 and go to the hell");
+                                list.Add("Delete all files of LMC and be careful with your .minecraft folder.");
+                                list.Add("让我们说中文");
+                                list.Add("你或许可以试试LoserMC？");
+                                list.Add("他妈的");
+                                list.Add("ok，让我们使用胜利UI3并下地狱");
+                                list.Add("删除LMC的所有文件并小心你的.地雷手艺文件夹");
+                                writer.WriteLine(list[new Random().Next(0, list.Count)]);
                                 writer.WriteLine($"Caused By: {ex.Message}");
                                 writer.WriteLine($"StackTrace: \n{ex.StackTrace}");
                                 writer.WriteLine(ex.InnerException == null ? "No InnerException" : $"InnerException: {ex.InnerException.Message}\nStackTrace: \n{ex.InnerException.StackTrace}");
                                 writer.WriteLine($"Launcher Version: {LauncherVersion} BuildNumber: {LauncherBuildVersion} VersionType: {LauncherVersionType} Logger Version: {Logger.LoggerVersion}");
                             }
-                            entry = archive.CreateEntry($"logs/exception_object.o");
+                            entry = archive.CreateEntry($"info/exception_object.o");
                             using (StreamWriter writer = new StreamWriter(entry.Open()))
                             {
                                 writer.Write(ex.ToJson());
                             }
                         }
                     }
-                    System.Diagnostics.Process.Start("explorer", "/select," + Directory.GetCurrentDirectory() + @"\LMC\s反馈包_请上传_FeedbackPack_PleaseUpload.zip");
+                    System.Diagnostics.Process.Start("explorer", "/select," + Directory.GetCurrentDirectory() + @"\LMC\FeedbackPack_反馈包_PleaseUpload_请上传.zip");
                 }
                 catch{}
             });
