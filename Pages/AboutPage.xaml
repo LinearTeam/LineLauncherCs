@@ -66,6 +66,7 @@
                         </ikw:SimpleStackPanel>
                     </Expander>
                 </Border>
+                
             </ikw:SimpleStackPanel>
         </ScrollViewer>
     </Grid>
