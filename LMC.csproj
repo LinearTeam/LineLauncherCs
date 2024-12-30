@@ -86,14 +86,14 @@
     <Reference Include="Costura, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>packages\Costura.Fody.6.0.0-beta0000\lib\netstandard2.0\Costura.dll</HintPath>
     </Reference>
-    <Reference Include="iNKORE.UI.WPF, Version=1.2.8.0, Culture=neutral, PublicKeyToken=cd19e634b9706635, processorArchitecture=MSIL">
-      <HintPath>packages\iNKORE.UI.WPF.Modern.0.9.30\lib\net452\iNKORE.UI.WPF.dll</HintPath>
+    <Reference Include="iNKORE.UI.WPF">
+      <HintPath>..\UI.WPF.Modern\source\iNKORE.UI.WPF.Modern\bin\Debug\net452\iNKORE.UI.WPF.dll</HintPath>
     </Reference>
-    <Reference Include="iNKORE.UI.WPF.Modern, Version=0.9.30.0, Culture=neutral, PublicKeyToken=cd19e634b9706635, processorArchitecture=MSIL">
-      <HintPath>packages\iNKORE.UI.WPF.Modern.0.9.30\lib\net452\iNKORE.UI.WPF.Modern.dll</HintPath>
+    <Reference Include="iNKORE.UI.WPF.Modern">
+      <HintPath>..\UI.WPF.Modern\source\iNKORE.UI.WPF.Modern\bin\Debug\net452\iNKORE.UI.WPF.Modern.dll</HintPath>
     </Reference>
-    <Reference Include="iNKORE.UI.WPF.Modern.Controls, Version=0.9.30.0, Culture=neutral, PublicKeyToken=cd19e634b9706635, processorArchitecture=MSIL">
-      <HintPath>packages\iNKORE.UI.WPF.Modern.0.9.30\lib\net452\iNKORE.UI.WPF.Modern.Controls.dll</HintPath>
+    <Reference Include="iNKORE.UI.WPF.Modern.Controls">
+      <HintPath>..\UI.WPF.Modern\source\iNKORE.UI.WPF.Modern.Controls\bin\Debug\net452\iNKORE.UI.WPF.Modern.Controls.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.9.0.0-preview.3.24172.9\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -259,9 +259,6 @@
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\iNKORE.UI.WPF.Modern.0.9.30\lib\net452\System.ValueTuple.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -286,114 +283,20 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Basic\Config.cs" />
-    <Compile Include="Basic\Updater.cs" />
-    <Compile Include="Minecraft\GameLauncher.cs" />
-    <Compile Include="Minecraft\GamePath.cs" />
-    <Compile Include="Minecraft\LocalProfile.cs" />
-    <Compile Include="Minecraft\ModLoader.cs" />
-    <Compile Include="Minecraft\ProfileManager.cs" />
-    <Compile Include="Minecraft\ProfileStatus.cs" />
-    <Compile Include="Minecraft\UnknownVersionException.cs" />
-    <Compile Include="Pages\AccountTypes\MicrosoftLoginPage.xaml.cs">
-      <DependentUpon>MicrosoftLoginPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\AddAccountPage.xaml.cs">
-      <DependentUpon>AddAccountPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\AccountManagePage.xaml.cs">
-      <DependentUpon>AccountManagePage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\LaunchPage.xaml.cs">
-      <DependentUpon>LaunchPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\DownloadPage.xaml.cs">
-      <DependentUpon>DownloadPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\AboutPage.xaml.cs">
-      <DependentUpon>AboutPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\SettingPage.xaml.cs">
-      <DependentUpon>SettingPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\ProfilePage.xaml.cs">
-      <DependentUpon>ProfilePage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\AccountPage.xaml.cs">
-      <DependentUpon>AccountPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\HomePage.xaml.cs">
-      <DependentUpon>HomePage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Utils\HttpUtils.cs" />
-    <Compile Include="Utils\JsonUtils.cs" />
-    <Compile Include="Utils\Downloader.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Account\Account.cs" />
-    <Compile Include="Account\AccountManager.cs" />
-    <Compile Include="Account\OAuth\OAuth.cs" />
-    <Compile Include="Basic\Secrets.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Basic\LineFileParser.cs" />
-    <Compile Include="Basic\Logger.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Pages\AccountTypes\MicrosoftLoginPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\AddAccountPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\AccountManagePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\LaunchPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\DownloadPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\AboutPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\SettingPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\ProfilePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\AccountPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\HomePage.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Styles\ExpanderStyle.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Minecraft\DownloadSource.cs" />
-    <Compile Include="Minecraft\GameDownloader.cs" />
-    <Compile Include="Minecraft\DVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -411,28 +314,14 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="LMC.pfx" />
-    <None Include="LMC_1_TemporaryKey.pfx" />
-    <None Include="LMC_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Resources\i18n\en_US.line" />
-    <None Include="Resources\i18n\zh_CN.line" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="LMC.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="ico.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="hutao.jpg" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -445,15 +334,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="ico.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="steve.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="junse.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\Fody.6.8.2\build\Fody.targets" Condition="Exists('packages\Fody.6.8.2\build\Fody.targets')" />
