@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using iNKORE.UI.WPF.Controls;
 using iNKORE.UI.WPF.Modern.Controls;
@@ -56,9 +57,14 @@ namespace LMC.Basic
 
         public static async Task Update(LMCVersion version, bool useGit = false)
         {
+            await Task.Delay(1000);
             ContentDialog ctd = new ContentDialog();
             ctd.Title = "更新";
             SimpleStackPanel content = new SimpleStackPanel();
+            content.Spacing = 5;
+            content.VerticalAlignment = VerticalAlignment.Stretch;
+            content.HorizontalAlignment = HorizontalAlignment.Stretch;
+            content.Orientation = Orientation.Vertical;
             ProgressRing ring = new ProgressRing();
             Label label = new Label();
             label.Content = "正在下载新版本LMC...";
