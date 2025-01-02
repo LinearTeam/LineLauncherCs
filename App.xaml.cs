@@ -16,18 +16,24 @@ namespace LMC
     {
         private LineFileParser _lineFileParser = new LineFileParser();
 
-        public static string LauncherVersion = "2.0.1";
+        public static string LauncherVersion = "2.0.2";
         public static string LauncherVersionType = "alpha";
-        public static string LauncherBuildVersion = "0005";
+        public static string LauncherBuildVersion = "0006";
         public static string LauncherUpdateLog =
 @"    新功能：
-        ✨ 存储并在启动时加载窗口大小
-        ✨ 打开启动器时检查更新
-        ✨ 更新完成后提示更新日志 (就是这个)
+        ✨ 添加离线账号
+        ✨ 按下ESC时返回上一页 (有与UI库相关的问题)
+        ✨ 这个对话框下面的打开GitHub按钮
+        ✨ 在存储窗口大小的同时存储最大化状态
     修复BUG：
-        🐛 关于界面在亮色主题下无法正常显示
+        🐛 获取头像BUG (目前仍有部分问题)
+        🐛 部分环境无法正常显示主题
+        🐛 更新脚本无法正常运行
+        🐛 反馈包无法正常定位
+        🐛 修复删除账号时会下载失败的BUG
     其他：
-        💄 作者信息
+        ✨ 修改请求UA头
+    ......
     详细内容查看GitHub
 ";
 

@@ -39,3 +39,32 @@ Please comply with the content of the LICENSE and put this repository's link if 
 | -start <version>   | Start version when start launcher. If version does not exist, programm will exit as code 2.  |
 | -reset             | Reset all configuration of LMC, but device-code will not be change.                          |
 | -reacc             | Delete all saved Microsoft/Another/Offline accounts.                                         |
+
+## Library Copyright Statements
+(Translated by ChatGPT, The Chinese version shall prevail)
+### SegueFluentIcons
+Developed by Microsoft, open-sourced under the [MIT](https://licenses.nuget.org/MIT) license.
+
+### Costura.Fody & Fody
+- [Costura](https://github.com/Fody/Costura)
+- [Fody](https://github.com/Fody/Fody)
+
+Developed by Simon Cropp and contributors, open-sourced under the [MIT](https://licenses.nuget.org/MIT) license.
+
+### iNKORE.UI.WPF & iNKORE.UI.WPF.Modern
+[iNKORE.UI.WPF.Modern](https://github.com/iNKORE-NET/UI.WPF.Modern/)
+
+Developed by NotYoojun, contributors, and contributors to the base project, open-sourced under the [LGPL v2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html) license.
+
+### Newtonsoft.Json
+Developed by James Newton-King and contributors, open-sourced under the [MIT](https://licenses.nuget.org/MIT) license.
+
+### Shared.Common
+Developed by tmacharia, open-sourced under the [MIT](https://licenses.nuget.org/MIT) license.
+
+### Others
+Includes the .NET Framework, .NET, .NET Desktop, Windows Presentation Foundation, and some (or all) content under the `System` namespace, developed by Microsoft.
+- Portions are open-sourced under the [MIT](https://licenses.nuget.org/MIT) license.
+- Others are licensed under the [.NET Library License](https://dotnet.microsoft.com/en-us/dotnet_library_license.htm).
+
+Most details can be found in the [.NET Licensing Information](https://github.com/dotnet/core/blob/main/license-information.md).
