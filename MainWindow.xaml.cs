@@ -26,10 +26,10 @@ namespace LMC
         public static Pages.AboutPage AboutPage = new Pages.AboutPage();
         public static Pages.AccountPage AccountPage = new Pages.AccountPage();
         public static Pages.HomePage HomePage = new Pages.HomePage();
-        public static Pages.DownloadPage DownloadPage = new Pages.DownloadPage();
+        public static Pages.TaskPage DownloadPage = new Pages.TaskPage();
         public static Pages.ProfilePage ProfilePage = new Pages.ProfilePage();
         public static Pages.SettingPage SettingPage = new Pages.SettingPage();
-        public static Pages.LaunchPage LaunchPage = new Pages.LaunchPage();
+        public static Pages.DownloadPage LaunchPage = new Pages.DownloadPage();
         public static Pages.AddAccountPage AddAccountPage = new Pages.AddAccountPage();
         
         private static NavigationViewItem s_lastSelectedItem;
@@ -242,7 +242,7 @@ namespace LMC
             {
                 page = HomePage;
             }
-            else if (item == LaunchNagVi)
+            else if (item == DownloadNagVi)
             {
                 page = LaunchPage;
             }
@@ -258,7 +258,7 @@ namespace LMC
             {
                 page = AboutPage;
             }
-            else if (item == DownloadNagVi)
+            else if (item == TaskNagVi)
             {
                 page = DownloadPage;
             }
