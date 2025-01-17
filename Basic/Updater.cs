@@ -1,6 +1,5 @@
 ﻿using LMC.Utils;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,6 +12,7 @@ using iNKORE.UI.WPF.Modern.Controls;
 
 namespace LMC.Basic
 {
+    // ReSharper disable once InconsistentNaming
     public class LMCVersion
     {
         public string Version { get; set; }
@@ -82,6 +82,7 @@ namespace LMC.Basic
             {
                 label.Content = $"更新失败: {ex.Message}\n:{ex.StackTrace}";
                 ring.IsIndeterminate = false;
+                ctd.CloseButtonText = "确定";
                 return;
             }
 

@@ -92,8 +92,19 @@ namespace LMC.Pages
             pb.IsIndeterminate = true;
             dialog.Content = content;
             dialog.ShowAsync();
-            var ver = await Updater.Check();
-            dialog.Title = "更新";
+            LMCVersion ver = null;
+            try
+            {
+                ver = await Updater.Check();
+                dialog.Title = "更新";
+            }
+            catch (Exception ex)
+            {
+                dialog.CloseButtonText = "确认";
+                dialog.Content = "检查失败！原因" + ex.Message + "\n" + ex.StackTrace;
+                return;
+            }
+
             if(ver == null)
             {
                 dialog.CloseButtonText = "确认";

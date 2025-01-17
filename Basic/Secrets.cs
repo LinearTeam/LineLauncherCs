@@ -50,6 +50,11 @@ namespace LMC.Basic
 
         public static string GetDeviceCode()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(s_path));
+            if (!File.Exists(s_path))
+            {
+                File.Create(s_path).Close();
+            }
             s_logger.Info("正在获取设备标识符");
             string cpuId = string.IsNullOrEmpty(s_cachedCpuId) ? GetWmiInfo("Win32_Processor","ProcessorId") : s_cachedCpuId;
             string biosId = string.IsNullOrEmpty(s_cachedBiosId) ? GetWmiInfo("Win32_BIOS", "SerialNumber") + GetWmiInfo("Win32_BIOS", "ReleaseDate") + GetWmiInfo("Win32_BIOS", "SMBIOSBIOSVersion") : s_cachedBiosId;

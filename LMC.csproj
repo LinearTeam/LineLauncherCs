@@ -287,6 +287,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Basic\Config.cs" />
+    <Compile Include="Basic\TaskManager.cs" />
     <Compile Include="Basic\Updater.cs" />
     <Compile Include="Minecraft\GameLauncher.cs" />
     <Compile Include="Minecraft\GamePath.cs" />
@@ -304,11 +305,11 @@
     <Compile Include="Pages\AccountManagePage.xaml.cs">
       <DependentUpon>AccountManagePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\LaunchPage.xaml.cs">
-      <DependentUpon>LaunchPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\DownloadPage.xaml.cs">
       <DependentUpon>DownloadPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\TaskPage.xaml.cs">
+      <DependentUpon>TaskPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\AboutPage.xaml.cs">
       <DependentUpon>AboutPage.xaml</DependentUpon>
@@ -360,11 +361,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\LaunchPage.xaml">
+    <Page Include="Pages\DownloadPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\DownloadPage.xaml">
+    <Page Include="Pages\TaskPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
