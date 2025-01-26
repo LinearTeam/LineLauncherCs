@@ -2,7 +2,7 @@
 # LineLauncherCs
 
 ## 简介
-Line Launcher（亦称LMC）是一个Minecraft启动器，这是它的C#版本，如果想查看Python版本，可以在[官网](https://line.icecreamteam.win)上寻找链接。
+Line Launcher（亦称LMC）是一个Minecraft启动器，这是它的C#版本，如果想查看Visual Basic版本，可以在[官网](https://line.icecreamteam.win)上寻找链接。
 
 ## 代码
 本仓库所有代码由[皇鱼](https://github.com/tmdakm)开发(和另一个启动器的黄鱼无关!)开发。  
