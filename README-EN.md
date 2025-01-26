@@ -2,7 +2,7 @@
 # LineLauncherCs
 
 ## Description
-Line Launcher（or LMC）is a Minecraft Launcher. This repository is its C# version. You can find the link on [Official Website](https://line.icecreamteam.win/index-en.html) If you want to see Python version.
+Line Launcher（or LMC）is a Minecraft Launcher. This repository is its C# version. You can find the link on [Official Website](https://line.icecreamteam.win/index-en.html) If you want to see Visual Basic version.
 
 ## Code
 All codes in this repository are developed by [Huangyu](https://github.com/tmdakm)(Not related with YellowFish which developed another launcher).    
