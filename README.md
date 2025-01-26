@@ -5,7 +5,7 @@
 Line Launcher（亦称LMC）是一个Minecraft启动器，这是它的C#版本，如果想查看Visual Basic版本，可以在[官网](https://line.icecreamteam.win)上寻找链接。
 
 ## 代码
-本仓库所有代码由[皇鱼](https://github.com/tmdakm)开发(和另一个启动器的黄鱼无关!)开发。  
+本仓库所有代码由[皇鱼](https://github.com/tmdakm)开发。(和另一个启动器的黄鱼无关!)  
 将实现Minecraft的启动、下载、登录等功能。  
 使用.Net Framework v4.7.2 & WPF制作UI，UI库是[iNKORE.UI.WPF.Modern](https://github.com/iNKORE-NET/UI.WPF.Modern/)。  
 在打包时，会安装包Costura.Fody来实现单文件编译。  
