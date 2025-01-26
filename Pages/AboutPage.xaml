@@ -14,59 +14,68 @@
     <Grid Margin="40,20,20,20">
         <ScrollViewer HorizontalScrollBarVisibility="Auto">
             <ikw:SimpleStackPanel Orientation="Vertical" Spacing="30">
-                <Border HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#1D2027" x:Name="BD">
-                    <Expander x:Name="AboutExpander" Background="#1D2027" FlowDirection="RightToLeft" HorizontalAlignment="Stretch" Margin="0,0,20,0" Collapsed="AboutExpander_Collapsed" Expanded="AboutExpander_Expanded">
-                        <Expander.Header>
-                            <Grid HorizontalAlignment="Left">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="220" x:Name="CD"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="30" FlowDirection="LeftToRight" Grid.Column="1" x:Name="SSP">
-                                    <Image Source="/LMC.png" Width="64" Height="64" Stretch="UniformToFill"/>
-                                        <Label Content="Line Launcher（C# ， 或 Line Minecraft launCher C#）" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </ikw:SimpleStackPanel>
-                            </Grid>
-                        </Expander.Header>
-                        <ikw:SimpleStackPanel Orientation="Vertical" Spacing="3">
-                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="30">
-                                <ikw:SimpleStackPanel>
-                                    <ikw:SimpleStackPanel Orientation="Horizontal">
-                                        <Label Content="{x:Static app:App.LauncherVersion}"/>
-                                        <Label Content="：版本号"/>
-                                    </ikw:SimpleStackPanel>
-                                    <ikw:SimpleStackPanel Orientation="Horizontal">
-                                        <Label Content="{x:Static app:App.LauncherVersionType}"/>
-                                        <Label Content="：版本类型"/>
-                                    </ikw:SimpleStackPanel>
-                                    <ikw:SimpleStackPanel Orientation="Horizontal">
-                                        <Label Content="{x:Static app:App.LauncherBuildVersion}"/>
-                                        <Label Content="：构建号"/>
-                                    </ikw:SimpleStackPanel>
-                                    <Label Content="使用Apache2.0协议"/>
-                                    <Label Content="Copyright © 2024 LinearTeam 版权所有"/>
-                                    <Label Content=".All rights reserved"/>
-                                </ikw:SimpleStackPanel>
-                                <Button Content="检查更新" Click="Button_Click_2"/>
-                                <Button Content="查看GitHub仓库" Click="Button_Click_1"/>
-                                <Button Content="查看Apache2.0协议" Click="Button_Click"/>
+                <ui:SettingsExpander Header="Line Launcher (C#, 或 Line (Minecraft) launCher C#)" IsExpanded="True">
+                    <ui:SettingsExpander.HeaderIcon>
+                        <ui:ImageIcon Source="/ico.ico"/>
+                    </ui:SettingsExpander.HeaderIcon>
+                    <ui:SettingsExpander.ItemsHeader>
+                        <ui:InfoBar Title="如下为启动器的关于信息，更新不及时，如有遗漏请开issue"
+                                    BorderThickness="0"
+                                    CornerRadius="0"
+                                    IsIconVisible="False"
+                                    IsOpen="True"
+                                    Severity="Success">
+                            <ui:InfoBar.ActionButton>
+                                <ui:HyperlinkButton Content="打开Issue页面" NavigateUri="https://www.github.com/LinearTeam/LineLauncherCs/issues/new/choose" Margin="0,3,0,0"/>
+                            </ui:InfoBar.ActionButton>
+                        </ui:InfoBar>
+                    </ui:SettingsExpander.ItemsHeader>
+                    <ui:SettingsExpander.Items>
+                        <ui:SettingsCard Header="皇鱼" Description="@tmdakm, 主开发者" >
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:ImageIcon Source="/hutao.jpg" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                            </ui:SettingsCard.HeaderIcon>
+                            <ui:HyperlinkButton Content="打开GitHub" NavigateUri="https://github.com/tmdakm"/>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Header="Junse(影宝)" Description="@IloveEi, 帮忙写小功能" >
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:ImageIcon Source="/junse.jpg"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                            </ui:SettingsCard.HeaderIcon>
+                            <ui:HyperlinkButton Content="打开GitHub" NavigateUri="https://github.com/iloveei"/>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Header="{x:Static app:App.LauncherVersion}" Description="{x:Static app:App.LauncherBuildVersion}" >
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.PostUpdate}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="5">
+                                <Label Content="LMC C# 版本" Margin="0,5,0,0"/>
+                                <Label Content="{x:Static app:App.LauncherVersion}" Margin="0,5,0,0"/>
+                                <Label Content=" - " Margin="0,5,0,0"/>
+                                <Label Content="{x:Static app:App.LauncherVersionType}" Margin="0,5,0,0"/>
+                                <Label Content=" 构建号" Margin="0,5,0,0"/>
+                                <Label Content="{x:Static app:App.LauncherBuildVersion}" Margin="0,5,0,0"/>
+                                <ui:HyperlinkButton Content="检查更新" Click="Button_Click_2"/>
                             </ikw:SimpleStackPanel>
-                            <ikw:SimpleStackPanel HorizontalAlignment="Center" Spacing="7" Orientation="Horizontal" FlowDirection="LeftToRight">
-                                <ikw:SimpleStackPanel Spacing="3" Orientation="Vertical">
-                                    <Image Source="/hutao.jpg" Width="80"/>
-                                    <Label Content="皇鱼" HorizontalAlignment="Center"/>
-                                    <Label Content="@tmdakm，主开发者" HorizontalAlignment="Center"/>
-                                </ikw:SimpleStackPanel>
-                                <ikw:SimpleStackPanel Spacing="3" Orientation="Vertical">
-                                    <Image Source="/junse.jpg" Width="80"/>
-                                    <Label Content="Junse(影宝)" HorizontalAlignment="Center"/>
-                                    <TextBlock TextWrapping="Wrap" Text="@iLoveEi，帮忙写前面那个懒得写的东西" MaxWidth="200" HorizontalAlignment="Center"/>
-                                </ikw:SimpleStackPanel>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Header="打开GitHub" IsClickEnabled="True" Click="Button_Click_1">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Document}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                            <ui:SettingsCard.ActionIcon>
+                                <ui:FontIcon Glyph="&#xE8A7;"/>
+                            </ui:SettingsCard.ActionIcon>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Header="Line launCher C#" Description="Copyright © 2024-2025 LinearTeam All rights reserved.">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Document}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="5">
+                                <ui:HyperlinkButton Content="查看Apache 2.0" NavigateUri="https://www.apache.org/licenses/LICENSE-2.0"/>
+                                <ui:HyperlinkButton Content="查看引用库声明" NavigateUri="https://github.com/LinearTeam/LineLauncherCs?tab=readme-ov-file#%E5%BC%95%E7%94%A8%E5%BA%93%E7%9A%84%E7%89%88%E6%9D%83%E5%A3%B0%E6%98%8E"/>
                             </ikw:SimpleStackPanel>
-                        </ikw:SimpleStackPanel>
-                    </Expander>
-                </Border>
-                
+                        </ui:SettingsCard>
+                    </ui:SettingsExpander.Items>
+                </ui:SettingsExpander>
             </ikw:SimpleStackPanel>
         </ScrollViewer>
     </Grid>

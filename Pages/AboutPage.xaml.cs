@@ -24,53 +24,10 @@ namespace LMC.Pages
 
         public AboutPage()
         {
-            s_light = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
             InitializeComponent();
-            s_aboutExpander = AboutExpander;
-            s_border = BD;
-            ChangeTheme(s_light);
-            SizeChanged += AboutPage_SizeChanged;
-            double width = this.Width;
-            this.Width = 800;
-            AboutPage_SizeChanged(null, null);
-            Task.Run(async () => {
-                await Task.Delay(20);
-                this.Width = width;
-                AboutPage_SizeChanged(null, null);
-            });
         }
 
 
-        public static void ChangeTheme(bool light)
-        {
-            s_light = light;
-            s_border.Background = s_light ? new SolidColorBrush(Color.FromRgb(240, 243, 249)) : new SolidColorBrush(Color.FromRgb(29,32,39));
-            s_aboutExpander.Background = s_light ? new SolidColorBrush(Color.FromRgb(240, 243, 249)) : new SolidColorBrush(Color.FromRgb(29, 32, 39));
-        }
-
-        private void AboutPage_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            try
-            {
-                CD.Width = new GridLength(AboutExpander.ActualWidth - SSP.ActualWidth - 30);
-            }catch { }
-        
-        }
-
-        private void AboutExpander_Collapsed(object sender, RoutedEventArgs e)
-        {
-            AboutExpander.Margin = new Thickness(0,0,20,0);
-        }
-
-        private void AboutExpander_Expanded(object sender, RoutedEventArgs e)
-        {
-            AboutExpander.Margin = new Thickness(0, 0, 20, 20);
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            Process.Start("explorer", "\"https://www.apache.org/licenses/LICENSE-2.0\"");
-        }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
@@ -158,5 +115,6 @@ namespace LMC.Pages
                 };
             }
         }
+
     }
 }

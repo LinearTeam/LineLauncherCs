@@ -29,7 +29,7 @@
                         <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Game}"/>
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
-                <ui:NavigationViewItem Content="下载游戏" x:Name="DownloadNagVi">
+                <ui:NavigationViewItem Content="下载" x:Name="DownloadNagVi">
                     <ui:NavigationViewItem.Icon>
                         <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Download}"/>
                     </ui:NavigationViewItem.Icon>

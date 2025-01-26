@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Frame = iNKORE.UI.WPF.Modern.Controls.Frame;
 using LMC.Account;
 using iNKORE.UI.WPF.Modern;
 using LMC.Minecraft;
+using LMC.Utils;
 
 namespace LMC
 {
@@ -32,9 +34,9 @@ namespace LMC
         public static Pages.DownloadPage LaunchPage = new Pages.DownloadPage();
         public static Pages.AddAccountPage AddAccountPage = new Pages.AddAccountPage();
         
-        private static NavigationViewItem s_lastSelectedItem;
+        private static Stack<NavigationViewItem> s_lastSelectedItem = new Stack<NavigationViewItem>();
         
-        private static Page s_lastPage;
+        private static Stack<Page> s_accessPages = new Stack<Page>();
         
         public static Frame MainFrame;
         public static NavigationView MainNagView;
@@ -97,10 +99,10 @@ namespace LMC
         {
             if (e.Key == Key.Escape)
             {
-                if (s_lastPage != null)
+                if (s_accessPages.Count != 0)
                 {
-                    Navigate(s_lastPage);
-                    MainNagView.SelectedItem = s_lastSelectedItem;
+                    MainNagView.SelectedItem = s_lastSelectedItem.Pop();
+                    Navigate(s_accessPages.Pop(), false);
                 }
                 e.Handled = true;
             }
@@ -145,49 +147,73 @@ namespace LMC
                             Process.Start("explorer", "\"https://www.github.com/LinearTeam/LineLauncherCs/releases/latest\"");
                         }
                     }
-                    return;
-                }
-                if (!ver.SecurityOrEmergency)
-                {
-                    var res = await ShowDialog("取消", $"发现新的非紧急更新版！\n版本号：{ver.Version}\n类型：{ver.Type}\n构建号：{ver.Build}", "更新", ContentDialogButton.Primary, "更新");
-                    if (res == ContentDialogResult.Primary)
-                    {
-                        try
-                        {
-                            await Updater.Update(ver);
-                        }
-                        catch (Exception ex)
-                        {
-                            new Logger("MW-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
-                        }
-                    }
                 }
                 else
                 {
-                    ContentDialog dialog = new ContentDialog();
-                    dialog.Title = "更新";
-                    dialog.Content = $"发现新的紧急更新版！\n版本号：{ver.Version}\n类型：{ver.Type}\n构建号：{ver.Build}";
-                    dialog.PrimaryButtonText = "更新";
-                    dialog.DefaultButton = ContentDialogButton.Primary;
-                    dialog.PrimaryButtonClick += async (s, e) =>
+                    if (!ver.SecurityOrEmergency)
                     {
-                        try
+                        var res = await ShowDialog("取消", $"发现新的非紧急更新版！\n版本号：{ver.Version}\n类型：{ver.Type}\n构建号：{ver.Build}", "更新", ContentDialogButton.Primary, "更新");
+                        if (res == ContentDialogResult.Primary)
                         {
-                            await Updater.Update(ver);
+                            try
+                            {
+                                await Updater.Update(ver);
+                            }
+                            catch (Exception ex)
+                            {
+                                new Logger("MW-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
+                            }
                         }
-                        catch (Exception ex)
+                    }
+                    else
+                    {
+                        ContentDialog dialog = new ContentDialog();
+                        dialog.Title = "更新";
+                        dialog.Content = $"发现新的紧急更新版！\n版本号：{ver.Version}\n类型：{ver.Type}\n构建号：{ver.Build}";
+                        dialog.PrimaryButtonText = "更新";
+                        dialog.DefaultButton = ContentDialogButton.Primary;
+                        dialog.PrimaryButtonClick += async (s, e) =>
                         {
-                            new Logger("AP-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
-                        }
-                    };
-                    dialog.ShowAsync();
+                            try
+                            {
+                                await Updater.Update(ver);
+                            }
+                            catch (Exception ex)
+                            {
+                                new Logger("AP-UPD").Error($"更新失败：{ex.Message}\n{ex.StackTrace}");
+                            }
+                        };
+                        await dialog.ShowAsync();
 
+                    }
                 }
             }
             catch (Exception ex)
             {
                 s_logger.Error("更新检查失败：" + ex.Message + "\n" + ex.StackTrace);
-                ShowDialog("确认", $"更新检查失败：{ex.Message}\n{ex.StackTrace}", "错误");
+                await ShowDialog("确认", $"更新检查失败：{ex.Message}\n{ex.StackTrace}", "错误");
+            }
+
+            try
+            {
+                s_logger.Info("正在检查公告");
+                var noticeFile = await HttpUtils.GetString("https://huangyu.win/LMC/notice.line");
+                s_logger.Info("获取到的公告文件: \n" + noticeFile);
+                File.WriteAllText("./LMC/temp/notice.line", noticeFile);
+                var lfp = new LineFileParser();
+                var id = lfp.Read("./LMC/temp/notice.line", "noticeId", "notice");
+                if (Config.ReadGlobal("notice", "id") != id)
+                {
+                    s_logger.Info("公告未被查看，V: " + Config.ReadGlobal("notice", "id") + "/" + id);
+                    Config.WriteGlobal("notice", "id", id);
+                    var content = lfp.Read("./LMC/temp/notice.line", "noticeContent", "notice");
+                    await ShowDialog("确认", content, "公告", ContentDialogButton.Close);
+                }
+            }
+            catch (Exception ex)
+            {
+                s_logger.Error("检查公告失败：" + ex.Message + "\n" + ex.StackTrace);
+                await ShowDialog("确认", "检查公告失败：" + ex.Message + "\n" + ex.StackTrace, "错误");
             }
         }
     
@@ -223,12 +249,15 @@ namespace LMC
             return res;
         }
 
-        public static void Navigate(Page page)
+        public static void Navigate(Page page, bool push = true)
         {
             if (MainFrame.Content != null && MainFrame.Content is Page)
             {
-                s_lastPage = MainFrame.Content as Page;
-                s_lastSelectedItem = MainNagView.SelectedItem as NavigationViewItem;
+                if (push)
+                {
+                    s_accessPages.Push(MainFrame.Content as Page);
+                    s_lastSelectedItem.Push(MainNagView.SelectedItem as NavigationViewItem);
+                }
             }
             MainNagView.Header = page.Title;
             MainFrame.Navigate(page);

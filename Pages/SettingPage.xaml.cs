@@ -54,7 +54,6 @@ namespace LMC.Pages
             {
                 AccountPage.ChangeTheme(Theme.IsOn);
                 AddAccountPage.ChangeTheme(Theme.IsOn);
-                AboutPage.ChangeTheme(Theme.IsOn);
             }
             catch { }
         }
