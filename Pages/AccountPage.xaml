@@ -71,9 +71,9 @@
                 </Style.Triggers>
             </Style>
         </Grid.Resources>
-        <ScrollViewer HorizontalScrollBarVisibility="Visible">
+        <ui:ScrollViewerEx HorizontalScrollBarVisibility="Visible">
             <WrapPanel Margin="70,10,30,0" Orientation="Horizontal" x:Name="ssp">
             </WrapPanel>
-        </ScrollViewer>
+        </ui:ScrollViewerEx>
     </Grid>
 </ui:Page>

@@ -4,12 +4,64 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+      xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:local="clr-namespace:LMC.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="任务">
 
     <Grid>
-        
+        <ui:ScrollViewerEx Margin="60, 30">
+            <ikw:SimpleStackPanel Orientation="Vertical" Spacing="5">
+                <ui:SettingsExpander Header="安装 Minecraft 1.21"
+                                     Description="版本号 1.21 附加 Forge OptiFine">
+                    <ui:SettingsExpander.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.MultiSelect}"/>
+                    </ui:SettingsExpander.HeaderIcon>
+                    <ui:SettingsExpander.Items>
+                        <ui:SettingsCard Description="已完成" Header="下载版本索引文件">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Completed}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Description="已完成" Header="获取 Forge 信息">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Completed}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Description="已完成" Header="下载 Forge 依赖库">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Completed}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Description="进行中" Header="安装 OptiFine">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:ProgressRing IsIndeterminate="True"/>
+                            </ui:SettingsCard.HeaderIcon>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Description="进行中" Header="下载版本资源文件">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:ProgressRing IsIndeterminate="True"/>
+                            </ui:SettingsCard.HeaderIcon>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Description="等待中" Header="下载依赖库">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:ProgressRing IsIndeterminate="False"/>
+                            </ui:SettingsCard.HeaderIcon>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Description="等待中" Header="安装游戏">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:ProgressRing IsIndeterminate="False"/>
+                            </ui:SettingsCard.HeaderIcon>
+                        </ui:SettingsCard>
+                        <ui:SettingsCard Header="取消任务" IsClickEnabled="True">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Delete}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                        </ui:SettingsCard>
+                    </ui:SettingsExpander.Items>
+                </ui:SettingsExpander>
+            </ikw:SimpleStackPanel>
+        </ui:ScrollViewerEx>
     </Grid>
 </ui:Page>

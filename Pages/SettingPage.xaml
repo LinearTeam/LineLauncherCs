@@ -11,7 +11,7 @@
       Title="设置">
 
     <Grid>
-        <ScrollViewer>
+        <ui:ScrollViewerEx Margin="60,30">
             <ikw:SimpleStackPanel Orientation="Vertical">
                 <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="20" Content="外观设置" FontSize="20"/>
                 <WrapPanel x:Name="w1" Orientation="Horizontal">
@@ -23,6 +23,6 @@
                     <Button Content="导入隐私文件" VerticalAlignment="Top" Click="Button_Click" Margin="10,0,0,0"/>
                 </WrapPanel>
             </ikw:SimpleStackPanel>
-        </ScrollViewer>
+        </ui:ScrollViewerEx>
     </Grid>
 </ui:Page>

@@ -12,7 +12,7 @@
       Title="关于">
 
     <Grid Margin="40,20,20,20">
-        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+        <ui:ScrollViewerEx HorizontalScrollBarVisibility="Auto">
             <ikw:SimpleStackPanel Orientation="Vertical" Spacing="30">
                 <ui:SettingsExpander Header="Line Launcher (C#, 或 Line (Minecraft) launCher C#)" IsExpanded="True">
                     <ui:SettingsExpander.HeaderIcon>
@@ -59,7 +59,7 @@
                         </ui:SettingsCard>
                         <ui:SettingsCard Header="打开GitHub" IsClickEnabled="True" Click="Button_Click_1">
                             <ui:SettingsCard.HeaderIcon>
-                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Document}"/>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Link}"/>
                             </ui:SettingsCard.HeaderIcon>
                             <ui:SettingsCard.ActionIcon>
                                 <ui:FontIcon Glyph="&#xE8A7;"/>
@@ -67,7 +67,7 @@
                         </ui:SettingsCard>
                         <ui:SettingsCard Header="Line launCher C#" Description="Copyright © 2024-2025 LinearTeam All rights reserved.">
                             <ui:SettingsCard.HeaderIcon>
-                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Document}"/>
+                                <ui:ImageIcon Source="/ico.ico"/>
                             </ui:SettingsCard.HeaderIcon>
                             <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="5">
                                 <ui:HyperlinkButton Content="查看Apache 2.0" NavigateUri="https://www.apache.org/licenses/LICENSE-2.0"/>
@@ -77,6 +77,6 @@
                     </ui:SettingsExpander.Items>
                 </ui:SettingsExpander>
             </ikw:SimpleStackPanel>
-        </ScrollViewer>
+        </ui:ScrollViewerEx>
     </Grid>
 </ui:Page>

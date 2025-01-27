@@ -223,7 +223,7 @@ namespace LMC
             Navigate(AddAccountPage);
         }
 
-        public async static Task<ContentDialogResult> ShowDialog(string closeButtonText, string content, string title, ContentDialogButton defaultButton = ContentDialogButton.None, string primaryButtonText = null, string secondaryButtonText = null)
+        public static async Task<ContentDialogResult> ShowDialog(string closeButtonText, string content, string title, ContentDialogButton defaultButton = ContentDialogButton.None, string primaryButtonText = null, string secondaryButtonText = null)
         {
             short temp = (short) new Random().Next(1000, 9999);
             s_logger.Info($"正在显示Dialog{temp}：\nContent: {content}\nTitle: {title}\nSecButton: {secondaryButtonText}\nPrimButton: {primaryButtonText}\nDef: {defaultButton}\nClose: {closeButtonText}");
@@ -240,6 +240,7 @@ namespace LMC
             }
             else
             {
+				dialog.SecondaryButtonText = secondaryButtonText;
                 dialog.CloseButtonText = closeButtonText;
             }
             dialog.DefaultButton = defaultButton == ContentDialogButton.Close && secondaryButtonText == null ? ContentDialogButton.Secondary : defaultButton;

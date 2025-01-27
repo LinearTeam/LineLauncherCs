@@ -54,6 +54,7 @@ namespace LMC.Basic
             }
             catch(Exception ex)
             {
+                MainWindow.ShowMsgBox("？？？", "日志记录器产生了错误，如下为错误信息，将尝试重新抛出错误\n" + ex.Message + "\n" + ex.StackTrace + "\n" + ex.Source + "\n" + LogNum + "\n" + LoggerVersion);
             }
         }
 
