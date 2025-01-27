@@ -210,7 +210,7 @@ namespace LMC.Pages.AccountTypes
                     text.Text = "已获取令牌，正在登录...";
                     content.Children.Remove(stackpanel);
                     var r = await oa.StartOA(atoken);
-                    if (r.done == 0)
+                    if (r.done == 0 && !string.IsNullOrEmpty(r.account.Uuid))
                     {
                         AccountManager.AddAccount(r.account, rtoken);
                         text.Text = "登录成功！";

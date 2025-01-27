@@ -20,7 +20,6 @@ namespace LMC.Pages
         {
             InitializeComponent();
             s_theme = Theme;
-            this.SizeChanged += Page_SizeChange;
             LoadSettings();
         }
 
@@ -37,14 +36,6 @@ namespace LMC.Pages
             }
         }
 
-        private void Page_SizeChange(object s, RoutedEventArgs e)
-        {
-            
-            w1.MaxWidth = this.ActualWidth - 50;
-            w2.MaxWidth = this.ActualWidth - 50;
-            w1.MaxHeight = this.ActualHeight - 30;
-            w2.MaxHeight = this.ActualHeight - 30;
-        }
 
         private void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
         {

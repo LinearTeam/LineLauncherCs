@@ -13,15 +13,35 @@
     <Grid>
         <ui:ScrollViewerEx Margin="60,30">
             <ikw:SimpleStackPanel Orientation="Vertical">
-                <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="20" Content="外观设置" FontSize="20"/>
-                <WrapPanel x:Name="w1" Orientation="Horizontal">
-                    <ui:ToggleSwitch x:Name="Theme" VerticalAlignment="Top" Margin="30,0,0,0" FontSize="15" OnContent="亮色主题" OffContent="深色主题" Toggled="ToggleSwitch_Toggled"/>
-                </WrapPanel>
-                <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="20"  Content="安全设置" FontSize="20"/>
-                <WrapPanel x:Name="w2" Orientation="Horizontal" >
-                    <Button Content="导出隐私文件" VerticalAlignment="Top" Click="Button_Click_1" Margin="30,0,0,0"/>
-                    <Button Content="导入隐私文件" VerticalAlignment="Top" Click="Button_Click" Margin="10,0,0,0"/>
-                </WrapPanel>
+                <ui:SettingsExpander Header="外观设置" Description="调整主题等内容">
+                    <ui:SettingsExpander.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.RedEye}"/>
+                    </ui:SettingsExpander.HeaderIcon>
+                    <ui:SettingsExpander.Items>
+                        <ui:SettingsCard Header="主题" Description="深色或浅色">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Light}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                            <ui:ToggleSwitch x:Name="Theme" VerticalAlignment="Top" Margin="30,0,0,0" FontSize="15" OnContent="亮色主题" OffContent="深色主题" Toggled="ToggleSwitch_Toggled"/>
+                        </ui:SettingsCard>
+                    </ui:SettingsExpander.Items>
+                </ui:SettingsExpander>
+                <ui:SettingsExpander Header="安全设置" Description="隐私相关">
+                    <ui:SettingsExpander.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.LaptopSecure}"/>
+                    </ui:SettingsExpander.HeaderIcon>
+                    <ui:SettingsExpander.Items>
+                        <ui:SettingsCard Header="隐私文件" Description="存储账号等信息">
+                            <ui:SettingsCard.HeaderIcon>
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.OpenFile}"/>
+                            </ui:SettingsCard.HeaderIcon>
+                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Content="导出隐私文件" VerticalAlignment="Top" Click="Button_Click_1" Margin="30,0,0,0"/>
+                                <Button Content="导入隐私文件" VerticalAlignment="Top" Click="Button_Click" Margin="10,0,0,0"/>
+                            </ikw:SimpleStackPanel>
+                        </ui:SettingsCard>
+                    </ui:SettingsExpander.Items>
+                </ui:SettingsExpander>
             </ikw:SimpleStackPanel>
         </ui:ScrollViewerEx>
     </Grid>

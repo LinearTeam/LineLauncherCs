@@ -16,7 +16,7 @@
                 <ui:SettingsExpander Header="安装 Minecraft 1.21"
                                      Description="版本号 1.21 附加 Forge OptiFine">
                     <ui:SettingsExpander.HeaderIcon>
-                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.MultiSelect}"/>
+                        <ui:ProgressRing IsIndeterminate="True"/>
                     </ui:SettingsExpander.HeaderIcon>
                     <ui:SettingsExpander.Items>
                         <ui:SettingsCard Description="已完成" Header="下载版本索引文件">
