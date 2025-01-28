@@ -284,7 +284,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Basic\Config.cs" />
-    <Compile Include="Basic\TaskManager.cs" />
     <Compile Include="Basic\Updater.cs" />
     <Compile Include="Minecraft\GameLauncher.cs" />
     <Compile Include="Minecraft\GamePath.cs" />
@@ -323,6 +322,7 @@
     <Compile Include="Pages\HomePage.xaml.cs">
       <DependentUpon>HomePage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tasks\TaskManager.cs" />
     <Compile Include="Utils\HttpUtils.cs" />
     <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="Utils\Downloader.cs">

@@ -9,7 +9,7 @@ namespace LMC.Basic
     public class Logger
     {
         public static string LogNum = "1";
-        public static string LoggerVersion = "L2A4";
+        public static string LoggerVersion = "L2A6";
         private string _module;
         private string _logFile;
         private BlockingCollection<string> _logQueue;
@@ -52,10 +52,7 @@ namespace LMC.Basic
             {
                 FlushRemainingLogs();
             }
-            catch(Exception ex)
-            {
-                MainWindow.ShowMsgBox("？？？", "日志记录器产生了错误，如下为错误信息，将尝试重新抛出错误\n" + ex.Message + "\n" + ex.StackTrace + "\n" + ex.Source + "\n" + LogNum + "\n" + LoggerVersion);
-            }
+            catch { }
         }
 
         private void FlushRemainingLogs()

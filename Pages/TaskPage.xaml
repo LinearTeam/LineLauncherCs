@@ -12,7 +12,8 @@
 
     <Grid>
         <ui:ScrollViewerEx Margin="60, 30">
-            <ikw:SimpleStackPanel Orientation="Vertical" Spacing="5">
+            <ikw:SimpleStackPanel x:Name="ssp">
+                <!--
                 <ui:SettingsExpander Header="安装 Minecraft 1.21"
                                      Description="版本号 1.21 附加 Forge OptiFine">
                     <ui:SettingsExpander.HeaderIcon>
@@ -61,6 +62,7 @@
                         </ui:SettingsCard>
                     </ui:SettingsExpander.Items>
                 </ui:SettingsExpander>
+                -->
             </ikw:SimpleStackPanel>
         </ui:ScrollViewerEx>
     </Grid>
