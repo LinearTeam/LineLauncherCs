@@ -4,12 +4,13 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+      xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:local="clr-namespace:LMC.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="下载">
 
     <Grid>
-        
+        <ui:ListView IsMultiSelectCheckBoxEnabled="False" SelectionMode="Single" SelectionChanged="Ls_OnSelected" x:Name="ls" IsEnabled="True" Margin="60,30"/>
     </Grid>
 </ui:Page>

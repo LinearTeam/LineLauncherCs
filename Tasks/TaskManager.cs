@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -142,6 +143,8 @@ namespace LMC.Tasks
 
     public class TaskManager : INotifyPropertyChanged
     {
+        public static readonly TaskManager Instance = new TaskManager();
+        public static readonly Dictionary<int, Dictionary<string, object>> Values = new Dictionary<int, Dictionary<string, object>>();
         private readonly Logger _logger = new Logger("TMG");
         private int _taskIdCounter = 1;
         private int _subTaskIdCounter = 1;

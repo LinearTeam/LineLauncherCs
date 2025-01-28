@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using iNKORE.UI.WPF.Modern.Common.IconKeys;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Tasks;
@@ -17,12 +18,10 @@ namespace LMC.Pages
     /// </summary>
     public partial class TaskPage : Page
     {
-        public TaskManager TaskManager { get; set; }
 
         public TaskPage()
         {
-            TaskManager = new TaskManager();
-            TaskManager.PropertyChanged += (sender, args) => { RefreshTasks(); };
+            TaskManager.Instance.PropertyChanged += (sender, args) => { RefreshTasks(); };
             this.Loaded += OnLoaded;
             InitializeComponent();
         }
@@ -36,7 +35,7 @@ namespace LMC.Pages
 
         public void RefreshTasks()
         {
-            foreach (var task in TaskManager.Tasks)
+            foreach (var task in TaskManager.Instance.Tasks)
             {
                 if (s_handledTasks.Contains(task.Id)) continue;
                 s_handledTasks.Add(task.Id);
@@ -54,6 +53,7 @@ namespace LMC.Pages
                     se.IsExpanded = true;
                     FontIcon fontIcon = new FontIcon();
                     fontIcon.Icon = SegoeFluentIcons.Error;
+                    fontIcon.Foreground = Brushes.Red;
                     se.HeaderIcon = fontIcon;
                 }
                 else if (task.Status == ExecutionStatus.Canceled) continue;
@@ -74,6 +74,7 @@ namespace LMC.Pages
                     {
                         FontIcon fontIcon = new FontIcon();
                         fontIcon.Icon = SegoeFluentIcons.Error;
+                        fontIcon.Foreground = Brushes.Red;
                         sc.HeaderIcon = fontIcon;
                     }
                     else if (sb.Status == ExecutionStatus.Canceled) continue;
@@ -97,6 +98,7 @@ namespace LMC.Pages
                         {
                             FontIcon fontIcon = new FontIcon();
                             fontIcon.Icon = SegoeFluentIcons.Error;
+                            fontIcon.Foreground = Brushes.Red;
                             sc.HeaderIcon = fontIcon;
                             sc.Description = "执行失败：" + sb.ErrorMessage;
                         }
@@ -104,6 +106,7 @@ namespace LMC.Pages
                         {
                             FontIcon fontIcon = new FontIcon();
                             fontIcon.Icon = SegoeFluentIcons.Completed;
+                            fontIcon.Foreground = Brushes.LawnGreen;
                             sc.HeaderIcon = fontIcon;
                         }
                     };
@@ -122,9 +125,18 @@ namespace LMC.Pages
                     {
                         FontIcon fontIcon = new FontIcon();
                         fontIcon.Icon = SegoeFluentIcons.Error;
+                        fontIcon.Foreground = Brushes.Red;
                         se.HeaderIcon = fontIcon;
+                        se.Description = "失败";
                     }
-                    else if (task.Status == ExecutionStatus.Completed) ssp.Children.Remove(se);
+                    else if (task.Status == ExecutionStatus.Completed)
+                    {
+                        FontIcon fontIcon = new FontIcon();
+                        fontIcon.Icon = SegoeFluentIcons.Completed;
+                        fontIcon.Foreground = Brushes.LawnGreen;
+                        se.HeaderIcon = fontIcon;
+                        se.Description = "已完成";
+                    }
                 };
                 Button cancel = new Button();
                 cancel.Content = "取消";

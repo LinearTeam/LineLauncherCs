@@ -37,12 +37,15 @@ namespace LMC.Utils
         {
             try
             {
-                byte[] buffer = await DownloadDataTaskAsync(this._url);
-                File.WriteAllBytes(this._path, buffer);
+                using (var response = await OpenReadTaskAsync(this._url))
+                using (var fileStream = File.Create(this._path))
+                {
+                    await response.CopyToAsync(fileStream); // 流式写入，避免将整个文件加载到内存
+                }
                 _done = true;
-                buffer = null;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _exception = true;
                 _ex = ex;
             }
