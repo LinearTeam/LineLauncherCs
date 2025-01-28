@@ -410,7 +410,8 @@ namespace LMC.Minecraft
                 await Task.WhenAll(tasks);
                 _logger.Info($"{pid}下载任务进度 {doneCount}/{urlPathDictionary.Count}");
                 GC.Collect();
-                GC.WaitForPendingFinalizers();            }
+                GC.WaitForPendingFinalizers();
+            }
         }
 
         public DVersion ParseManifest(string versionId, string manifest)
