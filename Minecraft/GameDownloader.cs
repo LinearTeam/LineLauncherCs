@@ -526,10 +526,6 @@ namespace LMC.Minecraft
                 foreach (var forgeVer in document.RootElement.EnumerateArray()) forges.Add(forgeVer.GetProperty("version").GetString());
                 forges.Sort((v1, v2) => CompareVersions(v2, v1));
             }
-            else
-            {
-                forges.Add("N");
-            }
 
             //optifine
             json = await HttpUtils.GetString(_downloadSource.OptifineListViaMcVer.Replace("{mcversion}", mcVersion));
@@ -537,7 +533,7 @@ namespace LMC.Minecraft
             if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(json.Trim()) || string.IsNullOrEmpty(json.Trim('[', ']', '{', '}', ' ')) ||
                 string.IsNullOrEmpty(json.Trim('[', ']', '{', '}', ' ')))
             {
-                opts.Add("N");
+//                opts.Add("N");
             }
             else
             {
@@ -572,11 +568,7 @@ namespace LMC.Minecraft
                     fabs.Add(version);
                 }
             }
-            else
-            {
-                fabs.Add("N");
-            }
-
+  
             return (forges, fabs, opts);
         }
 

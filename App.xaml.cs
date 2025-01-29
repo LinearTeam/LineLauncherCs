@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Windows;
+using LMC.Account;
 using Newtonsoft.Json;
 
 
@@ -46,6 +48,7 @@ namespace LMC
             Directory.CreateDirectory("./LMC/");
             Directory.CreateDirectory("./LMC/logs");
             File.Create("./LMC/logs/latest.log").Close();
+
             if (string.IsNullOrEmpty(_lineFileParser.Read("./LMC/main.line", "logN", "main")))
             {
                 Logger.LogNum = "1";
@@ -67,9 +70,45 @@ namespace LMC
             }
 
 
-
             Logger logger = new Logger("A");
             logger.Info($"日志记录开始 程序版本: {LauncherVersion} 构建号: {LauncherBuildVersion} 版本类型: {LauncherVersionType} 记录器版本: {Logger.LoggerVersion} 日志编号: {Logger.LogNum} ，正在初始化程序");
+
+            
+            foreach (var str in e.Args)
+            {
+                logger.Info("发现新的启动参数：" + str);
+                if (str.Equals("-debug"))
+                {
+                    Logger.DebugMode = true;
+                    logger.Debug("调试模式已启用");
+                }
+
+                if (str.Equals("-reset"))
+                {
+                    try
+                    {
+                        File.Delete(Config.GlobalPath);
+                        File.Delete(Config.LocalPath);
+                    }
+                    catch(Exception ex)
+                    {
+                        logger.Debug("-reset Error :" + ex.Message);
+                    }
+                }
+
+                if (str.Equals("-reacc"))
+                {
+                    Secrets.Backup("-REACC").Wait();
+                    try
+                    {
+                        File.Delete(Secrets.Path);
+                    }
+                    catch(Exception ex)
+                    {
+                        logger.Debug("-reacc Error :" + ex.Message);
+                    }                }
+            }
+
             
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;

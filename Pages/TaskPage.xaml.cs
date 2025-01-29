@@ -38,8 +38,17 @@ namespace LMC.Pages
             foreach (var task in TaskManager.Instance.Tasks)
             {
                 if (s_handledTasks.Contains(task.Id)) continue;
+                
                 s_handledTasks.Add(task.Id);
                 SettingsExpander se = new SettingsExpander();
+                Button cancel = new Button();
+                cancel.Content = "取消";
+                se.Content = cancel;
+                cancel.Click += (o, args) =>
+                {
+                    if (task.Status != ExecutionStatus.Canceled) task.Cancel();
+                    ssp.Children.Remove(se);
+                };
                 se.Header = task.TaskName;
                 if (task.Status == ExecutionStatus.Running)
                 {
@@ -55,6 +64,7 @@ namespace LMC.Pages
                     fontIcon.Icon = SegoeFluentIcons.Error;
                     fontIcon.Foreground = Brushes.Red;
                     se.HeaderIcon = fontIcon;
+                    cancel.Content = "确定";
                 }
                 else if (task.Status == ExecutionStatus.Canceled) continue;
                 else if (task.Status == ExecutionStatus.Completed) continue;
@@ -128,6 +138,7 @@ namespace LMC.Pages
                         fontIcon.Foreground = Brushes.Red;
                         se.HeaderIcon = fontIcon;
                         se.Description = "失败";
+                        cancel.Content = "确定";
                     }
                     else if (task.Status == ExecutionStatus.Completed)
                     {
@@ -136,15 +147,8 @@ namespace LMC.Pages
                         fontIcon.Foreground = Brushes.LawnGreen;
                         se.HeaderIcon = fontIcon;
                         se.Description = "已完成";
+                        cancel.Content = "确定";
                     }
-                };
-                Button cancel = new Button();
-                cancel.Content = "取消";
-                se.Content = cancel;
-                cancel.Click += (o, args) =>
-                {
-                    if (task.Status != ExecutionStatus.Canceled) task.Cancel();
-                    ssp.Children.Remove(se);
                 };
                 ssp.Children.Add(se);
             }

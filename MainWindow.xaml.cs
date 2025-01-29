@@ -215,6 +215,8 @@ namespace LMC
                 s_logger.Error("检查公告失败：" + ex.Message + "\n" + ex.StackTrace);
                 await ShowDialog("确认", "检查公告失败：" + ex.Message + "\n" + ex.StackTrace, "错误");
             }
+
+            
         }
     
 

@@ -304,6 +304,9 @@
     <Compile Include="Pages\DownloadPage.xaml.cs">
       <DependentUpon>DownloadPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\DownloadTypes\DownloadMinecraftPage.xaml.cs">
+      <DependentUpon>DownloadMinecraftPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\TaskPage.xaml.cs">
       <DependentUpon>TaskPage.xaml</DependentUpon>
     </Compile>
@@ -359,6 +362,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\DownloadPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\DownloadTypes\DownloadMinecraftPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -452,6 +459,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="junse.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="grassblock.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\Fody.6.8.2\build\Fody.targets" Condition="Exists('packages\Fody.6.8.2\build\Fody.targets')" />

@@ -34,7 +34,6 @@ Please comply with the content of the LICENSE and put this repository's link if 
 | Console arguments         | Description |
 | ------------------ | ----------- |
 | -debug               | Enable debug mode. It will log more logs.                                 |
-| -logF <Path>       | Set log file.                                                                                |
 | -start <version>   | Start version when start launcher. If version does not exist, programm will exit as code 2.  |
 | -reset             | Reset all configuration of LMC, but device-code will not be change.                          |
 | -reacc             | Delete all saved Microsoft/Another/Offline accounts.                                         |

@@ -10,11 +10,13 @@ namespace LMC.Basic
     {
         public static string LogNum = "1";
         public static string LoggerVersion = "L2A6";
+        public static bool DebugMode = false;
         private string _module;
         private string _logFile;
         private BlockingCollection<string> _logQueue;
         private Task _logTask;
         private CancellationTokenSource _cancellationTokenSource;
+        
 
         public Logger(string module, string filePath = "not")
         {
@@ -72,6 +74,7 @@ namespace LMC.Basic
         {
             string time = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss.fff");
             string logEntry = $"[{time}/{level}][{_module}]{msg}";
+            Console.WriteLine(logEntry);
             _logQueue.Add(logEntry);
         }
 
@@ -79,6 +82,13 @@ namespace LMC.Basic
         public void Error(string msg) => Log("ERROR", msg);
         public void Warn(string msg) => Log("WARN", msg);
 
+        public void Debug(string msg)
+        {
+            if (DebugMode)
+            {
+                Log("DEBUG", msg);
+            }
+        } 
         public void Close()
         {
             _cancellationTokenSource.Cancel();

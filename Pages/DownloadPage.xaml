@@ -9,8 +9,98 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="下载">
+    <ui:ScrollViewerEx>
+        <Grid>
+            <Grid.Resources>
+                <Style x:Key="TriggerStyle" TargetType="FrameworkElement">
+                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5">
+                    </Setter>
+                    <Setter Property="Cursor" Value="Hand">
 
-    <Grid>
-        <ui:ListView IsMultiSelectCheckBoxEnabled="False" SelectionMode="Single" SelectionChanged="Ls_OnSelected" x:Name="ls" IsEnabled="True" Margin="60,30"/>
-    </Grid>
+                    </Setter>
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <ScaleTransform   CenterX="0.5" CenterY="0.5" ScaleX="1" ScaleY="1"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" 
+                                 BeginTime="00:00:00" Duration="00:00:0.2"
+                                  To="1.05" 
+                                >
+                                            <DoubleAnimation.EasingFunction>
+                                                <PowerEase Power="1" EasingMode='EaseIn'></PowerEase>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" 
+                                 BeginTime="00:00:00" Duration="00:00:0.2"
+                                To="1.05" >
+                                            <DoubleAnimation.EasingFunction>
+                                                <PowerEase Power="1" EasingMode='EaseIn'></PowerEase>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" 
+                                 BeginTime="00:00:00" Duration="00:00:0.2"
+                                >
+                                            <DoubleAnimation.EasingFunction>
+                                                <PowerEase Power="1" EasingMode='EaseOut'></PowerEase>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" 
+                                 BeginTime="00:00:00" Duration="00:00:0.2"
+                                >
+                                            <DoubleAnimation.EasingFunction>
+                                                <PowerEase Power="1" EasingMode='EaseInOut'></PowerEase>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Resources>
+            <ikw:SimpleStackPanel Orientation="Vertical" Spacing="50" VerticalAlignment="Center">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="350" MinHeight="100" Background="White" Style="{StaticResource TriggerStyle}" x:Name="minecraft" MouseLeftButtonDown="Minecraft_OnMouseLeftButtonDown">
+                    <Grid.Effect>
+                        <DropShadowEffect Opacity="0.5" Direction="0" Color="Gray">
+                            <DropShadowEffect.BlurRadius>7</DropShadowEffect.BlurRadius>
+                            <DropShadowEffect.ShadowDepth>0</DropShadowEffect.ShadowDepth>
+                        </DropShadowEffect>
+                    </Grid.Effect>
+                    <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.OEM}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="30" FontSize="40"/>
+                    <ikw:SimpleStackPanel Orientation="Vertical" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Label Content="下载游戏" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="23"/>
+                        <Label Content="安装一个新的游戏版本" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"/>
+                    </ikw:SimpleStackPanel>
+                </Grid>
+                <!--
+                <Grid MinWidth="350" MinHeight="100" HorizontalAlignment="Center" VerticalAlignment="Center" Background="White" Style="{StaticResource TriggerStyle}" x:Name="offline" MouseLeftButtonDown="offline_MouseLeftButtonDown">
+                    <Grid.Effect>
+                        <DropShadowEffect Opacity="0.5" Direction="0" Color="Gray">
+                            <DropShadowEffect.BlurRadius>7</DropShadowEffect.BlurRadius>
+                            <DropShadowEffect.ShadowDepth>0</DropShadowEffect.ShadowDepth>
+                        </DropShadowEffect>
+                    </Grid.Effect>
+                    <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.NetworkOffline}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="30" FontSize="40"/>
+                    <ikw:SimpleStackPanel Orientation="Vertical" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Label Content="添加离线账号" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="23"/>
+                        <Label Content="无法游玩在线服务器，无需购买。" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"/>
+                    </ikw:SimpleStackPanel>
+                </Grid>
+                -->
+            </ikw:SimpleStackPanel>
+        </Grid>
+    </ui:ScrollViewerEx>
+
 </ui:Page>

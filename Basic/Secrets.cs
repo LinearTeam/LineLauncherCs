@@ -16,7 +16,7 @@ namespace LMC.Basic
 {
     public class Secrets
     {
-        private static string s_path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/DoNotSendThisToAnyone/请勿将此发送给他人/secrets.line";
+        public static readonly string Path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/DoNotSendThisToAnyone/请勿将此发送给他人/secrets.line";
         private static LineFileParser s_lineFileParser = new LineFileParser();
         private static Logger s_logger = new Logger("SEC");
         private static string s_cachedCpuId = null;
@@ -50,10 +50,10 @@ namespace LMC.Basic
 
         public static string GetDeviceCode()
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(s_path));
-            if (!File.Exists(s_path))
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
+            if (!File.Exists(Path))
             {
-                File.Create(s_path).Close();
+                File.Create(Path).Close();
             }
             s_logger.Info("正在获取设备标识符");
             string cpuId = string.IsNullOrEmpty(s_cachedCpuId) ? GetWmiInfo("Win32_Processor","ProcessorId") : s_cachedCpuId;
@@ -137,7 +137,7 @@ namespace LMC.Basic
                     enKey = sb.ToString().Substring(0, 16);
                 }
                 var sections = ReadSections();
-                string path = Directory.GetParent(s_path).FullName + $"/decrypted_secret.line";
+                string path = Directory.GetParent(Path).FullName + $"/decrypted_secret.line";
                 File.Create(path).Close();
                 foreach (var section in sections)
                 {
@@ -171,23 +171,23 @@ namespace LMC.Basic
 
         public static List<string> ReadKeySet(string section)
         {
-            return s_lineFileParser.GetKeySet(s_path, section);
+            return s_lineFileParser.GetKeySet(Path, section);
         }
 
         public static List<string> ReadSections()
         {
-            return s_lineFileParser.GetSections(s_path);
+            return s_lineFileParser.GetSections(Path);
         }
         public static void DeleteSection(string section)
         {
-            s_lineFileParser.DeleteSection(s_path,section);
+            s_lineFileParser.DeleteSection(Path,section);
         }
         public static async Task Backup(string cause)
         {
             s_logger.Info("正在备份隐私文件，原因:" + cause);
 
-            await Task.Run(() => {File.Delete(Directory.GetParent(s_path).FullName + "/secret_backup.line"); File.Copy(s_path, Directory.GetParent(s_path).FullName + "/secret_backup.line"); });
-            s_lineFileParser.Write(Directory.GetParent(s_path).FullName + "/secret_backup.line", "fromVersion", App.LauncherVersion, "backup");
+            await Task.Run(() => {File.Delete(Directory.GetParent(Path).FullName + "/secret_backup.line"); File.Copy(Path, Directory.GetParent(Path).FullName + "/secret_backup.line"); });
+            s_lineFileParser.Write(Directory.GetParent(Path).FullName + "/secret_backup.line", "fromVersion", App.LauncherVersion, "backup");
         }
 
         public static void Write(string section, string key, string value)
@@ -197,7 +197,7 @@ namespace LMC.Basic
             if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
             string totalStr = EncryptAes(value, strCpuID);
             s_logger.Info(i++.ToString());
-            s_lineFileParser.Write(s_path, key, totalStr, section);
+            s_lineFileParser.Write(Path, key, totalStr, section);
             s_logger.Info(i++.ToString());
         }
         public async static Task<string> Read(string section, string key)
@@ -205,7 +205,7 @@ namespace LMC.Basic
             string strCpuID = GetDeviceCode();
             if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
             //            strCpuID = strCpuID.ToCharArray()[2].ToString() + strCpuID.ToCharArray()[4].ToString() + strCpuID.ToCharArray()[1].ToString() + strCpuID;
-            string enStr = s_lineFileParser.Read(s_path, key, section);
+            string enStr = s_lineFileParser.Read(Path, key, section);
             if (!string.IsNullOrEmpty(enStr))
             {
                 try
@@ -224,7 +224,7 @@ namespace LMC.Basic
                     if (res == ContentDialogResult.Primary)
                     {
                         await Backup("无法解密");
-                        System.Diagnostics.Process.Start("explorer", "/select," + Directory.GetParent(s_path).FullName + "\\secret_backup.line");
+                        System.Diagnostics.Process.Start("explorer", "/select," + Directory.GetParent(Path).FullName + "\\secret_backup.line");
                     }
                 }
             }
