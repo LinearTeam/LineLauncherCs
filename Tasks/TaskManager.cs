@@ -99,6 +99,7 @@ namespace LMC.Tasks
         {
             try
             {
+                if(CancellationTokenSource.IsCancellationRequested) return;
                 Status = ExecutionStatus.Running;
                 _logger.Info($"子任务 {Id} 已启动。");
 
@@ -107,6 +108,7 @@ namespace LMC.Tasks
                 if (CancellationTokenSource.IsCancellationRequested)
                 {
                     Status = ExecutionStatus.Canceled;
+                    
                     _logger.Warn($"子任务 {Id} 在执行过程中被取消。");
                 }
                 else
@@ -139,6 +141,8 @@ namespace LMC.Tasks
             TaskName = name;
             SubTasks.CollectionChanged += (s, e) => OnPropertyChanged(nameof(SubTasks));
         }
+        
+
     }
 
     public class TaskManager : INotifyPropertyChanged
@@ -249,7 +253,7 @@ namespace LMC.Tasks
             {
                 foreach (var subTask in group)
                 {
-                    if (!subTask.CancellationTokenSource.IsCancellationRequested)
+                    if (!subTask.CancellationTokenSource.IsCancellationRequested && !task.CancellationTokenSource.IsCancellationRequested)
                     {
                         await subTask.ExecuteAsync();
                         if (subTask.Status == ExecutionStatus.Failed){ 
@@ -257,6 +261,11 @@ namespace LMC.Tasks
                             return;
                         }
                     }
+                    else
+                    {
+                        task.Status = ExecutionStatus.Canceled;
+                        subTask.CancellationTokenSource.Cancel();
+                    } 
                 }
             }
         }
