@@ -31,10 +31,9 @@ Welcome to submit Pull Requests\Issues or send email to <line@huangyu.win> if yo
 Please comply with the content of the LICENSE and put this repository's link if you want to fork this repository or use LMC's codes.
 
 ## Debug arguments
-(It will enable in beta edition)
 | Console arguments         | Description |
 | ------------------ | ----------- |
-| -log               | Enable log output. It will log more logs and log to console.                                 |
+| -debug               | Enable debug mode. It will log more logs.                                 |
 | -logF <Path>       | Set log file.                                                                                |
 | -start <version>   | Start version when start launcher. If version does not exist, programm will exit as code 2.  |
 | -reset             | Reset all configuration of LMC, but device-code will not be change.                          |
