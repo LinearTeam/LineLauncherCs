@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -23,7 +24,7 @@ namespace LMC.Account
     {
 
         public static Dictionary<string, Account> RefreshedAccounts = new Dictionary<string, Account>();
-    
+        public static Dictionary<string, BitmapImage> Avatars = new Dictionary<string, BitmapImage>();
         private static Logger s_logger = new Logger("AM");
 
         public static string GetKey(Account account)
@@ -47,6 +48,7 @@ namespace LMC.Account
             {
                 if (RefreshedAccounts.ContainsKey(GetKey(account))) { RefreshedAccounts.Remove(GetKey(account)); }
                 RefreshedAccounts.Add(GetKey(account), account);
+                GetAvatarAsync(account, 128);
                 if (onlyAddToList) {
                     return;
                 }
@@ -95,8 +97,8 @@ namespace LMC.Account
             Secrets.DeleteSection(section);
 
         }
-        
-        async public static Task DownloadAvatar(Account account, int size)
+
+        private static async Task DownloadAvatar(Account account, int size)
         {
             
             Directory.CreateDirectory("./LMC/cache/" + account.Uuid);
@@ -120,13 +122,20 @@ namespace LMC.Account
             }
         }
 
-        async public static Task<BitmapImage> GetAvatarAsync(Account account, int size)
+        public static async Task<BitmapImage> GetAvatarAsync(Account account, int size)
         {
             string avatarPath = "./LMC/cache/" + account.Uuid + $"/avat-{size}.png";
-            if (!File.Exists(avatarPath))
+            if (!File.Exists(avatarPath) && !Avatars.ContainsKey(account.Uuid))
             {
                 await DownloadAvatar(account, size);
+                await Task.Delay(100);
             }
+
+            if (Avatars.ContainsKey(account.Uuid))
+            {
+                return Avatars[account.Uuid];
+            }
+            
             BitmapImage avatarImage = new BitmapImage();
             try
             {
@@ -136,6 +145,7 @@ namespace LMC.Account
                     avatarImage.CacheOption = BitmapCacheOption.OnLoad;
                     avatarImage.StreamSource = fs;
                     avatarImage.EndInit();
+                    Avatars.Add(account.Uuid, avatarImage);
                 }
             }
             catch (Exception ex)
@@ -149,7 +159,7 @@ namespace LMC.Account
 
 
 
-        async public static Task<List<Account>> GetAccounts(bool refresh)
+        public static async Task<List<Account>> GetAccounts(bool refresh)
         {
             List<Account> accounts = new List<Account>();
             var sections = Secrets.ReadSections(); 
@@ -199,7 +209,10 @@ namespace LMC.Account
                         account.Id = await Secrets.Read(section, "id");
                         account.Uuid = section.Substring(4).Replace("_MSA", "");
 //                        DownloadSkin(account);
-                        accounts.Add(account);
+                        try
+                        {
+                            accounts.Add(account);
+                        }catch{ }
                         AddAccount(account);
                     }
                 }

@@ -1,4 +1,5 @@
-﻿ using iNKORE.UI.WPF.Modern;
+﻿ using System;
+ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Common.IconKeys;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
@@ -10,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
+using System.Windows.Threading;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages
@@ -26,10 +28,11 @@ namespace LMC.Pages
         private static Grid s_addAccount = new Grid();
         private static List<string> s_addedAccounts = new List<string>();
         private static Style s_triggerStyle;
-
+        private static Dispatcher s_dispatcher;
 
         public AccountPage()
         {
+            s_dispatcher = this.Dispatcher;
             s_light = !string.IsNullOrEmpty(Config.ReadGlobal("ui", "theme")) ? Config.ReadGlobal("ui", "theme") == "light" : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light;
             InitializeComponent();
             s_mainGrid = MainGrid;
@@ -125,7 +128,6 @@ namespace LMC.Pages
         public async static void AddAccount(Account.Account account)
         {
             if (s_addedAccounts.Contains(account.Id + account.Type.ToString())) return;
-            s_addedAccounts.Add(account.Id + account.Type.ToString());
             Grid grid = new Grid();
             grid.Background = s_light ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Color.FromRgb(40, 45, 57));
             grid.HorizontalAlignment = HorizontalAlignment.Left;
@@ -143,7 +145,22 @@ namespace LMC.Pages
             avator.Source = ((Image) s_mainGrid.FindResource("AvatarImage")).Source;
             if (account.Type == AccountType.MSA)
             {
-                Task.Run(async () => avator.Source = await AccountManager.GetAvatarAsync(account, 64));
+                int i = 0;
+                s_dispatcher.Invoke(() =>
+                {
+                    while (i <= 10)
+                    {
+                        i++;
+                        try
+                        {
+                            avator.Source = AccountManager.GetAvatarAsync(account, 128).Result;
+                        }
+                        catch (Exception ex)
+                        {
+                            new Logger("ACCP").Debug("Account err:" + ex.Message + "\n" + ex.StackTrace);
+                        }
+                    }
+                });
             }
             avator.VerticalAlignment = VerticalAlignment.Top;
             avator.HorizontalAlignment = HorizontalAlignment.Center;
@@ -190,6 +207,7 @@ namespace LMC.Pages
             grid.Children.Add(name);
             grid.Margin = new Thickness(5);
             grid.Style = s_triggerStyle;
+            s_addedAccounts.Add(account.Id + account.Type.ToString());
             s_grids.Add(grid);
             RefreshUi();
         }

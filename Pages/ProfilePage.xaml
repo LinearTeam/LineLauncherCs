@@ -9,7 +9,22 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="管理档案">
-    <Grid>
-        
+    <Grid Margin="60, 30">
+        <ikw:SimpleStackPanel Orientation="Vertical">
+            <ui:CommandBar x:Name="cb" DefaultLabelPosition="Right" HorizontalAlignment="Left">
+                <ui:CommandBar.PrimaryCommands>
+                    <ui:AppBarButton Label="安装版本">
+                        <ui:AppBarButton.Icon>
+                            <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Download}"/>
+                        </ui:AppBarButton.Icon>
+                    </ui:AppBarButton>
+                    <ui:AppBarButton Label="切换 .minecraft 文件夹">
+                        <ui:AppBarButton.Icon>
+                            <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Switch}"/>
+                        </ui:AppBarButton.Icon>
+                    </ui:AppBarButton>
+                </ui:CommandBar.PrimaryCommands>
+            </ui:CommandBar>
+        </ikw:SimpleStackPanel>
     </Grid>
 </ui:Page>

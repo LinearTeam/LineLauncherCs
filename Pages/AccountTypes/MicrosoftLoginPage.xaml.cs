@@ -179,8 +179,10 @@ namespace LMC.Pages.AccountTypes
                     text.Text = "登录失败，用户在浏览器中拒绝授权，请重新登录并允许 LMC 访问用户信息。";
                     return;
                 }
-                result.Add("a", r.accessToken);
-                result.Add("r", r.refreshToken);
+                try{
+                    result.Add("a", r.accessToken);
+                    result.Add("r", r.refreshToken);
+                }catch{}
                 timer.Stop();
                 timer.IsEnabled = false;
             };
