@@ -30,6 +30,13 @@ namespace LMC.Minecraft
         private int _remainingFiles;
         private int _totalFiles;
 
+        public GameDownloader(CancellationTokenSource cts)
+        {
+            _tokenSource = cts;
+        }
+        
+        public GameDownloader(){}
+        
         public void ChangeSource(DownloadSource newSource)
         {
             if (newSource == _downloadSource || newSource == null) return;
@@ -92,6 +99,7 @@ namespace LMC.Minecraft
         private async Task DownloadGame(string versionId, string versionName)
         {
             var task = TaskManager.Instance.CreateTask(5, $"下载原版游戏 {versionName} ({versionId})");
+            _tokenSource = task.CancellationTokenSource;
             //版本ManiFest
             TaskManager.Instance.AddSubTask(task.Id, 0, async token =>
             {
@@ -271,7 +279,7 @@ namespace LMC.Minecraft
             TaskManager.Instance.ExecuteTasksAsync();
         }
 
-        private static CancellationTokenSource s_tokenSource = new CancellationTokenSource();
+        private  CancellationTokenSource _tokenSource = new CancellationTokenSource();
         public async Task DownloadFilesWithHashAsync(Dictionary<string, string> urlPathDictionary, string defHost = "", string backupHost = "",
             Dictionary<string, List<string>> cachedFiles = null)
         {
@@ -292,6 +300,11 @@ namespace LMC.Minecraft
                 foreach (var kvp in urlPathDictionary)
                 {
                     await semaphore.WaitAsync();
+                    if (_tokenSource.IsCancellationRequested)
+                    {
+                        _logger.Info($"{pid} 取消下载任务");
+                        return;
+                    }
 //                if(ctx.IsCancellationRequested) return;
                     tasks.Add(Task.Run(async () =>
                     {
@@ -307,6 +320,11 @@ namespace LMC.Minecraft
                         int i = 0;
                         while (i <= 10)
                         {
+                            if (_tokenSource.IsCancellationRequested)
+                            {
+                                _logger.Info($"{pid} 取消下载任务");
+                                return;
+                            }
                             i++;
                             try
                             {
