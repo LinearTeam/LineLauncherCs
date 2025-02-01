@@ -66,4 +66,15 @@ anotherkey=anothervalue
 其中部分使用[MIT](https://licenses.nuget.org/MIT)协议开源，
 部分使用[.NET库许可证](https://dotnet.microsoft.com/en-us/dotnet_library_license.htm)开源
 
+## 贡献者
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
 大部分可以在[.NET协议说明](https://github.com/dotnet/core/blob/main/license-information.md)中找到
