@@ -1,5 +1,5 @@
 简体中文版 | [ENGLISH VERSION](https://github.com/IceCreamTeamICT/LineLauncherCs/blob/main/README-EN.md)
-# LineLauncherCs
+# <img src="/ico.ico" alt="Logo" width="25" height="25"> LineLauncherCs
 ![](https://img.shields.io/github/license/LinearTeam/LineLauncherCs)
 ![](https://img.shields.io/github/last-commit/LinearTeam/LineLauncherCs)
 ![](https://img.shields.io/github/repo-size/LinearTeam/LineLauncherCs)
@@ -8,7 +8,6 @@
 ![](https://img.shields.io/github/commit-activity/y/LinearTeam/LineLauncherCs)
 ![](https://img.shields.io/github/v/release/LinearTeam/LineLauncherCs?include_prereleases)
 ![](https://img.shields.io/github/downloads/LinearTeam/LineLauncherCs/total)
-
 
 ## 简介
 Line Launcher（亦称LMC）是一个Minecraft启动器，这是它的C#版本，如果想查看Visual Basic版本，可以在[官网](https://line.icecreamteam.win)上寻找链接。
