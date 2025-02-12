@@ -25,5 +25,10 @@ namespace LMC.Pages
         {
             InitializeComponent();
         }
+
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            MainWindow.Navigate(DownloadPage.DownloadMinecraftPage);
+        }
     }
 }

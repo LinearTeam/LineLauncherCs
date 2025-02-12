@@ -47,11 +47,11 @@ namespace LMC.Pages
             }
         }
 
-        private static DownloadMinecraftPage s_downloadMinecraftPage = new DownloadMinecraftPage();
+        public static readonly DownloadMinecraftPage DownloadMinecraftPage = new DownloadMinecraftPage();
         
         private void Minecraft_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            MainWindow.Navigate(s_downloadMinecraftPage);
+            MainWindow.Navigate(DownloadMinecraftPage);
         }
 
     }

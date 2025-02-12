@@ -25,6 +25,7 @@ namespace LMC
     {
         private static Logger s_logger = new Logger("MainUI");
         private static Image s_background;
+        private static InfoBadge s_taskInfoBadge;
         public static Pages.AboutPage AboutPage = new Pages.AboutPage();
         public static Pages.AccountPage AccountPage = new Pages.AccountPage();
         public static Pages.HomePage HomePage = new Pages.HomePage();
@@ -57,6 +58,7 @@ namespace LMC
                 s_background = BackGround;
                 MainFrame = MainFrm;
                 MainNagView = MainNagV;
+                s_taskInfoBadge = taskIb;
                 if (Config.ReadGlobal("window", "maximized") == "1")
                 {
                     WindowState = WindowState.Maximized;
@@ -317,6 +319,10 @@ namespace LMC
             {
                 action.Invoke();
             }
+        }
+        public static void ChangeTaskInfoBadge(int i)
+        {
+            s_taskInfoBadge.Value += i;
         }
     }
 }

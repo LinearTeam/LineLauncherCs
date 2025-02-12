@@ -16,7 +16,7 @@
                 <ui:SettingsCard.HeaderIcon>
                     <ui:FontIcon Icon="{Binding Path=Icon}" />
                 </ui:SettingsCard.HeaderIcon>
-                >
+                
                 <ui:SettingsCard.ActionIcon>
                     <ui:FontIcon />
                 </ui:SettingsCard.ActionIcon>

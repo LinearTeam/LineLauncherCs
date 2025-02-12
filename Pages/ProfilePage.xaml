@@ -13,7 +13,7 @@
         <ikw:SimpleStackPanel Orientation="Vertical">
             <ui:CommandBar x:Name="cb" DefaultLabelPosition="Right" HorizontalAlignment="Left">
                 <ui:CommandBar.PrimaryCommands>
-                    <ui:AppBarButton Label="安装版本">
+                    <ui:AppBarButton Label="安装版本" Click="ButtonBase_OnClick">
                         <ui:AppBarButton.Icon>
                             <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Download}"/>
                         </ui:AppBarButton.Icon>

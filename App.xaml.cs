@@ -132,7 +132,7 @@ namespace LMC
             ShowException(e.ExceptionObject as Exception);
         }
 
-        private void ShowException(Exception ex)
+        public static void ShowException(Exception ex)
         {
             Logger logger = new Logger("A");
             logger.Error(ex.Message + "\n" + ex.StackTrace);

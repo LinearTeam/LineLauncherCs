@@ -222,6 +222,7 @@ namespace LMC.Tasks
                         
                         task.Status = ExecutionStatus.Running;
                         _logger.Info($"任务 {task.Id} 开始执行。");
+                        MainWindow.ChangeTaskInfoBadge(1);
 
                         await ExecuteSubTasksAsync(task);
 
@@ -232,6 +233,7 @@ namespace LMC.Tasks
 
                         _logger.Info($"任务 {task.Id} 执行结束，最终状态：{task.Status}");
                         _tasks.TryRemove(task.Id, out _);
+                        MainWindow.ChangeTaskInfoBadge(-1);
                     });
 
                     await Task.WhenAll(tasks);
@@ -240,6 +242,11 @@ namespace LMC.Tasks
             catch (Exception ex)
             {
                 _logger.Error("任务执行队列发生异常。" + ex.Message + "\n" + ex.StackTrace);
+                if (Logger.DebugMode)
+                {
+                    App.ShowException(ex);
+                }
+                else MainWindow.ShowDialog("确认","任务队列执行出错，请打开调试模式获取详细信息。","错误");
             }
         }
 

@@ -38,6 +38,10 @@
                     <ui:NavigationViewItem.Icon>
                         <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.TaskView}"/>
                     </ui:NavigationViewItem.Icon>
+                    <ui:NavigationViewItem.InfoBadge>
+                        <ui:InfoBadge x:Name="taskIb"
+                                      Opacity="1" Value="0" />
+                    </ui:NavigationViewItem.InfoBadge>
                 </ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="账号管理" x:Name="AccountNagVi">
                     <ui:NavigationViewItem.Icon>
