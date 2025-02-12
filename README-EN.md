@@ -1,5 +1,13 @@
 [简体中文版](https://github.com/IceCreamTeamICT/LineLauncherCs/blob/main/README.md) | ENGLISH VERSION
-# LineLauncherCs
+# <img src="/ico.ico" alt="Logo" width="25" height="25"> LineLauncherCs
+![](https://img.shields.io/github/license/LinearTeam/LineLauncherCs)
+![](https://img.shields.io/github/last-commit/LinearTeam/LineLauncherCs)
+![](https://img.shields.io/github/repo-size/LinearTeam/LineLauncherCs)
+![](https://img.shields.io/github/stars/LinearTeam/LineLauncherCs)
+![](https://img.shields.io/github/contributors/LinearTeam/LineLauncherCs)
+![](https://img.shields.io/github/commit-activity/y/LinearTeam/LineLauncherCs)
+![](https://img.shields.io/github/v/release/LinearTeam/LineLauncherCs?include_prereleases)
+![](https://img.shields.io/github/downloads/LinearTeam/LineLauncherCs/total)
 
 ## Description
 Line Launcher（or LMC）is a Minecraft Launcher. This repository is its C# version. You can find the link on [Official Website](https://line.icecreamteam.win/index-en.html) If you want to see Visual Basic version.
