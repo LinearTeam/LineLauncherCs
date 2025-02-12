@@ -1,5 +1,4 @@
-﻿using LMC.Account;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using LMC.Account;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages
@@ -22,6 +22,7 @@ namespace LMC.Pages
     /// </summary>
     public partial class AccountManagePage : Page
     {
+        public static Account.Account account;
         private static Account.Account s_account;
         public AccountManagePage(Account.Account acc)
         {

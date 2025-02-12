@@ -6,6 +6,7 @@
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
       xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:local="clr-namespace:LMC.Pages"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:app="clr-namespace:LMC"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
@@ -16,7 +17,7 @@
             <ikw:SimpleStackPanel Orientation="Vertical" Spacing="30">
                 <ui:SettingsExpander Header="Line Launcher (C#, 或 Line (Minecraft) launCher C#)" IsExpanded="True">
                     <ui:SettingsExpander.HeaderIcon>
-                        <ui:ImageIcon Source="/ico.ico"/>
+                        <ui:ImageIcon Source="/ico.ico" Width="64" Height="64"/>
                     </ui:SettingsExpander.HeaderIcon>
                     <ui:SettingsExpander.ItemsHeader>
                         <ui:InfoBar Title="如下为启动器的关于信息，更新不及时，如有遗漏请开issue"
@@ -32,12 +33,22 @@
                     </ui:SettingsExpander.ItemsHeader>
                     <ui:SettingsExpander.Items>
                         <ui:SettingsCard Header="皇鱼" Description="@tmdakm, 主开发者" >
+                            <ui:SettingsCard.Resources>
+                                <ResourceDictionary>
+                                    <sys:Double x:Key="SettingsCardHeaderIconMaxSize">64</sys:Double>
+                                </ResourceDictionary>
+                            </ui:SettingsCard.Resources>
                             <ui:SettingsCard.HeaderIcon>
-                                <ui:ImageIcon Source="/hutao.jpg" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                                <ui:ImageIcon Source="/hutao.jpg" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MaxWidth="64" MaxHeight="64"/>
                             </ui:SettingsCard.HeaderIcon>
                             <ui:HyperlinkButton Content="打开GitHub" NavigateUri="https://github.com/tmdakm"/>
                         </ui:SettingsCard>
                         <ui:SettingsCard Header="Junse(影宝)" Description="@IloveEi, 帮忙写小功能" >
+                            <ui:SettingsCard.Resources>
+                                <ResourceDictionary>
+                                    <sys:Double x:Key="SettingsCardHeaderIconMaxSize">64</sys:Double>
+                                </ResourceDictionary>
+                            </ui:SettingsCard.Resources>
                             <ui:SettingsCard.HeaderIcon>
                                 <ui:ImageIcon Source="/junse.jpg"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                             </ui:SettingsCard.HeaderIcon>
@@ -66,6 +77,11 @@
                             </ui:SettingsCard.ActionIcon>
                         </ui:SettingsCard>
                         <ui:SettingsCard Header="Line launCher C#" Description="Copyright © 2024-2025 LinearTeam All rights reserved.">
+                            <ui:SettingsCard.Resources>
+                                <ResourceDictionary>
+                                    <sys:Double x:Key="SettingsCardHeaderIconMaxSize">64</sys:Double>
+                                </ResourceDictionary>
+                            </ui:SettingsCard.Resources>
                             <ui:SettingsCard.HeaderIcon>
                                 <ui:ImageIcon Source="/ico.ico"/>
                             </ui:SettingsCard.HeaderIcon>

@@ -343,7 +343,7 @@ namespace LMC.Pages.DownloadTypes
                     next.IsEnabled = false;
                     back.IsEnabled = false;
                     LoadingMask.Visibility = Visibility.Visible;
-                    await Task.Run(() => RefreshVersionList());
+                    SearchBox_TextChanged(this, null);
                     LoadingMask.Visibility = Visibility.Collapsed;
                 }
             }
