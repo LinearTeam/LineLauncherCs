@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
 
 namespace LMC.Tasks
@@ -232,6 +233,14 @@ namespace LMC.Tasks
                             : ExecutionStatus.Failed;
 
                         _logger.Info($"任务 {task.Id} 执行结束，最终状态：{task.Status}");
+                        if (task.Status == ExecutionStatus.Completed)
+                        {
+                            MainWindow.Instance.EnqueueMessage(new InfoBarMessage($"任务 {task.TaskName} 执行完成！", InfoBarSeverity.Success, "任务管理"));
+                        }
+                        else
+                        {
+                            MainWindow.Instance.EnqueueMessage(new InfoBarMessage($"任务 {task.TaskName} 执行失败！", InfoBarSeverity.Error, "任务管理"));
+                        }
                         _tasks.TryRemove(task.Id, out _);
                         MainWindow.ChangeTaskInfoBadge(-1);
                     });

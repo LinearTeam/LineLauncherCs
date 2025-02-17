@@ -65,5 +65,13 @@
             </ui:NavigationView.FooterMenuItems>
             <ui:Frame x:Name="MainFrm"/>
         </ui:NavigationView>
+        <ikw:SimpleStackPanel Orientation="Vertical" Spacing="3" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="25,10,5,10">
+            <ui:InfoBar x:Name="ibf" Title="Title" IsOpen="False" Severity="Informational"
+                        Message="Essential app message for your users to be informed of, acknowledge, or take action on." />
+            <ui:InfoBar x:Name="ibs" Title="Title" IsOpen="False" Severity="Informational"
+                        Message="Essential app message for your users to be informed of, acknowledge, or take action on." />
+            <ui:InfoBar x:Name="ibt" Title="Title" IsOpen="False" Severity="Informational"
+                        Message="Essential app message for your users to be informed of, acknowledge, or take action on." />
+        </ikw:SimpleStackPanel>
     </Grid>
 </Window>

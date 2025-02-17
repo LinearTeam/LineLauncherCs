@@ -55,7 +55,7 @@ namespace LMC.Basic
             {
                 File.Create(Path).Close();
             }
-            s_logger.Info("正在获取设备标识符");
+//            s_logger.Info("正在获取设备标识符");
             string cpuId = string.IsNullOrEmpty(s_cachedCpuId) ? GetWmiInfo("Win32_Processor","ProcessorId") : s_cachedCpuId;
             string biosId = string.IsNullOrEmpty(s_cachedBiosId) ? GetWmiInfo("Win32_BIOS", "SerialNumber") + GetWmiInfo("Win32_BIOS", "ReleaseDate") + GetWmiInfo("Win32_BIOS", "SMBIOSBIOSVersion") : s_cachedBiosId;
             string hash = string.Empty;
@@ -192,13 +192,13 @@ namespace LMC.Basic
 
         public static void Write(string section, string key, string value)
         {
-            int i = 0;
+//            int i = 0;
             string strCpuID = GetDeviceCode();
             if (strCpuID == "Unknown") { throw new Exception("CPUID获取失败"); }
             string totalStr = EncryptAes(value, strCpuID);
-            s_logger.Info(i++.ToString());
+//            s_logger.Info(i++.ToString());
             s_lineFileParser.Write(Path, key, totalStr, section);
-            s_logger.Info(i++.ToString());
+//            s_logger.Info(i++.ToString());
         }
         public async static Task<string> Read(string section, string key)
         {

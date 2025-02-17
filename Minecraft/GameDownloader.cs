@@ -11,6 +11,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
 using LMC.Tasks;
 using LMC.Utils;

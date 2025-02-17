@@ -36,6 +36,7 @@ namespace LMC.Pages
 
         private async void Button_Click_2(object sender, RoutedEventArgs e)
         {
+//            MainWindow.Instance.EnqueueMessage(new InfoBarMessage(new Random().Next(1000,9999).ToString(), InfoBarSeverity.Warning, "title"));
             ContentDialog dialog = new ContentDialog();
             dialog.Title = "检查更新";
             var content = new SimpleStackPanel();

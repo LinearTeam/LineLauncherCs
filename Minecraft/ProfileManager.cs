@@ -62,21 +62,32 @@ namespace LMC.Minecraft
                 try
                 {
                     p.Version = await GetProfileVersion(dir);
+                    ModLoader ml = new ModLoader();
+                    ml.ModLoaderType = ModLoaderType.Vanilla;
+                    ml.LoaderVersion = p.Version;
                 }
                 catch (UnknownVersionException e)
                 {
                     p.Status = ProfileStatus.Unknown;
                     profiles.Add(p);
                     s_logger.Warn($"发现一个未知版本的档案: {dir}");
+                    ModLoader ml = new ModLoader();
+                    ml.ModLoaderType = ModLoaderType.Other;
+                    ml.LoaderVersion = "Unknown";
+                    p.ModLoader = ml;
                     continue;
                 }
                 catch (Exception e)
                 {
                     p.Status = ProfileStatus.Unknown;
+                    ModLoader ml = new ModLoader();
+                    ml.ModLoaderType = ModLoaderType.Other;
+                    ml.LoaderVersion = "Unknown";
+                    p.ModLoader = ml;
                     profiles.Add(p);
                     s_logger.Warn($"在解析档案版本 {dir} 时遇到未知错误： {e.Message}\n{e.StackTrace}");
                 }
-				
+                profiles.Add(p);
             }
             return profiles;
         }
@@ -116,7 +127,7 @@ namespace LMC.Minecraft
                     {
                         LineFileParser lineFileParser = new LineFileParser();
                         File.Create($"{filePath}/LMC/version.line").Close();
-                        lineFileParser.Write($"{filePath}/LMC/version.line", "id", "base", version);
+                        lineFileParser.Write($"{filePath}/LMC/version.line", "id", version,"base");
                     }
                     return version;
                 }
@@ -162,7 +173,7 @@ namespace LMC.Minecraft
                     {
                         LineFileParser lineFileParser = new LineFileParser();
                         File.Create($"{filePath}/LMC/version.line").Close();
-                        lineFileParser.Write($"{filePath}/LMC/version.line", "id", "base", version);
+                        lineFileParser.Write($"{filePath}/LMC/version.line", "id", version, "base");
                     }
 
                     return version;

@@ -98,7 +98,7 @@ namespace LMC
 
                 if (str.Equals("-reacc"))
                 {
-                    Secrets.Backup("-REACC");
+                    Secrets.Backup("-REACC").Wait();
                     try
                     {
                         File.Delete(Secrets.Path);
