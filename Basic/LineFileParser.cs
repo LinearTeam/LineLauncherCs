@@ -24,7 +24,7 @@ namespace LMC.Basic
             }
             string startTag = $"|{section}|_start";
             string endTag = $"|{section}|_end";
-            bool insection = false;
+            bool inSection = false;
 
             var lines = File.ReadAllLines(path);
 
@@ -32,16 +32,16 @@ namespace LMC.Basic
             {
                 if (line.Trim() == startTag)
                 {
-                    insection = true;
+                    inSection = true;
                     continue;
                 }
                 if (line.Trim() == endTag)
                 {
-                    insection = false;
+                    inSection = false;
                     continue;
                 }
 
-                if (insection)
+                if (inSection)
                 {
                     var match = Regex.Match(line, _pattern);
                     if (match.Success && !string.IsNullOrEmpty(match.Groups["key"].Value))

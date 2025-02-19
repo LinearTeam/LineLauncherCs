@@ -37,6 +37,7 @@
                              VirtualizingStackPanel.VirtualizationMode="Recycling"
                              ui:ScrollViewerEx.IsDeferredScrollingEnabled="True"
                              IsMultiSelectCheckBoxEnabled="False"
+                             IsSelectionEnabled="False"
                              SelectionMode="Single" x:Name="lb" ItemTemplate="{StaticResource MinecraftDataItem}"
                              IsEnabled="True" />
 

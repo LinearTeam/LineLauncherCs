@@ -4,48 +4,73 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:local="clr-namespace:LMC.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="管理档案">
-    <Grid Margin="60, 30">
-        <ikw:SimpleStackPanel Orientation="Vertical">
-            <ui:CommandBar x:Name="cb" DefaultLabelPosition="Right" HorizontalAlignment="Left">
+    <Grid Margin="60, 30" x:Name="grid">
+        <Grid.Resources>
+            <DataTemplate x:Key="ProfileDataItem" DataType="{x:Type local:ProfileItem}">
+                <ui:SettingsCard Header="{Binding Path=Name}"
+                                 Description="{Binding Path=Description}" IsClickEnabled="True">
+                    <ui:SettingsCard.Resources>
+                        <ResourceDictionary>
+                            <sys:Double x:Key="SettingsCardHeaderIconMaxSize">64</sys:Double>
+                        </ResourceDictionary>
+                    </ui:SettingsCard.Resources>                    <ui:SettingsCard.HeaderIcon>
+                        <ui:ImageIcon Source="{Binding Path=Image}"/>
+                    </ui:SettingsCard.HeaderIcon>
+                </ui:SettingsCard>
+            </DataTemplate>
+            <Image x:Key="Vanilla" Source="/grassblock.png"/>
+            <Image x:Key="Error" Source="/tnt.png"/>
+            <Image x:Key="Other" Source="/grassblock.png"/>
+            <Image x:Key="Unknown" Source="/cauldron_lava.png"/>
+            <Image x:Key="UnSupport" Source="/stone.png"/>
+            <Image x:Key="Forge" Source="/anvil.png"/>
+            <Image x:Key="NeoForge" Source="/neoforge.png"/>
+            <Image x:Key="Fabric" Source="/banner_pattern.png"/>
+        </Grid.Resources>
+            <ui:CommandBar x:Name="cb" DefaultLabelPosition="Right" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <ui:CommandBar.PrimaryCommands>
                     <ui:AppBarButton Label="安装版本" Click="ButtonBase_OnClick">
                         <ui:AppBarButton.Icon>
                             <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Download}"/>
                         </ui:AppBarButton.Icon>
                     </ui:AppBarButton>
-                    <ui:AppBarButton Label="切换 .minecraft 文件夹">
+                    <ui:AppBarButton Label="切换 .minecraft 文件夹" Click="SwitchGamePath">
                         <ui:AppBarButton.Icon>
                             <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Switch}"/>
                         </ui:AppBarButton.Icon>
                     </ui:AppBarButton>
                 </ui:CommandBar.PrimaryCommands>
             </ui:CommandBar>
-            <ikw:SimpleStackPanel Orientation="Vertical">
-                <ui:SettingsCard IsClickEnabled="True" Header="1.20.1" Description="原版 1.20.1">
-                    <ui:SettingsCard.HeaderIcon>
-                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.OEM}"/>
-                    </ui:SettingsCard.HeaderIcon>
-                    <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="5">
-                        <Button Content="启动"/>
-                        <Button Content="选择"/>
-                    </ikw:SimpleStackPanel>
-                </ui:SettingsCard>
-                <ui:SettingsCard IsClickEnabled="True" Header="Hypixel" Description="原版 1.8.9">
-                    <ui:SettingsCard.HeaderIcon>
-                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.OEM}"/>
-                    </ui:SettingsCard.HeaderIcon>
-                </ui:SettingsCard>
-                <ui:SettingsCard IsClickEnabled="True" Header="1-14-4" Description="原版 1.14.4">
-                    <ui:SettingsCard.HeaderIcon>
-                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.OEM}"/>
-                    </ui:SettingsCard.HeaderIcon>
-                </ui:SettingsCard>
-            </ikw:SimpleStackPanel>
-        </ikw:SimpleStackPanel>
+            <ui:ListView x:Name="ir" ItemTemplate="{StaticResource ProfileDataItem}" HorizontalAlignment="Stretch"
+                         VirtualizingStackPanel.IsVirtualizing="True"
+                         VirtualizingStackPanel.VirtualizationMode="Recycling"
+                         ui:ScrollViewerEx.IsDeferredScrollingEnabled="True"
+                         IsMultiSelectCheckBoxEnabled="False"
+                         IsSelectionEnabled="False" Margin="0,70,0,0" 
+                         SelectionMode="Single" IsEnabled="True"/>
+            <ui:ContentDialog x:Name="scd" Title="选择 .minecraft 文件夹">
+                <Grid>
+                    <Grid.Resources>
+                        <DataTemplate DataType="{x:Type local:GamePathItem}" x:Key="GamePathItem">
+                            <ikw:SimpleStackPanel Orientation="Vertical">
+                                <TextBlock FontWeight="Bold" Text="{Binding Name}"/>
+                                <TextBlock Text="{Binding Path}"/>
+                            </ikw:SimpleStackPanel>
+                        </DataTemplate>
+                    </Grid.Resources>
+                    <ui:ListView x:Name="gr" ItemTemplate="{StaticResource GamePathItem}" HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                                 VirtualizingStackPanel.IsVirtualizing="True"
+                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                 ui:ScrollViewerEx.IsDeferredScrollingEnabled="True"
+                                 IsMultiSelectCheckBoxEnabled="False"
+                                 SelectionMode="Single" IsEnabled="True"/>
+                </Grid>
+            </ui:ContentDialog>
     </Grid>
 </ui:Page>

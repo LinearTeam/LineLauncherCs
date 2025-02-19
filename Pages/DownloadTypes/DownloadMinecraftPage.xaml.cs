@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using iNKORE.UI.WPF.Controls;
 using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Common.IconKeys;
 using iNKORE.UI.WPF.Modern.Controls;
@@ -34,6 +33,7 @@ namespace LMC.Pages.DownloadTypes
         private readonly object _lock = new object();
         private readonly List<DVersion> allVersions = new List<DVersion>();
         private readonly ObservableCollection<MinecraftItem> displayedVersions = new ObservableCollection<MinecraftItem>();
+        private bool _val;
 
         public DownloadMinecraftPage()
         {
@@ -199,71 +199,13 @@ namespace LMC.Pages.DownloadTypes
             return true;
         }
 
-        private void Ls_OnSelected(object sender, RoutedEventArgs e)
-        {
-            if (lb.SelectedItems.Count >= 1)
-            {
-                if (lb.SelectedItems.Count > 0)
-                {
-                    var gd = new GameDownloader();
-                    var cd = new ContentDialog();
-                    cd.CloseButtonText = "取消";
-                    cd.PrimaryButtonText = "确定";
-                    cd.DefaultButton = ContentDialogButton.Primary;
-                    var sp = new SimpleStackPanel();
-                    var tb = new TextBox();
-                    sp.Children.Add(tb);
-                    cd.Content = sp;
-                    var l = new TextBlock();
-                    l.TextWrapping = TextWrapping.Wrap;
-                    sp.Children.Add(l);
-                    l.Text = "请输入版本名";
-                    l.Foreground = new SolidColorBrush(Colors.Gray);
-                    bool val = false;
-                    tb.TextChanged += (s, e) =>
-                    {
-
-                        if (string.IsNullOrEmpty(tb.Text))
-                        {
-                            l.Text = "请输入版本名！";
-                            l.Foreground = new SolidColorBrush(Colors.Gray);
-                            val = false;
-                            return;
-                        }
-
-                        if (CheckVersionName(tb.Text))
-                        {
-                            l.Text = "版本名称可用！";
-                            l.Foreground = new SolidColorBrush(Color.FromScRgb(100, 0, 1, 0));
-                            val = true;
-                            return;
-                        }
-
-                        l.Text = "版本名不可用，可能因为文件夹已存在，以空格开头、结尾，包含特殊字符（如\\、/、|、\"、:、?等）";
-                        l.Foreground = new SolidColorBrush(Color.FromScRgb(100, 1, 0, 0));
-                        val = false;
-                    };
-                    cd.PrimaryButtonClick += (dialog, args) =>
-                    {
-                        if (!val) return;
-                        gd.DownloadGame((lb.SelectedItems[0] as SettingsCard).Header as string, tb.Text, false, false, false);
-                        MainWindow.MainNagView.SelectedItem = MainWindow.MainNagView.MenuItems[3];
-                        cd.Hide();
-                    };
-                    cd.ShowAsync();
-                }
-            }
-        }
-
-        private bool _val = false;
-        
         private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             if (sender is SettingsCard card)
             {
                 tbc.Text = card.Header.ToString();
                 vcard.Header = card.Header.ToString();
-                GameDownloader gd = new GameDownloader();
+                var gd = new GameDownloader();
                 LoadingMask.Visibility = Visibility.Visible;
                 var res = await gd.GetForgeFabricOptifineVersionList(card.Header.ToString());
                 fview.SelectedIndex = 1;
@@ -276,12 +218,33 @@ namespace LMC.Pages.DownloadTypes
                 fab.IsEnabled = true;
                 forge.IsEnabled = true;
                 opti.IsEnabled = true;
-                if(res.fabs == null || res.fabs.Count <= 0) fab.IsEnabled = false;
-                else res.fabs.ForEach((s) => fab.Items.Add(s));
-                if(res.forges == null || res.forges.Count <= 0) forge.IsEnabled = false;
-                else res.forges.ForEach((s) => forge.Items.Add(s));
-                if(res.opts == null || res.opts.Count <= 0) opti.IsEnabled = false;
-                else res.opts.ForEach((s) => opti.Items.Add(s));
+                if (res.fabs == null || res.fabs.Count <= 0)
+                {
+                    fab.IsEnabled = false;
+                }
+                else
+                {
+                    res.fabs.ForEach(s => fab.Items.Add(s));
+                }
+
+                if (res.forges == null || res.forges.Count <= 0)
+                {
+                    forge.IsEnabled = false;
+                }
+                else
+                {
+                    res.forges.ForEach(s => forge.Items.Add(s));
+                }
+
+                if (res.opts == null || res.opts.Count <= 0)
+                {
+                    opti.IsEnabled = false;
+                }
+                else
+                {
+                    res.opts.ForEach(s => opti.Items.Add(s));
+                }
+
                 vcard.HeaderIcon = card.HeaderIcon;
                 fab.SelectedIndex = 0;
                 forge.SelectedIndex = 0;
@@ -302,7 +265,7 @@ namespace LMC.Pages.DownloadTypes
                 return;
             }
 
-            if (CheckVersionName(tbc.Text)) 
+            if (CheckVersionName(tbc.Text))
             {
                 lac.Content = "版本名称可用！";
                 lac.Foreground = new SolidColorBrush(Color.FromScRgb(100, 0, 1, 0));
@@ -329,8 +292,9 @@ namespace LMC.Pages.DownloadTypes
         private void ButtonBase_OnClick_3(object sender, RoutedEventArgs e)
         {
             if (!_val) return;
-            GameDownloader gd = new GameDownloader();
-            gd.DownloadGame(vcard.Header as string, tbc.Text, opti.SelectedIndex != 0, fab.SelectedIndex != 0, forge.SelectedIndex != 0, opti.SelectedItem as string, fab.SelectedItem as string, forge.SelectedItem as string);
+            var gd = new GameDownloader();
+            gd.DownloadGame(vcard.Header as string, tbc.Text, opti.SelectedIndex != 0, fab.SelectedIndex != 0, forge.SelectedIndex != 0, opti.SelectedItem as string,
+                fab.SelectedItem as string, forge.SelectedItem as string);
             MainWindow.MainNagView.SelectedItem = MainWindow.MainNagView.MenuItems[3];
         }
 
@@ -347,7 +311,7 @@ namespace LMC.Pages.DownloadTypes
                     LoadingMask.Visibility = Visibility.Collapsed;
                 }
             }
-            
+
         }
     }
 }

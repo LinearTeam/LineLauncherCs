@@ -10,17 +10,59 @@ namespace LMC.Minecraft
 {
     public class ProfileManager
     {
-        private static Logger s_logger = new Logger("PROFMAN");
+        private static Logger s_logger = new Logger("PMA");
+
+        public static GamePath GetSelectedGamePath()
+        {
+            GamePath gamePath = new GamePath();
+            var key = Config.ReadGlobal("Main", "GamePath");
+            if (string.IsNullOrEmpty(key))
+            {
+                var gps = GetGamePaths();
+                if (gps.Count != 1)
+                {
+                    SetSelectedGamePath(gps.First());
+                }
+                return gps.First();
+            }
+            gamePath.Name = key;
+            gamePath.Path = Config.ReadGlobal("GamePath", key);
+            return gamePath;
+        }
+
+        public static void SetSelectedGamePath(GamePath gamePath)
+        {
+            Config.WriteGlobal("Main", "GamePath", gamePath.Name);
+        }
+
+        public static void AddGamePath(GamePath gamePath)
+        {
+            Config.WriteGlobal("GamePath", gamePath.Name, gamePath.Path);
+        }
         public static List<GamePath> GetGamePaths()
         {
             List<GamePath> gamePaths = new List<GamePath>();
             var keys = Config.ReadKeySetGlobal("GamePath");
+            bool hasCurrent = false;
             foreach (var key in keys)
             {
                 GamePath gamePath = new GamePath();
                 gamePath.Name = key;
                 gamePath.Path = Config.ReadGlobal("GamePath", key);
+                if (Path.GetFullPath("./minecraft").Equals(Path.GetFullPath(gamePath.Path)))
+                {
+                    hasCurrent = true;
+                }
                 gamePaths.Add(gamePath);
+            }
+
+            if (gamePaths.Count == 0 || !hasCurrent)
+            {
+                GamePath gamePath = new GamePath();
+                gamePath.Path = Path.GetFullPath("./.minecraft");
+                gamePath.Name = "当前文件夹";
+                gamePaths.Insert(0,gamePath);
+//                AddGamePath();
             }
             return gamePaths;
         }
@@ -65,6 +107,7 @@ namespace LMC.Minecraft
                     ModLoader ml = new ModLoader();
                     ml.ModLoaderType = ModLoaderType.Vanilla;
                     ml.LoaderVersion = p.Version;
+                    p.ModLoader = ml;
                 }
                 catch (UnknownVersionException e)
                 {
