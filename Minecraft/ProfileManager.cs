@@ -25,8 +25,8 @@ namespace LMC.Minecraft
                 }
                 return gps.First();
             }
-            gamePath.Name = key;
-            gamePath.Path = Config.ReadGlobal("GamePath", key);
+            gamePath.Name = Config.ReadGlobal("GamePath", key);
+            gamePath.Path = key;
             return gamePath;
         }
 
@@ -47,8 +47,8 @@ namespace LMC.Minecraft
             foreach (var key in keys)
             {
                 GamePath gamePath = new GamePath();
-                gamePath.Name = key;
-                gamePath.Path = Config.ReadGlobal("GamePath", key);
+                gamePath.Name = Config.ReadGlobal("GamePath", key);
+                gamePath.Path = key;
                 if (Path.GetFullPath("./minecraft").Equals(Path.GetFullPath(gamePath.Path)))
                 {
                     hasCurrent = true;

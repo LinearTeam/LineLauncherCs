@@ -101,6 +101,26 @@ namespace LMC.Minecraft
         {
             var task = TaskManager.Instance.CreateTask(5, $"下载原版游戏 {versionName} ({versionId})");
             _tokenSource = task.CancellationTokenSource;
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(5);
+            timer.Tick += (s, e) =>
+            {
+                if (_tokenSource.IsCancellationRequested)
+                {
+                    try
+                    {
+                        Directory.Delete($"{GamePath}/versions/{versionName}", true);
+                        timer.Stop();
+                        timer.IsEnabled = false;
+                    }
+                    catch
+                    {
+                    }
+                }
+
+            };
+            
+            timer.Start();
             //版本ManiFest
             TaskManager.Instance.AddSubTask(task.Id, 0, async token =>
             {

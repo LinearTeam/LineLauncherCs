@@ -157,8 +157,15 @@ namespace LMC.Pages
                 GamePathItem gamePathItem = new GamePathItem();
                 gamePathItem.Path = gp.Path;
                 gamePathItem.Name = gp.Name;
+                if (Path.GetFullPath(gp.Path).Equals(ProfileManager.GetSelectedGamePath().Path)) continue;
                 _gamePathItems.Add(gamePathItem);
             }
+            var sgp = ProfileManager.GetSelectedGamePath();
+            GamePathItem gpi = new GamePathItem();
+            gpi.Path = sgp.Path;
+            gpi.Name = sgp.Name;
+            _gamePathItems.Insert(0, gpi);
+            gr.SelectedIndex = 0;
             scd.ShowAsync();
         }
     }
