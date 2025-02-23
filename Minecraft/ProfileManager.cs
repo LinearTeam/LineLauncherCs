@@ -30,14 +30,26 @@ namespace LMC.Minecraft
             return gamePath;
         }
 
+        public static bool IsSameGamePath(GamePath gamePath1, GamePath gamePath2)
+        {
+            return Path.GetFullPath(gamePath1.Path).Equals(Path.GetFullPath(gamePath2.Path));
+        }
+        
         public static void SetSelectedGamePath(GamePath gamePath)
         {
-            Config.WriteGlobal("Main", "GamePath", gamePath.Name);
+            Config.WriteGlobal("Main", "GamePath", IsSameGamePath(GetGamePaths().First(), gamePath) ? "" : gamePath.Path);
         }
 
         public static void AddGamePath(GamePath gamePath)
         {
-            Config.WriteGlobal("GamePath", gamePath.Name, gamePath.Path);
+            Config.WriteGlobal("GamePath", Path.GetFullPath(gamePath.Path), gamePath.Name);
+        }
+        public static void DeleteGamePath(GamePath gamePath)
+        {
+            if(!string.IsNullOrEmpty(Config.ReadGlobal("GamePath", Path.GetFullPath(gamePath.Path))))
+            {
+                Config.DeleteGlobal("GamePath", Path.GetFullPath(gamePath.Path));
+            }
         }
         public static List<GamePath> GetGamePaths()
         {
@@ -48,6 +60,7 @@ namespace LMC.Minecraft
             {
                 GamePath gamePath = new GamePath();
                 gamePath.Name = Config.ReadGlobal("GamePath", key);
+                if(string.IsNullOrEmpty(gamePath.Name)) continue;
                 gamePath.Path = key;
                 if (Path.GetFullPath("./minecraft").Equals(Path.GetFullPath(gamePath.Path)))
                 {
@@ -58,9 +71,7 @@ namespace LMC.Minecraft
 
             if (gamePaths.Count == 0 || !hasCurrent)
             {
-                GamePath gamePath = new GamePath();
-                gamePath.Path = Path.GetFullPath("./.minecraft");
-                gamePath.Name = "当前文件夹";
+                GamePath gamePath = new GamePath("当前文件夹", Path.GetFullPath("./.minecraft"));
                 gamePaths.Insert(0,gamePath);
 //                AddGamePath();
             }

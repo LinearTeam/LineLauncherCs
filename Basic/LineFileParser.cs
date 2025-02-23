@@ -208,9 +208,9 @@ namespace LMC.Basic
                 if (insection)
                 {
                     var match = Regex.Match(lines[i], _pattern);
-                    if (match.Success && match.Groups["key"].Value == key)
+                    if(lines[i].StartsWith($"|{key}|:|") && lines[i].EndsWith($"|"))
                     {
-                        //If found key, then update.
+                        //If found key, then update.    
                         lines[i] = $"|{key}|:|{value}|";
                         keyFound = true;
                     }
@@ -226,5 +226,43 @@ namespace LMC.Basic
 
             File.WriteAllLines(path, lines); 
         }
+        
+        public void Delete(string path, string key, string section)
+        {
+            if (!File.Exists(path))
+            {
+                return;
+            }
+            string startTag = $"|{section}|_start";
+            string endTag = $"|{section}|_end";
+            bool insection = false;
+            var lines = File.ReadAllLines(path).ToList();
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i].Trim() == startTag)
+                {
+                    insection = true;
+                    continue;
+                }
+                if (lines[i].Trim() == endTag)
+                {
+                    insection = false;
+                    continue;
+                }
+
+                if (insection)
+                {
+                    var match = Regex.Match(lines[i], _pattern);
+                    if (match.Success && match.Groups["key"].Value == key)
+                    {
+                        lines.RemoveAt(i);
+                    }
+                }
+            }
+
+            File.WriteAllLines(path, lines); 
+        }
+
     }
 }

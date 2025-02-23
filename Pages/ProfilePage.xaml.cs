@@ -10,6 +10,9 @@ using System.Windows.Media.Imaging;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
 using LMC.Minecraft;
+using LMC.Utils;
+using Microsoft.Win32;
+using ListView = iNKORE.UI.WPF.Modern.Controls.ListView;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages
@@ -35,7 +38,6 @@ namespace LMC.Pages
         private static readonly Logger s_logger = new Logger("PG");
         private readonly ObservableCollection<ProfileItem> _profileItems = new ObservableCollection<ProfileItem>();
         private readonly ObservableCollection<GamePathItem> _gamePathItems = new ObservableCollection<GamePathItem>();
-        private bool _initialized = false;
         public static ProfilePage Instance;
         public ProfilePage()
         {
@@ -43,13 +45,12 @@ namespace LMC.Pages
             InitializeComponent();
             this.Loaded += (a, b) =>
             {
-                if (!_initialized) RefreshUi();
+                Dispatcher.InvokeAsync(RefreshUi);
             };
         }         
 
         public async Task RefreshUi()
         {
-            _initialized = true;
             _profileItems.Clear();
             ir.ItemsSource = _profileItems;
             gr.ItemsSource = _gamePathItems;
@@ -157,7 +158,7 @@ namespace LMC.Pages
                 GamePathItem gamePathItem = new GamePathItem();
                 gamePathItem.Path = gp.Path;
                 gamePathItem.Name = gp.Name;
-                if (Path.GetFullPath(gp.Path).Equals(ProfileManager.GetSelectedGamePath().Path)) continue;
+                if (ProfileManager.IsSameGamePath(gp, ProfileManager.GetSelectedGamePath())) continue;
                 _gamePathItems.Add(gamePathItem);
             }
             var sgp = ProfileManager.GetSelectedGamePath();
@@ -166,7 +167,89 @@ namespace LMC.Pages
             gpi.Name = sgp.Name;
             _gamePathItems.Insert(0, gpi);
             gr.SelectedIndex = 0;
+            fview.SelectedIndex = 0;
             scd.ShowAsync();
+        }
+
+        private void Confirm_Clicked(object sender, RoutedEventArgs e)
+        {
+            var gpi = _gamePathItems[gr.SelectedIndex];
+            ProfileManager.SetSelectedGamePath(new GamePath(gpi));
+            Dispatcher.InvokeAsync(RefreshUi);
+            scd.Hide();
+        }
+
+        private void Cancel_Clicked(object sender, RoutedEventArgs e)
+        {
+            scd.Hide();
+        }
+
+        private void Delete_OnClick(object sender, RoutedEventArgs e)
+        {
+            var deletedItem = _gamePathItems[gr.SelectedIndex];
+            if(ProfileManager.IsSameGamePath(new GamePath("1","./.minecraft"), new GamePath(deletedItem))) return;
+            _gamePathItems.Remove(deletedItem);
+            ProfileManager.DeleteGamePath(new GamePath(deletedItem));
+        }
+
+        private void Gr_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(_gamePathItems.Count <= 0) return;
+            if(((ListView) sender).SelectedIndex < 0) ((ListView)sender).SelectedIndex = 0;
+            var deletedItem = _gamePathItems[gr.SelectedIndex];
+            delete.IsEnabled = !ProfileManager.IsSameGamePath(new GamePath("1", "./.minecraft"), new GamePath(deletedItem));
+        }
+
+        private void Add_OnClick(object sender, RoutedEventArgs e)
+        {
+            fview.SelectedIndex = 1;
+            
+            string name = AddName.Text.Trim();
+            string path = AddPath.Text;
+            if(!Directory.Exists(path) || string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name) || name.Contains("|") || name.Length > 15)
+            {
+                AddConfirm.IsEnabled = false;
+            } else AddConfirm.IsEnabled = true;
+        }
+
+        private void SelectPath_Click(object sender, RoutedEventArgs e)
+        {
+            string path = FolderPicker.SelectFolder(MainWindow.Instance, "请选择 .minecraft 文件夹");
+            if (!string.IsNullOrEmpty(path))
+            {
+                AddPath.Text = path;
+            }
+        }
+
+        private void Add_TextChange(object sender, TextChangedEventArgs e)
+        {
+            string name = AddName.Text.Trim();
+            string path = AddPath.Text;
+            if(!Directory.Exists(path) || string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name) || name.Contains("|") || name.Length > 15)
+            {
+                AddConfirm.IsEnabled = false;
+            } else AddConfirm.IsEnabled = true;
+        }
+
+        private void AddCancel_OnClick(object sender, RoutedEventArgs e)
+        {
+            fview.SelectedIndex = 0;
+        }
+
+        private void AddConfirm_OnClick(object sender, RoutedEventArgs e)
+        {
+            string name = AddName.Text.Trim();
+            string path = AddPath.Text;
+            if(!Directory.Exists(path) || string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name) || name.Contains("|") || name.Length > 15)
+            {
+                AddConfirm.IsEnabled = false;
+            } else AddConfirm.IsEnabled = true;
+            if(!AddConfirm.IsEnabled) return;
+            GamePath gp = new GamePath(AddName.Text.TrimStart().TrimEnd(), AddPath.Text);
+            ProfileManager.AddGamePath(gp);
+            fview.SelectedIndex = 0;
+            scd.Hide();
+            RefreshUi();
         }
     }
 }

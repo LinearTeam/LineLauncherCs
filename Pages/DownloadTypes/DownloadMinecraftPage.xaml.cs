@@ -59,7 +59,16 @@ namespace LMC.Pages.DownloadTypes
         private async Task LoadDataAsync()
         {
             LoadingMask.Visibility = Visibility.Visible;
-            await Task.Run(() => RefreshVersionList());
+            try
+            {
+                await Task.Run(() => RefreshVersionList());
+            }
+            catch (Exception e)
+            {
+                new Logger("DMP").Error("获取 Minecraft 版本列表时出错：" + e.Message + "\n" + e.StackTrace + "\n" + e.InnerException);
+                MainWindow.ShowDialog("确认",
+                    "获取 Minecraft 版本列表时出错：" + e.Message + "\n" + e.StackTrace + "\n" + e.InnerException, "错误");
+            }
             LoadingMask.Visibility = Visibility.Collapsed;
         }
 
@@ -201,57 +210,67 @@ namespace LMC.Pages.DownloadTypes
 
         private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
-            if (sender is SettingsCard card)
+            try
             {
-                tbc.Text = card.Header.ToString();
-                vcard.Header = card.Header.ToString();
-                var gd = new GameDownloader();
-                LoadingMask.Visibility = Visibility.Visible;
-                var res = await gd.GetForgeFabricOptifineVersionList(card.Header.ToString());
-                fview.SelectedIndex = 1;
-                fab.Items.Clear();
-                opti.Items.Clear();
-                forge.Items.Clear();
-                fab.Items.Add("不安装");
-                opti.Items.Add("不安装");
-                forge.Items.Add("不安装");
-                fab.IsEnabled = true;
-                forge.IsEnabled = true;
-                opti.IsEnabled = true;
-                if (res.fabs == null || res.fabs.Count <= 0)
+                if (sender is SettingsCard card)
                 {
-                    fab.IsEnabled = false;
-                }
-                else
-                {
-                    res.fabs.ForEach(s => fab.Items.Add(s));
-                }
+                    tbc.Text = card.Header.ToString();
+                    vcard.Header = card.Header.ToString();
+                    var gd = new GameDownloader();
+                    LoadingMask.Visibility = Visibility.Visible;
+                    var res = await gd.GetForgeFabricOptifineVersionList(card.Header.ToString());
+                    fview.SelectedIndex = 1;
+                    fab.Items.Clear();
+                    opti.Items.Clear();
+                    forge.Items.Clear();
+                    fab.Items.Add("不安装");
+                    opti.Items.Add("不安装");
+                    forge.Items.Add("不安装");
+                    fab.IsEnabled = true;
+                    forge.IsEnabled = true;
+                    opti.IsEnabled = true;
+                    if (res.fabs == null || res.fabs.Count <= 0)
+                    {
+                        fab.IsEnabled = false;
+                    }
+                    else
+                    {
+                        res.fabs.ForEach(s => fab.Items.Add(s));
+                    }
 
-                if (res.forges == null || res.forges.Count <= 0)
-                {
-                    forge.IsEnabled = false;
-                }
-                else
-                {
-                    res.forges.ForEach(s => forge.Items.Add(s));
-                }
+                    if (res.forges == null || res.forges.Count <= 0)
+                    {
+                        forge.IsEnabled = false;
+                    }
+                    else
+                    {
+                        res.forges.ForEach(s => forge.Items.Add(s));
+                    }
 
-                if (res.opts == null || res.opts.Count <= 0)
-                {
-                    opti.IsEnabled = false;
-                }
-                else
-                {
-                    res.opts.ForEach(s => opti.Items.Add(s));
-                }
+                    if (res.opts == null || res.opts.Count <= 0)
+                    {
+                        opti.IsEnabled = false;
+                    }
+                    else
+                    {
+                        res.opts.ForEach(s => opti.Items.Add(s));
+                    }
 
-                vcard.HeaderIcon = card.HeaderIcon;
-                fab.SelectedIndex = 0;
-                forge.SelectedIndex = 0;
-                opti.SelectedIndex = 0;
-                next.IsEnabled = true;
-                back.IsEnabled = true;
-                LoadingMask.Visibility = Visibility.Collapsed;
+                    vcard.HeaderIcon = card.HeaderIcon;
+                    fab.SelectedIndex = 0;
+                    forge.SelectedIndex = 0;
+                    opti.SelectedIndex = 0;
+                    next.IsEnabled = true;
+                    back.IsEnabled = true;
+                    LoadingMask.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch(Exception ex)
+            {
+                new Logger("DMP").Error("加载指定版本的加载器信息时出错：" + ex.Message + "\n" + ex.StackTrace + "\n" + ex.InnerException);
+                MainWindow.ShowDialog("确认",
+                    "加载指定版本的加载器信息时出错：" + ex.Message + "\n" + ex.StackTrace + "\n" + ex.InnerException, "错误");
+                fview.SelectedIndex = 0;
             }
         }
 

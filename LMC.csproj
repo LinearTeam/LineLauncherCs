@@ -326,6 +326,7 @@
       <DependentUpon>HomePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tasks\TaskManager.cs" />
+    <Compile Include="Utils\FolderPicker.cs" />
     <Compile Include="Utils\HttpUtils.cs" />
     <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="Utils\Downloader.cs">

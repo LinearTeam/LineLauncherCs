@@ -17,6 +17,12 @@ namespace LMC.Basic
         {
             return s_lineFileParser.Read(GlobalPath, key, section);
         }
+
+        public static void DeleteGlobal(string section, string key)
+        {
+            s_lineFileParser.Delete(GlobalPath, key, section);
+        }
+        
         public static void Write(string section, string key, string value)
         {
             s_lineFileParser.Write(LocalPath, key, value, section);
@@ -25,6 +31,12 @@ namespace LMC.Basic
         {
             return s_lineFileParser.Read(LocalPath, key, section);
         }
+        
+        public static void Delete(string section, string key)
+        {
+            s_lineFileParser.Delete(LocalPath, key, section);
+        }
+
         public static List<string> ReadKeySet(string section)
         {
             return s_lineFileParser.GetKeySet(LocalPath, section);

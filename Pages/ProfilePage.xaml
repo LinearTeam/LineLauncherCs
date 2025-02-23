@@ -55,22 +55,45 @@
                          IsSelectionEnabled="False" Margin="0,70,0,0" 
                          SelectionMode="Single" IsEnabled="True"/>
             <ui:ContentDialog x:Name="scd" Title="选择 .minecraft 文件夹">
-                <Grid>
-                    <Grid.Resources>
-                        <DataTemplate DataType="{x:Type local:GamePathItem}" x:Key="GamePathItem">
-                            <ikw:SimpleStackPanel Orientation="Vertical">
-                                <TextBlock FontWeight="Bold" Text="{Binding Name}"/>
-                                <TextBlock Text="{Binding Path}"/>
+                <ui:FlipView Orientation="Horizontal" IsNavigationEnabled="False" SelectedIndex="0" x:Name="fview" Background="Transparent">
+                    <ui:FlipView.Items>
+                        <Grid>
+                            <Grid.Resources>
+                                <DataTemplate DataType="{x:Type local:GamePathItem}" x:Key="GamePathItem">
+                                    <ikw:SimpleStackPanel Orientation="Vertical">
+                                        <TextBlock FontWeight="Bold" Text="{Binding Name}"/>
+                                        <TextBlock Text="{Binding Path}"/>
+                                    </ikw:SimpleStackPanel>
+                                </DataTemplate>
+                            </Grid.Resources>
+                            <ui:ListView x:Name="gr" ItemTemplate="{StaticResource GamePathItem}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,0,0,30"
+                                         VirtualizingStackPanel.IsVirtualizing="True"
+                                         VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                         ui:ScrollViewerEx.IsDeferredScrollingEnabled="True"
+                                         IsMultiSelectCheckBoxEnabled="False"
+                                         SelectionMode="Single" IsEnabled="True" SelectionChanged="Gr_OnSelectionChanged"/>
+                            <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,0,0">
+                                <Button Content="添加" x:Name="add" Click="Add_OnClick"/>
+                                <Button Content="删除" Foreground="Red" x:Name="delete" Click="Delete_OnClick"/>
+                                <Button Content="取消" x:Name="cancel" Click="Cancel_Clicked"/>
+                                <Button Content="确定" Background="DodgerBlue" Click="Confirm_Clicked"/>
                             </ikw:SimpleStackPanel>
-                        </DataTemplate>
-                    </Grid.Resources>
-                    <ui:ListView x:Name="gr" ItemTemplate="{StaticResource GamePathItem}" HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                                 VirtualizingStackPanel.IsVirtualizing="True"
-                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
-                                 ui:ScrollViewerEx.IsDeferredScrollingEnabled="True"
-                                 IsMultiSelectCheckBoxEnabled="False"
-                                 SelectionMode="Single" IsEnabled="True"/>
-                </Grid>
+                        </Grid>
+                        <Grid>
+                            <ikw:SimpleStackPanel Orientation="Vertical" Spacing="3">
+                                <TextBox ui:ControlHelper.PlaceholderText="名称" x:Name="AddName" TextChanged="Add_TextChange"/>
+                                <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="1">
+                                    <TextBox ui:ControlHelper.PlaceholderText="路径" x:Name="AddPath" TextChanged="Add_TextChange"/>
+                                    <Button Content="..." Click="SelectPath_Click"></Button>
+                                </ikw:SimpleStackPanel>
+                                <ikw:SimpleStackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="5">
+                                    <Button Content="取消" x:Name="AddCancel" Click="AddCancel_OnClick"/>
+                                    <Button Content="确定" x:Name="AddConfirm" Click="AddConfirm_OnClick"/>
+                                </ikw:SimpleStackPanel>
+                            </ikw:SimpleStackPanel>
+                        </Grid>
+                        </ui:FlipView.Items>
+                </ui:FlipView>
             </ui:ContentDialog>
     </Grid>
 </ui:Page>

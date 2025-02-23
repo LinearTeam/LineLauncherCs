@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
+using LMC.Pages;
 using LMC.Tasks;
 using LMC.Utils;
 
@@ -117,7 +118,6 @@ namespace LMC.Minecraft
                     {
                     }
                 }
-
             };
             
             timer.Start();
@@ -431,7 +431,7 @@ namespace LMC.Minecraft
                         // 在一定间隔内触发垃圾回收
                         if (completedCount >= 50)
                         {
-                            Console.WriteLine($"Triggering garbage collection after {completedCount} downloads...");
+                            _logger.Debug($"Triggering garbage collection after {completedCount} downloads...");
                             Interlocked.Exchange(ref completedCount, 0);
                             GC.Collect();
                             GC.WaitForPendingFinalizers();
