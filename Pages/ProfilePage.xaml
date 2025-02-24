@@ -14,7 +14,7 @@
         <Grid.Resources>
             <DataTemplate x:Key="ProfileDataItem" DataType="{x:Type local:ProfileItem}">
                 <ui:SettingsCard Header="{Binding Path=Name}"
-                                 Description="{Binding Path=Description}" IsClickEnabled="True">
+                                 Description="{Binding Path=Description}" IsClickEnabled="True" Click="SC_Click">
                     <ui:SettingsCard.Resources>
                         <ResourceDictionary>
                             <sys:Double x:Key="SettingsCardHeaderIconMaxSize">64</sys:Double>

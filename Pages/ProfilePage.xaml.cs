@@ -251,5 +251,10 @@ namespace LMC.Pages
             scd.Hide();
             RefreshUi();
         }
+
+        private void SC_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.Navigate(new ProfileManagePage());
+        }
     }
 }

@@ -307,6 +307,9 @@
     <Compile Include="Pages\DownloadTypes\DownloadMinecraftPage.xaml.cs">
       <DependentUpon>DownloadMinecraftPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\ProfileManagePage.xaml.cs">
+      <DependentUpon>ProfileManagePage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\TaskPage.xaml.cs">
       <DependentUpon>TaskPage.xaml</DependentUpon>
     </Compile>
@@ -369,6 +372,10 @@
     <Page Include="Pages\DownloadTypes\DownloadMinecraftPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\ProfileManagePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\TaskPage.xaml">
       <Generator>MSBuild:Compile</Generator>
