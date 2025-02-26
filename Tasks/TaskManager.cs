@@ -74,9 +74,12 @@ namespace LMC.Tasks
         {
             if (!CancellationTokenSource.IsCancellationRequested)
             {
-                CancellationTokenSource.Cancel();
-                _logger.Warn($"{GetTaskTypeName()} {Id} 已收到取消请求。");
-                Status = ExecutionStatus.Canceled;
+                if (Status != ExecutionStatus.Completed || Status != ExecutionStatus.Failed)
+                {
+                    CancellationTokenSource.Cancel();
+                    _logger.Warn($"{GetTaskTypeName()} {Id} 已收到取消请求。");
+                    Status = ExecutionStatus.Canceled;
+                }
             }
         }
 

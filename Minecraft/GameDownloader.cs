@@ -91,6 +91,7 @@ namespace LMC.Minecraft
         public async Task DownloadGame(string versionId, string versionName, bool isOptifine, bool isFabric, bool isForge, string optifine = "", string fabric = "",
             string forge = "")
         {
+            GamePath = ProfileManager.GetSelectedGamePath().Path;
             if (!(isOptifine || isFabric || isForge))
             {
                 _logger.Info($"新的原版游戏下载任务: {versionId} , 名称: {versionName}");

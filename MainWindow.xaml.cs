@@ -281,7 +281,7 @@ namespace LMC
         {
             if (MainFrame.Content != null && MainFrame.Content is Page)
             {
-                if (push)
+                if (push && !(MainFrame.Content is ProfileManagePage))
                 {
                     s_accessPages.Push(MainFrame.Content as Page);
                     s_lastSelectedItem.Push(MainNagView.SelectedItem as NavigationViewItem);
@@ -406,6 +406,7 @@ namespace LMC
 
         private void ShowMessage(InfoBar infoBar, InfoBarMessage message)
         {
+            s_logger.Info($"显示消息：{message.Message}:\n{message.Severity}\n{message.Message}");
             infoBar.Message = message.Message;
             infoBar.Title = message.Title;
             infoBar.Severity = message.Severity;

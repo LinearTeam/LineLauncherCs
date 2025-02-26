@@ -46,7 +46,10 @@ namespace LMC.Pages
                 se.Content = cancel;
                 cancel.Click += (o, args) =>
                 {
-                    if (task.Status != ExecutionStatus.Canceled) task.Cancel();
+                    if (!cancel.Content.Equals("确定"))
+                    {
+                        if (task.Status != ExecutionStatus.Canceled && task.Status != ExecutionStatus.Completed) task.Cancel();
+                    }
                     ssp.Children.Remove(se);
                 };
                 se.Header = task.TaskName;

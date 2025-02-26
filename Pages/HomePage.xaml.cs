@@ -12,7 +12,18 @@ namespace LMC.Pages
         public HomePage()
         {
             InitializeComponent();
+            Loaded += OnLoaded;
         }
 
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            var p = await ProfileManager.GetSelectedProfile();
+            ProfileButton.Content = "版本\n" + p.Name;
+        }
+
+        private void ProfileButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            MainWindow.Navigate(MainWindow.ProfilePage);
+        }
     }
 }

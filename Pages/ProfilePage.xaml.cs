@@ -38,6 +38,7 @@ namespace LMC.Pages
         private static readonly Logger s_logger = new Logger("PG");
         private readonly ObservableCollection<ProfileItem> _profileItems = new ObservableCollection<ProfileItem>();
         private readonly ObservableCollection<GamePathItem> _gamePathItems = new ObservableCollection<GamePathItem>();
+        private List<LocalProfile> _localProfiles = new List<LocalProfile>();
         public static ProfilePage Instance;
         public ProfilePage()
         {
@@ -56,6 +57,7 @@ namespace LMC.Pages
             gr.ItemsSource = _gamePathItems;
             var gamePath = ProfileManager.GetSelectedGamePath();
             var profiles = await ProfileManager.GetProfiles(gamePath);
+            _localProfiles = profiles;
             var profileItems = new List<ProfileItem>();
             foreach (var profile in profiles)
             {
@@ -254,7 +256,15 @@ namespace LMC.Pages
 
         private void SC_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.Navigate(new ProfileManagePage());
+            var sc = (SettingsCard)sender;
+            foreach (var p in _localProfiles)
+            {
+                if (p.Name.Equals(sc.Header))
+                {
+                    MainWindow.Navigate(new ProfileManagePage(p));
+                    return;
+                }
+            }
         }
     }
 }

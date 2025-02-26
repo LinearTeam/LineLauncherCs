@@ -242,5 +242,46 @@ namespace LMC.Minecraft
             
             throw new UnknownVersionException("Failed to parse profile version", filePath);
         }
+
+        public async static Task DeleteProfile(LocalProfile profile)
+        {
+            int i = 10;
+            while (i-- > 0)
+            {
+                try
+                {
+                    await Task.Delay(1000);
+                    Directory.Delete(profile.Path, true);
+                    return;
+                }
+                catch(Exception ex)
+                {
+                    if(i == 1) throw;
+                }
+            }
+        }
+
+        public static void ChooseProfile(LocalProfile profile)
+        {
+            if (profile.GamePath.Path.Equals(GetSelectedGamePath().Path))
+            {
+                Config.WriteGlobal("Main", "Profile", profile.Path);
+            }
+        }
+
+        public static async Task<LocalProfile> GetSelectedProfile()
+        {
+            var path = Config.ReadGlobal("Main", "Profile");
+            var profiles = await GetProfiles(GetSelectedGamePath());
+            foreach (var p in profiles)
+            {
+                if (p.Path.Equals(path))
+                {
+                    return p;
+                }
+            }
+            if(profiles.Count != 0) return profiles.First();
+            return null;
+        }
     }
 }

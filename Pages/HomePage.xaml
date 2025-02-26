@@ -10,5 +10,6 @@
       Title="主页">
 
     <Grid>
+        <ui:HyperlinkButton HorizontalAlignment="Left" VerticalAlignment="Bottom" x:Name="ProfileButton" Click="ProfileButton_OnClick" Margin="30"></ui:HyperlinkButton>
     </Grid>
 </ui:Page>
