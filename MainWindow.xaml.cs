@@ -289,6 +289,9 @@ namespace LMC
 
                 EnqueueMessage(new InfoBarMessage("调试模式已启用，将输出调试日志，可以在 设置 - 调试设置 中关闭。", InfoBarSeverity.Informational, "调试模式"));
             }
+
+            Directory.CreateDirectory("./.minecraft");
+            Directory.CreateDirectory("./.minecraft/versions");
         }
 
 
