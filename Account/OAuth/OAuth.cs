@@ -119,7 +119,6 @@ namespace LMC.Account.OAuth
                 Secrets.Replaces[t.refreshtoken] = "{RefreshToken}";
                 listener.Stop();
                 //0 - done;1 - unknown exception;2 - nomc;3 - no code
-                _logger.Info(t.refreshtoken + t.account.AccessToken);
                 return (0, t.account, t.refreshtoken); 
             } catch(Exception e) {
                 if(e.Message.Contains("Do not have mc"))
