@@ -8,6 +8,7 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using iNKORE.UI.WPF.Controls;
 using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
@@ -210,6 +211,56 @@ namespace LMC
                 s_logger.Error("更新检查失败：" + ex.Message + "\n" + ex.StackTrace);
                 await ShowDialog("确认", $"更新检查失败：{ex.Message}\n{ex.StackTrace}", "错误");
             }
+            
+            try
+            {
+                s_logger.Info("正在检查隐私政策");
+                string noticeFile = await HttpUtils.GetString("https://huangyu.win/LMC/privacy.line");
+                s_logger.Info("获取到的隐私政策文件: \n" + noticeFile);
+                File.WriteAllText("./LMC/temp/privacy.line", noticeFile);
+                var lfp = new LineFileParser();
+                string id = lfp.Read("./LMC/temp/privacy.line", "privacyId", "privacy");
+                if (Config.ReadGlobal("privacy", "id") != id)
+                {
+                    s_logger.Info("隐私政策未被查看，V: " + Config.ReadGlobal("privacy", "id") + "/" + id);
+                    string content = lfp.Read("./LMC/temp/privacy.line", "link", "privacy");
+                    ContentDialog cd = new ContentDialog();
+                    cd.Title = "隐私政策";
+                    SimpleStackPanel ssp = new SimpleStackPanel();
+                    ssp.Orientation = Orientation.Vertical;
+                    Label l = new Label();
+                    l.Content = $"在使用LMC前，请先阅读我们的隐私政策：\n{content}";
+                    ssp.Children.Add(l);
+                    Button b = new Button();
+                    b.Content = "查看隐私政策";
+                    b.Click += async (s, e) => System.Diagnostics.Process.Start("explorer.exe", $"\"{content}\"");
+                    b.VerticalAlignment = VerticalAlignment.Bottom;
+                    b.HorizontalAlignment = HorizontalAlignment.Right;
+                    ssp.Children.Add(b);
+                    ssp.Spacing = 15;
+                    cd.Content = ssp;
+                    cd.PrimaryButtonText = "同意";
+                    cd.SecondaryButtonText = "拒绝";
+                    cd.PrimaryButtonClick += (dialog, args) =>
+                    {
+                        Config.WriteGlobal("privacy", "id", id);
+                        Secrets.Write("pt", "t", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                        s_logger.Info("用户同意了隐私政策");
+                    };
+                    cd.SecondaryButtonClick += (dialog, args) =>
+                    {
+                        s_logger.Info("用户拒绝了隐私政策");
+                        App.Current.Shutdown();
+                    };
+                    await cd.ShowAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                s_logger.Error("检查公告失败：" + ex.Message + "\n" + ex.StackTrace);
+                await ShowDialog("确认", "检查公告失败：" + ex.Message + "\n" + ex.StackTrace, "错误");
+            }
+
 
             try
             {

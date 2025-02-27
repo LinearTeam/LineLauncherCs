@@ -17,11 +17,22 @@ namespace LMC.Basic
     public class Secrets
     {
         public static readonly string Path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/.linelauncher/DoNotSendThisToAnyone/请勿将此发送给他人/secrets.line";
+        public static Dictionary<string, string> Replaces = new Dictionary<string, string>();
         private static LineFileParser s_lineFileParser = new LineFileParser();
         private static Logger s_logger = new Logger("SEC");
         private static string s_cachedCpuId = null;
         private static string s_cachedBiosId = null;
 
+        public static string Replace(string str)
+        {
+            foreach (var r in Replaces.Keys)
+            {
+                str = str.Replace(r, Replaces[r]);
+            }
+
+            return str;
+        }
+        
         public static string GetWmiInfo(string c, string p)
         {
             string res = string.Empty;

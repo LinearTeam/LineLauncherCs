@@ -23,6 +23,7 @@ namespace LMC.Account.OAuth
         async public Task<(string refreshToken, string accessToken, int result)> CheckResult(string deviceCode)
         {
             _logger.Info("正在检查设备代码流验证结果");
+            Secrets.Replaces[deviceCode] = "{DeviceCode}";
             string url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
             string contentType = "application/x-www-form-urlencoded";
             string accept = "application/json";
@@ -48,6 +49,9 @@ namespace LMC.Account.OAuth
                 return (null, null, 2);
             }
             _logger.Info("结果：success");
+            Secrets.Replaces[JsonUtils.GetValueFromJson(res, "refresh_token")] = "{RefreshToken}";
+            Secrets.Replaces[JsonUtils.GetValueFromJson(res, "access_token")] = "{AccessToken}";
+            Secrets.Replaces[res] = "{LoginResult}";
             return (JsonUtils.GetValueFromJson(res, "refresh_token"), JsonUtils.GetValueFromJson(res, "access_token"), 0);
         }
 
@@ -62,6 +66,8 @@ namespace LMC.Account.OAuth
             var res = await HttpUtils.PostWithParameters(parameters, "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode?mkt=zh-CN", "application/json", "application/x-www-form-urlencoded");
             string usercode = JsonUtils.GetValueFromJson(res, "user_code");
             string devicecode = JsonUtils.GetValueFromJson(res, "device_code");
+            Secrets.Replaces[usercode] = "{UserCode}";
+            Secrets.Replaces[devicecode] = "{DeviceCode}";
             string msg = JsonUtils.GetValueFromJson(res, "message");
             string url = JsonUtils.GetValueFromJson(res, "verification_url");
             int interval = int.Parse(JsonUtils.GetValueFromJson(res, "interval"));
@@ -78,6 +84,7 @@ namespace LMC.Account.OAuth
                 Account account = new Account();
                 account.Type = AccountType.MSA;
                 account.AccessToken = t.mcatoken;
+                Secrets.Replaces[t.mcatoken] = "{AccessToken}";
                 account.Id = t.name;
                 account.Uuid = t.uuid;
                 //0 - done;1 - unknown exception;2 - nomc;3 - no code
@@ -109,8 +116,10 @@ namespace LMC.Account.OAuth
             try
             {
                 var t = await StepOne(listener, whenGotCode);
+                Secrets.Replaces[t.refreshtoken] = "{RefreshToken}";
                 listener.Stop();
                 //0 - done;1 - unknown exception;2 - nomc;3 - no code
+                _logger.Info(t.refreshtoken + t.account.AccessToken);
                 return (0, t.account, t.refreshtoken); 
             } catch(Exception e) {
                 if(e.Message.Contains("Do not have mc"))
@@ -189,7 +198,8 @@ namespace LMC.Account.OAuth
                 context = await listener.GetContextAsync();
                 request = context.Request;
                 response = context.Response;
-                string responseString = "<html><body><center><h1>您已登录您的微软账号至Line Launcher，可以关闭此界面。</h1></center></body></html><!--" + rawUrl + "-->";
+                string responseString =
+                    "<html><body><center><h1>您已登录您的微软账号至Line Launcher，可以关闭此界面。</h1></center></body></html>";//"<!--" + rawUrl + "-->";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -207,6 +217,10 @@ namespace LMC.Account.OAuth
                 }
                 Account a = new Account();
                 a.AccessToken = t.mcatoken;
+                if (!string.IsNullOrEmpty(t.mcatoken))
+                {
+                    Secrets.Replaces[t.mcatoken] = "{AccessToken}";
+                }
                 a.Uuid = t.uuid;
                 a.Id = t.name;
                 return (a, t.refreshtoken);
@@ -219,7 +233,7 @@ namespace LMC.Account.OAuth
                 context = await listener.GetContextAsync();
                 request = context.Request;
                 response = context.Response;
-                string responseString = "<html><body><center><h1>登录失败，请重试或提交反馈！</h1><center></body></html><!--" + rawUrl + "-->";
+                string responseString = "<html><body><center><h1>登录失败，请重试或提交反馈！</h1><center></body></html>";//"<!--" + rawUrl + "-->";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.ContentType = "text/html; charset=UTF-8";
@@ -246,7 +260,8 @@ namespace LMC.Account.OAuth
             string context = await HttpUtils.PostWithParameters(parameters, url, "application/json", "application/x-www-form-urlencoded");
             string accesstoken = JsonUtils.GetValueFromJson(context, "access_token");
             string refreshtoken = JsonUtils.GetValueFromJson(context, "refresh_token");
-            
+            Secrets.Replaces[accesstoken] = "{AccessToken}";
+            Secrets.Replaces[refreshtoken] = "{RefreshToken}";
             _logger.Info($"MSL step 3");
             var t = await StepThree(accesstoken);
             if(t.name != null)
@@ -265,7 +280,12 @@ namespace LMC.Account.OAuth
                 { "refresh_token", rtoken},
                 { "grant_type", "refresh_token"}
             };
+            
             string context = await HttpUtils.PostWithParameters(parameters, url, "application/json", "application/x-www-form-urlencoded");
+            string at = JsonUtils.GetValueFromJson(context, "access_token");
+            string rt = JsonUtils.GetValueFromJson(context, "refresh_token");
+            Secrets.Replaces[at] = "{AccessToken}";
+            Secrets.Replaces[rt] = "{RefreshToken}";
             return (JsonUtils.GetValueFromJson(context, "access_token"), JsonUtils.GetValueFromJson(context, "refresh_token"));
         }
         async public Task<(string uuid, string name, string mcatoken)> StepThree(string token)
@@ -282,6 +302,7 @@ namespace LMC.Account.OAuth
             string url = "https://user.auth.xboxlive.com/user/authenticate";
             string xblres = await HttpUtils.PostWithJson(json, url, contenttype, contenttype);
             string t = JsonUtils.GetValueFromJson(xblres, "Token");
+            Secrets.Replaces[t] = "{TokenTh}";
             _logger.Info("MSL step 4");
             return await StepFour(t);
         }
@@ -300,6 +321,8 @@ namespace LMC.Account.OAuth
             string xstsres = await HttpUtils.PostWithJson(json, url, contenttype, contenttype);
             string token = JsonUtils.GetValueFromJson(xstsres, "Token");
             string uhs = JsonUtils.GetValueFromJson(xstsres, "DisplayClaims.xui[0].uhs");
+            Secrets.Replaces[uhs] = "{UHS}";
+            Secrets.Replaces[token] = "{Token}";
             _logger.Info("MSL step 5");
             var t = await StepFive(token, uhs);
             return t;
@@ -312,6 +335,7 @@ namespace LMC.Account.OAuth
             string contenttype = "application/json";
             string mjapires = await HttpUtils.PostWithJson(json, url, contenttype, contenttype);
             string token = JsonUtils.GetValueFromJson(mjapires, "access_token");
+            Secrets.Replaces[token] = "{AccessToken}";
             _logger.Info("MSL step 6");
             var t = await StepSix(token);
             if (t.Item1)

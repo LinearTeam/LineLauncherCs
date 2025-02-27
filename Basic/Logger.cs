@@ -75,6 +75,7 @@ namespace LMC.Basic
             string time = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss.fff");
             string logEntry = $"[{time}/{level}][{_module}]{msg}";
             Console.WriteLine(logEntry);
+            logEntry = Secrets.Replace(logEntry);
             _logQueue.Add(logEntry);
         }
 
