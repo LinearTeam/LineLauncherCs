@@ -280,8 +280,12 @@ namespace LMC.Minecraft
                     return p;
                 }
             }
-            if(profiles.Count != 0) return profiles.First();
-            return null;
+            if(profiles.Count != 0) return profiles.First(); 
+            LocalProfile profile = new LocalProfile();
+            profile.Name = "游戏目录下没有档案";
+            profile.Path = "";
+            profile.GamePath = GetSelectedGamePath();
+            return profile;
         }
     }
 }
