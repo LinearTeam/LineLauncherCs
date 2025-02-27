@@ -142,7 +142,12 @@ namespace LMC.Pages
         private void Choose(object sender, RoutedEventArgs e)
         {
             ProfileManager.ChooseProfile(_profile);
-            MainWindow.Instance.EnqueueMessage(new InfoBarMessage("", InfoBarSeverity.Informational, "已选择"));
+            MainWindow.Instance.EnqueueMessage(new InfoBarMessage("", InfoBarSeverity.Success, "已选择"));
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.Navigate(MainWindow.ProfilePage);
         }
     }
 }

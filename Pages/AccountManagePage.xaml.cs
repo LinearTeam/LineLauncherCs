@@ -1,17 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
@@ -22,12 +10,11 @@ namespace LMC.Pages
     /// </summary>
     public partial class AccountManagePage : Page
     {
-        public static Account.Account account;
-        private static Account.Account s_account;
+        private Account.Account _account;
         public AccountManagePage(Account.Account acc)
         {
             InitializeComponent();
-            s_account = acc;
+            _account = acc;
             if(acc.Type == AccountType.MSA)
             {
                 type.Text = "微软账号";
@@ -47,15 +34,15 @@ namespace LMC.Pages
 
         private async void AccountManagePage_Loaded(object sender, RoutedEventArgs e)
         { 
-            if (s_account.Type == AccountType.MSA)
+            if (_account.Type == AccountType.MSA)
             {
-                avat.Source = await AccountManager.GetAvatarAsync(s_account, 128);
+                avat.Source = await AccountManager.GetAvatarAsync(_account, 128);
             }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            AccountManager.DeleteAccount(s_account);
+            AccountManager.DeleteAccount(_account);
             AccountPage.RefreshAccounts();
             MainWindow.MainFrame.Navigate(MainWindow.AccountPage);
         }
@@ -63,6 +50,12 @@ namespace LMC.Pages
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             MainWindow.Navigate(MainWindow.AccountPage);
+        }
+
+        private async void Select(object sender, RoutedEventArgs e)
+        {
+            await AccountManager.SetSelectedAccount(_account);
+            MainWindow.Instance.EnqueueMessage(new InfoBarMessage("",InfoBarSeverity.Success,"已选择"));
         }
     }
 }

@@ -181,10 +181,12 @@ namespace LMC
                                 var list = new List<string>();
                                 list.Add("Let's speak English");
                                 list.Add("You can try Loser Launcher Maybe?");
+                                list.Add("It's Consumers!");
                                 list.Add("WHAT THE FUCK");
                                 list.Add("Okay, let's use WinUi 3 and go to the hell");
                                 list.Add("Delete all files of LMC and be careful with your .minecraft folder.");
                                 list.Add("让我们说中文");
+                                list.Add("使用Comsumer!");
                                 list.Add("你或许可以试试LoserMC？");
                                 list.Add("他妈的");
                                 list.Add("ok，让我们使用胜利UI3并下地狱");

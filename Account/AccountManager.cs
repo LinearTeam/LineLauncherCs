@@ -1,21 +1,11 @@
-﻿
-using LMC.Account.OAuth;
-using LMC.Basic;
-using LMC.Minecraft;
-using LMC.Pages;
+﻿using LMC.Basic;
 using LMC.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 
 namespace LMC.Account
 {
@@ -218,6 +208,77 @@ namespace LMC.Account
                 }
             }
             return accounts;
+        }
+
+        public static async Task SetSelectedAccount(Account account)
+        {
+            string secStr = "acc_" + (account.Type == AccountType.OFFLINE ? account.Id : account.Uuid) + "_" + account.Type;
+            Secrets.Write("Main", "Selected", secStr);
+        }
+        
+        public static async Task<Account> GetSelectedAccount()
+        {
+            if (string.IsNullOrEmpty(await Secrets.Read("Main", "Selected")))
+            {
+                var selected = await GetAccounts(false);
+                if (selected.Count > 0)
+                {
+                    var first = selected.First();
+                    return first;
+                }
+                else
+                {
+                    Account account = new Account();
+                    account.Id = "未添加账号";
+                    account.Type = AccountType.OFFLINE;
+                    return account;
+                }
+            }
+            else
+            {
+                var section = await Secrets.Read("Main", "Selected");
+                if(!(Secrets.ReadSections().Contains(section)))
+                {
+                    Secrets.DeleteKey("Main", "Selected");
+                    return await GetSelectedAccount();
+                }
+                var arr = section.Split('_');
+                string typeStr = arr[arr.Length - 1];
+                AccountType type = AccountType.OFFLINE;
+                switch (typeStr)
+                {
+                    case "MSA": type = AccountType.MSA; break;
+                    case "OFFLINE": type = AccountType.OFFLINE; break;
+                    case "AUTHLIB": type = AccountType.AUTHLIB; break;
+                }
+
+                Account account = new Account();
+                account.Type = type;
+                if (type == AccountType.OFFLINE)
+                {
+                    account.Id = await Secrets.Read(section, "id");
+                    return account;
+                }
+
+                if (type == AccountType.AUTHLIB)
+                {
+                    account.AuthLib_authServer = await Secrets.Read(section, "authServer");
+                    account.AuthLib_password = await Secrets.Read(section, "authPassword");
+                    account.AuthLib_account = await Secrets.Read(section, "authAccount");
+                    account.Id = await Secrets.Read(section, "id");
+                    account.Uuid = section.Substring(4).Replace("_AUTHLIB", "");
+                    return account;
+                }
+
+                if (type == AccountType.MSA)
+                {
+                    account.Id = await Secrets.Read(section, "id");
+                    account.Uuid = section.Substring(4).Replace("_MSA", "");
+//                        DownloadSkin(account);
+                    return account;
+                }
+            }
+            return null;
         }
     }
 }

@@ -17,7 +17,10 @@
                 <TextBlock TextAlignment="Center" TextWrapping="Wrap" Text="微软账号" FontSize="25" x:Name="type"/>
             </ikw:SimpleStackPanel>
         </ikw:SimpleStackPanel>
-        <Button VerticalAlignment="Bottom" Margin="10,10,70,10" HorizontalAlignment="Right" Content="删除该账号" Foreground="Red" Click="Button_Click"/>
-        <Button VerticalAlignment="Bottom" Margin="10" HorizontalAlignment="Right" Content="返回" Click="Button_Click_1"/>
+        <ikw:SimpleStackPanel Margin="10" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="5">
+            <Button Content="选择该账号" Click="Select"/>
+            <Button Content="删除该账号" Foreground="Red" Click="Button_Click"/>
+            <Button Content="返回" Click="Button_Click_1"/>
+        </ikw:SimpleStackPanel>
     </Grid>
 </ui:Page>

@@ -4,12 +4,16 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+      xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
       xmlns:local="clr-namespace:LMC.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="主页">
 
-    <Grid>
-        <ui:HyperlinkButton HorizontalAlignment="Left" VerticalAlignment="Bottom" x:Name="ProfileButton" Click="ProfileButton_OnClick" Margin="30"></ui:HyperlinkButton>
+    <Grid Margin="30,60">
+        <ikw:SimpleStackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom" Orientation="Horizontal" Margin="10,0,0,0" Spacing="10">
+            <ui:HyperlinkButton x:Name="ProfileButton" Click="ProfileButton_OnClick"/>
+            <ui:HyperlinkButton x:Name="AccountButton" Click="AccountButton_OnClick"/>
+        </ikw:SimpleStackPanel>
     </Grid>
 </ui:Page>

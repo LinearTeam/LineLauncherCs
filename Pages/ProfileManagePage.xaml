@@ -61,6 +61,7 @@
                 <!--     </ui:SettingsCard> -->
                 <!-- </ui:SettingsExpander.Items> -->
             </ui:SettingsExpander>
+            <Button HorizontalAlignment="Right" Content="返回" Click="BackButton_Click"/>
         </ikw:SimpleStackPanel>
     </Grid>
 </ui:Page>

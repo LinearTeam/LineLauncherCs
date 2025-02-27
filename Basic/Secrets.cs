@@ -174,6 +174,11 @@ namespace LMC.Basic
             return s_lineFileParser.GetKeySet(Path, section);
         }
 
+        public static void DeleteKey(string section, string key)
+        {
+            s_lineFileParser.Delete(Path, section, key);
+        }
+
         public static List<string> ReadSections()
         {
             return s_lineFileParser.GetSections(Path);

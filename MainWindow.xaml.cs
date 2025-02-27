@@ -277,7 +277,7 @@ namespace LMC
             return res;
         }
 
-        public static void Navigate(Page page, bool push = true)
+        public static void Navigate(Page page, bool push = true) 
         {
             if (MainFrame.Content != null && MainFrame.Content is Page)
             {
