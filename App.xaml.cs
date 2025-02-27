@@ -19,25 +19,21 @@ namespace LMC
     {
         private LineFileParser _lineFileParser = new LineFileParser();
 
-        public static string LauncherVersion = "2.0.3";
+        public static string LauncherVersion = "2.0.4";
         public static string LauncherVersionType = "alpha";
-        public static string LauncherBuildVersion = "0007";
+        public static string LauncherBuildVersion = "0008";
         public static string LauncherUpdateLog =
 @"    新功能：
-        ✨ 下载原版游戏
-        ✨ 按下ESC时返回上一页支持记录之前访问过的更多页面 (有与UI库相关的问题)
-        ✨ 公告系统
-        ✨ 任务管理系统/界面
+        ✨ 档案管理
+        ✨ 消息队列
+        ✨ 替换部分隐私内容
+        ✨ 隐私政策
     修复BUG：
-        🐛 更新修复
-        🐛 关于界面更新失败会弹出错误弹窗(#12)
-        🐛 没有secrets.line无法启动LMC
-        🐛 MainWindow的ShowDialog不处理SecondaryButton
-        🐛 一个未成功复现的Bug(理论)
+        🐛 任务取消时仍会继续运行
+        🐛 头像获取修复（能用了）
     页面修改：
-        💄 关于页面重写
-        💄 设置页面重写
-        💄 将启动页规划至主页，任务页取代原本下载页，下载页取代原本启动页 
+        💄 关于页面优化
+        💄 下载页面重写
     ......
     详细内容查看GitHub
 ";
