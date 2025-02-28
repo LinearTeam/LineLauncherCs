@@ -2,9 +2,11 @@
 using LMC.Basic;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using LMC.Account;
 using Newtonsoft.Json;
@@ -38,6 +40,14 @@ namespace LMC
     详细内容查看GitHub
 ";
 
+        [DllImport("user32.dll")]
+        private static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
+
+        public static void ActivateWindow(IntPtr handle)
+        {
+            SwitchToThisWindow(handle, true);
+        }
+        
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -69,7 +79,23 @@ namespace LMC
             Logger logger = new Logger("A");
             logger.Info($"日志记录开始 程序版本: {LauncherVersion} 构建号: {LauncherBuildVersion} 版本类型: {LauncherVersionType} 记录器版本: {Logger.LoggerVersion} 日志编号: {Logger.LogNum} ，正在初始化程序");
 
-            
+            logger.Info("正在检查是否有其他LMC"); 
+            Process current = Process.GetCurrentProcess();
+            Process[] processes = Process.GetProcesses();
+
+            foreach (Process process in processes)
+            {
+                // 排除当前进程
+                if (process.Id != current.Id && process.MainWindowTitle.StartsWith("Line Launcher"))
+                {
+                    // 激活已运行的实例并退出当前进程
+                    logger.Info("已检测到PID:" + process.Id);
+                    logger.Info("正在退出程序 " + $"程序版本: {LauncherVersion} 构建号: {LauncherBuildVersion} 版本类型: {LauncherVersionType} 记录器版本: {Logger.LoggerVersion} 日志编号: {Logger.LogNum}");
+                    ActivateWindow(process.MainWindowHandle);
+                    Environment.Exit(0);
+                    return;
+                }
+            }
             foreach (var str in e.Args)
             {
                 logger.Info("发现新的启动参数：" + str);
