@@ -81,6 +81,8 @@ namespace LMC.Minecraft
         public async static Task<List<LocalProfile>> GetProfiles(GamePath gamePath)
         {
             s_logger.Info("加载档案中 : " + gamePath.Path);
+            Directory.CreateDirectory("./.minecraft");
+            Directory.CreateDirectory("./.minecraft/versions");
             List<LocalProfile> profiles = new List<LocalProfile>();
             var dirs = Directory.GetDirectories(gamePath.Path + "\\versions\\");
             foreach (var dir in dirs)
