@@ -202,8 +202,8 @@ namespace LMC
                                 writer.WriteLine("LMC Crashed.");
                                 var list = new List<string>();
                                 list.Add("Let's speak English");
-                                list.Add("You can try Loser Launcher Maybe?");
                                 list.Add("It's Consumers!");
+                                list.Add("You can try Loser Launcher Maybe?");
                                 list.Add("WHAT THE FUCK");
                                 list.Add("Okay, let's use WinUi 3 and go to the hell");
                                 list.Add("Delete all files of LMC and be careful with your .minecraft folder.");

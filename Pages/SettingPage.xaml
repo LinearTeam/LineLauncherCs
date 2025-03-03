@@ -42,6 +42,22 @@
                         </ui:SettingsCard>
                     </ui:SettingsExpander.Items>
                 </ui:SettingsExpander>
+                <ui:SettingsExpander Header="游戏设置" Description="调整全局游戏内存等内容">
+                    <ui:SettingsExpander.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Game}"/>
+                    </ui:SettingsExpander.HeaderIcon>
+                    <ui:SettingsExpander.Items>
+                        <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="3" MinWidth="200">
+                            <Label Content="游戏运行内存 "/>
+                            <Label Content="已分配 4.0 GB"/>
+                            <Slider x:Name="RamSlider"
+                                    SmallChange="10" MinWidth="100"
+                                    Maximum="1000" Minimum="500"
+                                    TickFrequency="10" Value="800" />
+                            <Label Content="系统剩余 15.9 GB"/>
+                        </ikw:SimpleStackPanel>
+                    </ui:SettingsExpander.Items>
+                </ui:SettingsExpander>
             </ikw:SimpleStackPanel>
         </ui:ScrollViewerEx>
     </Grid>
