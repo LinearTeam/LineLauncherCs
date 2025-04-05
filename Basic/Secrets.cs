@@ -187,7 +187,7 @@ namespace LMC.Basic
 
         public static void DeleteKey(string section, string key)
         {
-            s_lineFileParser.Delete(Path, section, key);
+            s_lineFileParser.Delete(Path, key, section);
         }
 
         public static List<string> ReadSections()
