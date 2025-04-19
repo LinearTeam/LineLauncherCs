@@ -240,9 +240,13 @@ namespace LMC.Tasks
                         {
                             MainWindow.Instance.EnqueueMessage(new InfoBarMessage($"任务 {task.TaskName} 执行完成！", InfoBarSeverity.Success, "任务管理"));
                         }
-                        else
+                        else if(task.Status == ExecutionStatus.Failed)
                         {
                             MainWindow.Instance.EnqueueMessage(new InfoBarMessage($"任务 {task.TaskName} 执行失败！", InfoBarSeverity.Error, "任务管理"));
+                        }
+                        else if (task.Status == ExecutionStatus.Canceled)
+                        {
+                            MainWindow.Instance.EnqueueMessage(new InfoBarMessage($"任务 {task.TaskName} 已被取消！", InfoBarSeverity.Informational, "任务管理"));
                         }
                         _tasks.TryRemove(task.Id, out _);
                         MainWindow.ChangeTaskInfoBadge(-1);
@@ -272,7 +276,7 @@ namespace LMC.Tasks
             {
                 foreach (var subTask in group)
                 {
-                    if (!subTask.CancellationTokenSource.IsCancellationRequested && !task.CancellationTokenSource.IsCancellationRequested)
+                    if (!subTask.CancellationTokenSource.IsCancellationRequested || !task.CancellationTokenSource.IsCancellationRequested)
                     {
                         await subTask.ExecuteAsync();
                         if (subTask.Status == ExecutionStatus.Failed){ 

@@ -89,7 +89,7 @@ namespace LMC.Minecraft
         }
 
         public async Task DownloadGame(string versionId, string versionName, bool isOptifine, bool isFabric, bool isForge, string optifine = "", string fabric = "",
-            string forge = "")
+            string forge = "", string fabricApi = "")
         {
             GamePath = ProfileManager.GetSelectedGamePath().Path;
             if (!(isOptifine || isFabric || isForge))
@@ -97,8 +97,236 @@ namespace LMC.Minecraft
                 _logger.Info($"新的原版游戏下载任务: {versionId} , 名称: {versionName}");
                 await DownloadGame(versionId, versionName);
             }
+
+            if (!(isOptifine || isForge) && isFabric)
+            {
+                _logger.Info($"新的仅Fabric下载任务: {versionId} : {fabric} : {fabricApi} , 名称: {versionName}");
+                await DownloadGame(versionId, versionName, fabric, fabricApi);
+            }
         }
 
+        private async Task DownloadGame(string versionId, string versionName, string fabric, string fabricApi = "")
+        {
+            var task = TaskManager.Instance.CreateTask(5, $"下载Fabric游戏 {versionName} ({fabric} - {versionId})");
+            _tokenSource = task.CancellationTokenSource;
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(5);
+            timer.Tick += (s, e) =>
+            {
+                if (_tokenSource.IsCancellationRequested)
+                {
+                    try
+                    {
+                        Directory.Delete($"{GamePath}/versions/{versionName}", true);
+                        timer.Stop();
+                        timer.IsEnabled = false;
+                    }
+                    catch
+                    {
+                    }
+                }
+            };
+            
+            timer.Start();
+            
+            if (true) {
+                TaskManager.Instance.AddSubTask(task.Id, 0, async token =>
+                {
+                    string manifest = await GetVersionManifest();
+                    var version = ParseManifest(versionId, manifest);
+                    TaskManager.Values.Add(task.Id, new Dictionary<string, object>());
+                    TaskManager.Values[task.Id]["version"] = version;
+                }, "获取原版信息");
+                TaskManager.Instance.AddSubTask(task.Id, 1, async token =>
+                {
+                    DVersion version = TaskManager.Values[task.Id]["version"] as DVersion;
+                    string path = $"{GamePath}/versions/{versionName}";
+                    Directory.CreateDirectory(path);
+                    string url = version.Url;
+                    string versionIndexJson =
+                        await HttpUtils.GetString(new Uri(url.Replace("https://piston-meta.mojang.com",
+                            _downloadSource.LauncherMeta)));
+                    var jsonNode = JsonNode.Parse(versionIndexJson);
+                    jsonNode["id"] = versionName;
+                    versionIndexJson = jsonNode.ToJsonString(new JsonSerializerOptions
+                        { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+                    File.Create($"{path}/{versionName}.json").Close();
+                    File.WriteAllText($"{path}/{versionName}.json", versionIndexJson);
+                    Directory.CreateDirectory($"{path}/LMC/");
+                    File.Create($"{path}/LMC/version.line").Close();
+                    var lineFileParser = new LineFileParser();
+                    lineFileParser.Write($"{path}/LMC/version.line", "name", versionName, "base");
+                    lineFileParser.Write($"{path}/LMC/version.line", "isModPack", "N", "modpack");
+                    lineFileParser.Write($"{path}/LMC/version.line", "Fabric", fabric, "loader");
+                    lineFileParser.Write($"{path}/LMC/version.line", "Forge", "N", "loader");
+                    lineFileParser.Write($"{path}/LMC/version.line", "Optifine", "N", "loader");
+                    lineFileParser.Write($"{path}/LMC/version.line", "id", versionId, "base");
+                }, "准备下载");
+                TaskManager.Instance.AddSubTask(task.Id, 2, async token =>
+                {
+                    Directory.CreateDirectory($"{GamePath}/libraries");
+                    string indexJson = File.ReadAllText($"{GamePath}/versions/{versionName}/{versionName}.json");
+                    TaskManager.Values[task.Id]["indexJson"] = indexJson;
+                    string librariesStr = JsonUtils.GetValueFromJson(indexJson, "libraries");
+                    var larr = JsonNode.Parse(librariesStr).AsArray();
+                    var libs = new Dictionary<string, string>();
+                    foreach (var lib in larr)
+                    {
+                        string url, path;
+                        string libStr = lib.ToJsonString();
+                        if (JsonUtils.GetValueFromJson(libStr, "downloads.artifact") != null)
+                        {
+                            url = JsonUtils.GetValueFromJson(libStr, "downloads.artifact.url")
+                                .Replace("https://libraries.minecraft.net", _downloadSource.Libraries);
+                            path =
+                                $"{GamePath}/libraries/{JsonUtils.GetValueFromJson(libStr, "downloads.artifact.path")}|{JsonUtils.GetValueFromJson(libStr, "downloads.artifact.sha1")}";
+                            try
+                            {
+                                libs.Add(url, path);
+                            }
+                            catch
+                            {
+                                _logger.Warn("Failed to add " + url + " to libs dict");
+                            }
+                        }
+
+                        if (JsonUtils.GetValueFromJson(libStr, "downloads.natives.windows") != null)
+                        {
+                            libStr = JsonUtils.GetValueFromJson(libStr,
+                                $"downloads.classifiers.{JsonUtils.GetValueFromJson(libStr, "downloads.natives.windows")}");
+                            url = JsonUtils.GetValueFromJson(libStr, "url").Replace("https://libraries.minecraft.net",
+                                _downloadSource.Libraries);
+                            path =
+                                $"{GamePath}/libraries/{JsonUtils.GetValueFromJson(libStr, "path")}|{JsonUtils.GetValueFromJson(libStr, "sha1")}";
+                            try
+                            {
+                                libs.Add(url, path);
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+
+                    }
+
+                    libs.Add(JsonUtils.GetValueFromJson(indexJson, "downloads.client.url"),
+                        $"{GamePath}/versions/{versionName}/{versionName}.jar|{JsonUtils.GetValueFromJson(indexJson, "downloads.client.sha1")}");
+                    TaskManager.Values[task.Id]["libs"] = libs;
+                }, "解析依赖库信息");
+                TaskManager.Instance.AddSubTask(task.Id, 3, async token =>
+                {
+                    var start = DateTime.Now;
+                    Dictionary<string, string> libs = TaskManager.Values[task.Id]["libs"] as Dictionary<string, string>;
+                    string backup;
+                    if (_downloadSource.SourceType == 0)
+                    {
+                        var source = new DownloadSource();
+                        source.Bmclapi();
+                        backup = source.Libraries;
+                        await DownloadFilesWithHashAsync(libs, _downloadSource.Libraries, backup);
+                    }
+                    else
+                    {
+                        var source = new DownloadSource();
+                        backup = source.Libraries;
+                        await DownloadFilesWithHashAsync(libs);
+                    }
+
+                    var end = DateTime.Now;
+                    _logger.Info($"依赖库文件下载耗时{end.Subtract(start).TotalSeconds}s");
+                }, "下载依赖库");
+                //资源索引
+                TaskManager.Instance.AddSubTask(task.Id, 4, async token =>
+                {
+                    Dictionary<string, string> libs = TaskManager.Values[task.Id]["libs"] as Dictionary<string, string>;
+                    string indexJson = TaskManager.Values[task.Id]["indexJson"] as string;
+                    string url = JsonUtils.GetValueFromJson(indexJson, "assetIndex.url");
+                    string sha1 = JsonUtils.GetValueFromJson(indexJson, "assetIndex.sha1");
+                    string path =
+                        $"{GamePath}/assets/indexes/{JsonUtils.GetValueFromJson(indexJson, "assetIndex.id")}.json";
+                    if ((await CalculateFileSHA1(path)).ToLower() != sha1.ToLower())
+                    {
+                        libs.Clear();
+                        libs.Add(url.Replace("https://piston-meta.mojang.com", _downloadSource.LauncherMeta),
+                            path + "|" + sha1);
+                    }
+
+                    await DownloadFilesWithHashAsync(libs);
+
+
+                    string objects = JsonUtils.GetValueFromJson(File.ReadAllText(path), "objects");
+                    var assets = new Dictionary<string, string>();
+                    await Task.Run(() =>
+                    {
+                        using (var doc = JsonDocument.Parse(objects))
+                        {
+                            var root = doc.RootElement;
+                            if (root.ValueKind == JsonValueKind.Object)
+                            {
+                                var verifiedFiles = new List<string>();
+                                int parsedFiles = 0;
+                                foreach (var property in root.EnumerateObject())
+                                {
+                                    string hash = JsonUtils.GetValueFromJson(property.Value.ToString(), "hash");
+                                    url = $"{_downloadSource.ResourcesDownload}/{hash.Substring(0, 2)}/{hash}";
+                                    path = $"{GamePath}/assets/objects/{hash.Substring(0, 2)}/{hash}|{hash}";
+                                    try
+                                    {
+                                        assets.Add(url, path);
+                                    }
+                                    catch
+                                    {
+                                        _logger.Warn("无法将" + url + " 添加到资源字典 ");
+                                    }
+
+                                    parsedFiles++;
+                                }
+                            }
+                        }
+                    });
+
+                    TaskManager.Values[task.Id]["assets"] = assets;
+                }, "解析资源索引文件");
+                TaskManager.Instance.AddSubTask(task.Id, 5, async token =>
+                {
+                    Dictionary<string, string> assets =
+                        TaskManager.Values[task.Id]["assets"] as Dictionary<string, string>;
+                    var start = DateTime.Now;
+                    string backup;
+                    if (_downloadSource.SourceType == 0)
+                    {
+                        var source = new DownloadSource();
+                        source.Bmclapi();
+                        backup = source.ResourcesDownload;
+                        await DownloadFilesWithHashAsync(assets, _downloadSource.ResourcesDownload, backup);
+                    }
+                    else
+                    {
+                        var source = new DownloadSource();
+                        backup = source.ResourcesDownload;
+                        await DownloadFilesWithHashAsync(assets, _downloadSource.ResourcesDownload, backup);
+                    }
+
+                    var end = DateTime.Now;
+
+                    _logger.Info($"资源文件下载耗时{end.Subtract(start).TotalSeconds}s");
+                    _logger.Info($"版本{versionName}:{versionId}下载已完成");
+                }, "下载资源文件");
+
+                TaskManager.Instance.AddSubTask(task.Id, 6, async token =>
+                {
+                    var jsonUrl = $"{_downloadSource.FabricManifest}/loader/{versionId}/{fabric}/profile/json";
+                    var jsonStr = await HttpUtils.GetString(jsonUrl);
+                    File.Move($"{GamePath}/versions/{versionName}/{versionName}.json"
+                        , $"{GamePath}/versions/{versionName}/vanilla.json");
+                    File.WriteAllText($"{GamePath}/versions/{versionName}/{versionName}.json", jsonStr);
+                }, "获取 Fabric 信息");
+                task.Status = ExecutionStatus.Waiting;
+                TaskManager.Instance.ExecuteTasksAsync();
+            }
+        }
+        
         private async Task DownloadGame(string versionId, string versionName)
         {
             var task = TaskManager.Instance.CreateTask(5, $"下载原版游戏 {versionName} ({versionId})");
