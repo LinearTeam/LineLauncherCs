@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using LMC.Controls;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages

@@ -16,7 +16,7 @@ namespace LMC.Minecraft
         {
             GamePath gamePath = new GamePath();
             var key = Config.ReadGlobal("Main", "GamePath");
-            if (string.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key) || !Directory.Exists(key))
             {
                 var gps = GetGamePaths();
                 if (gps.Count != 1)
@@ -65,6 +65,12 @@ namespace LMC.Minecraft
                 if (Path.GetFullPath("./minecraft").Equals(Path.GetFullPath(gamePath.Path)))
                 {
                     hasCurrent = true;
+                }
+
+                if (!Directory.Exists(gamePath.Path))
+                {
+                    Config.DeleteGlobal("GamePath", key);
+                    continue;
                 }
                 gamePaths.Add(gamePath);
             }

@@ -53,12 +53,12 @@ namespace LMC.Pages.DownloadTypes
             fview.SelectedIndex = 0;
             back.IsEnabled = false;
             next.IsEnabled = false;
-            await LoadDataAsync();
+            Task.Run(LoadDataAsync);
         }
 
         private async Task LoadDataAsync()
         {
-            LoadingMask.Visibility = Visibility.Visible;
+            Dispatcher.Invoke(() => LoadingMask.Visibility = Visibility.Visible);
             try
             {
                 await Task.Run(() => RefreshVersionList());
@@ -69,7 +69,7 @@ namespace LMC.Pages.DownloadTypes
                 MainWindow.ShowDialog("确认",
                     "获取 Minecraft 版本列表时出错：" + e.Message + "\n" + e.StackTrace + "\n" + e.InnerException, "错误");
             }
-            LoadingMask.Visibility = Visibility.Collapsed;
+            Dispatcher.Invoke(() => LoadingMask.Visibility = Visibility.Collapsed);
         }
 
         private void RefreshVersionList()
@@ -200,7 +200,7 @@ namespace LMC.Pages.DownloadTypes
                 }
             }
 
-            if (Directory.Exists($"{GameDownloader.GamePath}/versions/{name}"))
+            if (Directory.Exists($"{ProfileManager.GetSelectedGamePath().Path}/versions/{name}"))
             {
                 return false;
             }

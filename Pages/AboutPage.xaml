@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
       xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
+      xmlns:uc="clr-namespace:LMC.Controls"
       xmlns:local="clr-namespace:LMC.Pages"
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:app="clr-namespace:LMC"

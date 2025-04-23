@@ -286,6 +286,12 @@
     <Compile Include="Basic\Config.cs" />
     <Compile Include="Basic\JavaManager.cs" />
     <Compile Include="Basic\Updater.cs" />
+    <Compile Include="Controls\LineTeachingTip.xaml.cs">
+      <DependentUpon>LineTeachingTip.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Test.xaml.cs">
+      <DependentUpon>Test.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Minecraft\GameLauncher.cs" />
     <Compile Include="Minecraft\GamePath.cs" />
     <Compile Include="Minecraft\LocalProfile.cs" />
@@ -336,6 +342,8 @@
     <Compile Include="Utils\Downloader.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Page Include="Controls\LineTeachingTip.xaml" />
+    <Page Include="Controls\Test.xaml" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -13,6 +13,7 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
 using LMC.Basic;
+using LMC.Controls;
 using LMC.Pages;
 using LMC.Utils;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
@@ -292,6 +293,9 @@ namespace LMC
 
             Directory.CreateDirectory("./.minecraft");
             Directory.CreateDirectory("./.minecraft/versions");
+            Test test = new Test();
+            
+            test.Show();
         }
 
 
@@ -461,8 +465,8 @@ namespace LMC
         private void ShowMessage(InfoBar infoBar, InfoBarMessage message)
         {
             s_logger.Info($"显示消息：{message.Title}:\n{message.Severity}\n{message.Message}");
-            infoBar.Message = string.IsNullOrEmpty(message.Message) ? ".": message.Message;
-            infoBar.Title = message.Title;
+            infoBar.Message = string.IsNullOrEmpty(message.Message) ? message.Title: message.Message;
+            infoBar.Title = string.IsNullOrEmpty(message.Message) ? "" : message.Title;
             infoBar.Severity = message.Severity;
             infoBar.IsOpen = true;
 
