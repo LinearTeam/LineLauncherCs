@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using LMC.Basic.Config;
 
 namespace LMC.Account
 {
@@ -13,11 +14,11 @@ namespace LMC.Account
     public class AccountManager
     {
 
-        public static Dictionary<string, Account> RefreshedAccounts = new Dictionary<string, Account>();
+        public static Dictionary<string, Model.Account> RefreshedAccounts = new Dictionary<string, Model.Account>();
         public static Dictionary<string, BitmapImage> Avatars = new Dictionary<string, BitmapImage>();
         private static Logger s_logger = new Logger("AM");
 
-        public static string GetKey(Account account)
+        public static string GetKey(Model.Account account)
         {
             if (account.Type == AccountType.MSA)
             {
@@ -32,7 +33,7 @@ namespace LMC.Account
                 return $"{account.Id}_Offline";
             }
         }
-        public static void AddAccount(Account account, string refreshToken = null, bool onlyAddToList = false)
+        public static void AddAccount(Model.Account account, string refreshToken = null, bool onlyAddToList = false)
         {
             if(account.Type == AccountType.MSA)
             {
@@ -65,7 +66,7 @@ namespace LMC.Account
 
         }
 
-        public static void DeleteAccount(Account account)
+        public static void DeleteAccount(Model.Account account)
         {
             string section = null;
             if (account.Type == AccountType.MSA)
@@ -88,7 +89,7 @@ namespace LMC.Account
 
         }
 
-        private static async Task DownloadAvatar(Account account, int size)
+        private static async Task DownloadAvatar(Model.Account account, int size)
         {
             
             Directory.CreateDirectory("./LMC/cache/" + account.Uuid);
@@ -112,7 +113,7 @@ namespace LMC.Account
             }
         }
 
-        public static async Task<BitmapImage> GetAvatarAsync(Account account, int size)
+        public static async Task<BitmapImage> GetAvatarAsync(Model.Account account, int size)
         {
             string avatarPath = "./LMC/cache/" + account.Uuid + $"/avat-{size}.png";
             if (!File.Exists(avatarPath) && !Avatars.ContainsKey(account.Uuid))
@@ -149,9 +150,9 @@ namespace LMC.Account
 
 
 
-        public static async Task<List<Account>> GetAccounts(bool refresh)
+        public static async Task<List<Model.Account>> GetAccounts(bool refresh)
         {
-            List<Account> accounts = new List<Account>();
+            List<Model.Account> accounts = new List<Model.Account>();
             var sections = Secrets.ReadSections(); 
             foreach (var section in sections)
             {
@@ -166,7 +167,7 @@ namespace LMC.Account
                         case "OFFLINE": type = AccountType.OFFLINE; break;
                         case "AUTHLIB": type = AccountType.AUTHLIB; break;
                     }
-                    Account account = new Account();
+                    Model.Account account = new Model.Account();
                     account.Type = type; 
                     if (type==AccountType.OFFLINE)
                     {
@@ -210,13 +211,13 @@ namespace LMC.Account
             return accounts;
         }
 
-        public static async Task SetSelectedAccount(Account account)
+        public static async Task SetSelectedAccount(Model.Account account)
         {
             string secStr = "acc_" + (account.Type == AccountType.OFFLINE ? account.Id : account.Uuid) + "_" + account.Type;
             Secrets.Write("Main", "Selected", secStr);
         }
         
-        public static async Task<Account> GetSelectedAccount()
+        public static async Task<Model.Account> GetSelectedAccount()
         {
             if (string.IsNullOrEmpty(await Secrets.Read("Main", "Selected")))
             {
@@ -228,7 +229,7 @@ namespace LMC.Account
                 }
                 else
                 {
-                    Account account = new Account();
+                    Model.Account account = new Model.Account();
                     account.Id = "未添加账号";
                     account.Type = AccountType.OFFLINE;
                     return account;
@@ -252,7 +253,7 @@ namespace LMC.Account
                     case "AUTHLIB": type = AccountType.AUTHLIB; break;
                 }
 
-                Account account = new Account();
+                Model.Account account = new Model.Account();
                 account.Type = type;
                 if (type == AccountType.OFFLINE)
                 {

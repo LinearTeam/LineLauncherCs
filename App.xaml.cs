@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using LMC.Account;
+using LMC.Basic.Config;
 using Newtonsoft.Json;
 
 
@@ -151,7 +152,7 @@ namespace LMC
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            ShowException(e.ExceptionObject as Exception);
+            Dispatcher.Invoke(() => ShowException(e.ExceptionObject as Exception));
         }
 
         public static void ShowException(Exception ex)

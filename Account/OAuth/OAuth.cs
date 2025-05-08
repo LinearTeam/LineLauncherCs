@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.ComponentModel.Design;
 using Common;
+using LMC.Basic.Config;
 
 namespace LMC.Account.OAuth
 {
@@ -75,13 +76,13 @@ namespace LMC.Account.OAuth
             return (usercode, msg, devicecode, url, interval);
         }
 
-        public async Task<(int done, Account account)> StartOA(string accessToken)
+        public async Task<(int done, Model.Account account)> StartOA(string accessToken)
         {
             _logger.Info("开始进行设备代码流验证");
             try
             {
                 var t = await StepThree(accessToken);
-                Account account = new Account();
+                Model.Account account = new Model.Account();
                 account.Type = AccountType.MSA;
                 account.AccessToken = t.mcatoken;
                 Secrets.Replaces[t.mcatoken] = "{AccessToken}";
@@ -108,7 +109,7 @@ namespace LMC.Account.OAuth
             };
         }
 
-        async public Task<(int done, Account account,string refreshtoken)> StartOA(Action whenGotCode)
+        async public Task<(int done, Model.Account account,string refreshtoken)> StartOA(Action whenGotCode)
         {
             _logger.Info("开始进行微软登录，方式授权代码流");
             HttpListener listener = new HttpListener();
@@ -156,7 +157,7 @@ namespace LMC.Account.OAuth
             }
             catch { }
         }
-        public async static Task OA(Action<(int done, Account account, string refreshToken)> whenDone, Action whenGotCode)
+        public async static Task OA(Action<(int done, Model.Account account, string refreshToken)> whenDone, Action whenGotCode)
         {
             if(s_isOaIng == true)
             {
@@ -171,7 +172,7 @@ namespace LMC.Account.OAuth
             s_isOaIng = false;
         }
 
-        async private Task<(Account account,string refreshtoken)> StepOne(HttpListener listener, Action whenGotCode)
+        async private Task<(Model.Account account,string refreshtoken)> StepOne(HttpListener listener, Action whenGotCode)
         {
             if (s_cancel) { return (null, null); }
             _logger.Info("MSL step 1");
@@ -214,7 +215,7 @@ namespace LMC.Account.OAuth
                 {
                     throw new Exception("Do not have mc");
                 }
-                Account a = new Account();
+                Model.Account a = new Model.Account();
                 a.AccessToken = t.mcatoken;
                 if (!string.IsNullOrEmpty(t.mcatoken))
                 {

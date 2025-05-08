@@ -66,15 +66,21 @@ namespace LMC.Tasks
             Status = ExecutionStatus.Uninitialized;
         }
 
-        protected virtual void OnStatusChanged() => StatusChanged?.Invoke(this, EventArgs.Empty);
-        protected virtual void OnPropertyChanged(string propertyName) => 
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        protected virtual void OnStatusChanged()
+        {
+            MainWindow.Instance.Dispatcher.Invoke(() => StatusChanged?.Invoke(this, EventArgs.Empty));
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            MainWindow.Instance.Dispatcher.Invoke(() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)));
+        }
 
         public void Cancel()
         {
             if (!CancellationTokenSource.IsCancellationRequested)
             {
-                if (Status != ExecutionStatus.Completed || Status != ExecutionStatus.Failed)
+                if (Status != ExecutionStatus.Completed && Status != ExecutionStatus.Failed)
                 {
                     CancellationTokenSource.Cancel();
                     _logger.Warn($"{GetTaskTypeName()} {Id} 已收到取消请求。");
@@ -226,9 +232,9 @@ namespace LMC.Tasks
                         
                         task.Status = ExecutionStatus.Running;
                         _logger.Info($"任务 {task.Id} 开始执行。");
-                        MainWindow.ChangeTaskInfoBadge(1);
+                        MainWindow.Instance.Dispatcher.Invoke(() => MainWindow.ChangeTaskInfoBadge(1));
 
-                        await ExecuteSubTasksAsync(task);
+                        await ExecuteSubTasksAsync(task).ConfigureAwait(false);
 
                         task.Status = task.SubTasks.All(st => 
                             st.Status == ExecutionStatus.Completed) 
@@ -249,7 +255,7 @@ namespace LMC.Tasks
                             MainWindow.Instance.EnqueueMessage(new InfoBarMessage($"任务 {task.TaskName} 已被取消！", InfoBarSeverity.Informational, "任务管理"));
                         }
                         _tasks.TryRemove(task.Id, out _);
-                        MainWindow.ChangeTaskInfoBadge(-1);
+                        MainWindow.Instance.Dispatcher.Invoke(() => MainWindow.ChangeTaskInfoBadge(-1));
                     });
 
                     await Task.WhenAll(tasks);
@@ -276,7 +282,7 @@ namespace LMC.Tasks
             {
                 foreach (var subTask in group)
                 {
-                    if (!subTask.CancellationTokenSource.IsCancellationRequested || !task.CancellationTokenSource.IsCancellationRequested)
+                    if (!subTask.CancellationTokenSource.IsCancellationRequested && !task.CancellationTokenSource.IsCancellationRequested)
                     {
                         await subTask.ExecuteAsync();
                         if (subTask.Status == ExecutionStatus.Failed){ 

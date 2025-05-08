@@ -13,8 +13,12 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
 using LMC.Basic;
+using LMC.Basic.Config;
 using LMC.Controls;
 using LMC.Pages;
+using LMC.Pages.AccountPage;
+using LMC.Pages.DownloadPage;
+using LMC.Pages.ProfilePage;
 using LMC.Utils;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 using MessageBox = iNKORE.UI.WPF.Modern.Controls.MessageBox;
@@ -307,31 +311,35 @@ namespace LMC
         public static async Task<ContentDialogResult> ShowDialog(string closeButtonText, string content, string title,
             ContentDialogButton defaultButton = ContentDialogButton.None, string primaryButtonText = null, string secondaryButtonText = null)
         {
-            short temp = (short)new Random().Next(1000, 9999);
-            s_logger.Info(
-                $"正在显示Dialog{temp}：\nContent: {content}\nTitle: {title}\nSecButton: {secondaryButtonText}\nPrimButton: {primaryButtonText}\nDef: {defaultButton}\nClose: {closeButtonText}");
-            var dialog = new ContentDialog();
-            dialog.Content = content;
-            dialog.Title = title;
-            if (primaryButtonText != null)
+            var res = ContentDialogResult.None;
+            await Instance.Dispatcher.Invoke(async () =>
             {
-                dialog.PrimaryButtonText = primaryButtonText;
-            }
+                short temp = (short)new Random().Next(1000, 9999);
+                s_logger.Info(
+                    $"正在显示Dialog{temp}：\nContent: {content}\nTitle: {title}\nSecButton: {secondaryButtonText}\nPrimButton: {primaryButtonText}\nDef: {defaultButton}\nClose: {closeButtonText}");
+                var dialog = new ContentDialog();
+                dialog.Content = content;
+                dialog.Title = title;
+                if (primaryButtonText != null)
+                {
+                    dialog.PrimaryButtonText = primaryButtonText;
+                }
 
-            if (secondaryButtonText == null)
-            {
-                dialog.SecondaryButtonText = closeButtonText;
-            }
-            else
-            {
-                dialog.SecondaryButtonText = secondaryButtonText;
-                dialog.CloseButtonText = closeButtonText;
-            }
+                if (secondaryButtonText == null)
+                {
+                    dialog.SecondaryButtonText = closeButtonText;
+                }
+                else
+                {
+                    dialog.SecondaryButtonText = secondaryButtonText;
+                    dialog.CloseButtonText = closeButtonText;
+                }
 
-            dialog.DefaultButton = defaultButton == ContentDialogButton.Close && secondaryButtonText == null ? ContentDialogButton.Secondary : defaultButton;
-            var res = await dialog.ShowAsync();
-            res = res == ContentDialogResult.Secondary && secondaryButtonText == null ? ContentDialogResult.None : res;
-            s_logger.Info($"Dialog{temp}的用户操作为{res}");
+                dialog.DefaultButton = defaultButton == ContentDialogButton.Close && secondaryButtonText == null ? ContentDialogButton.Secondary : defaultButton;
+                res = await dialog.ShowAsync();
+                res = res == ContentDialogResult.Secondary && secondaryButtonText == null ? ContentDialogResult.None : res;
+                s_logger.Info($"Dialog{temp}的用户操作为{res}");
+            });
             return res;
         }
 
@@ -422,18 +430,21 @@ namespace LMC
 
         public void EnqueueMessage(InfoBarMessage message)
         {
-            lock (_syncRoot)
+            Dispatcher.Invoke(() =>
             {
-                // 尝试立即显示消息
-                if (TryFindAvailableBar(out var availableBar))
+                lock (_syncRoot)
                 {
-                    ShowMessage(availableBar, message);
-                    return;
-                }
+                    // 尝试立即显示消息
+                    if (TryFindAvailableBar(out var availableBar))
+                    {
+                        ShowMessage(availableBar, message);
+                        return;
+                    }
 
-                // 无可用InfoBar时入队
-                _messageQueue.Enqueue(message);
-            }
+                    // 无可用InfoBar时入队
+                    _messageQueue.Enqueue(message);
+                }
+            });
         }
 
         private void OnInfoBarClosed()

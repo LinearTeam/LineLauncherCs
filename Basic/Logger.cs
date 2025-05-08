@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using LMC.Basic.Config;
 
 namespace LMC.Basic
 {

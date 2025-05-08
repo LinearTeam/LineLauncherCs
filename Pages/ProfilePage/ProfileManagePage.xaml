@@ -1,0 +1,67 @@
+﻿<ui:Page x:Class="LMC.Pages.ProfilePage.ProfileManagePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      xmlns:ikw="http://schemas.inkore.net/lib/ui/wpf"
+      xmlns:local="clr-namespace:LMC.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="档案管理">
+    <Grid Margin="60,30" x:Name="grid">
+		<Grid.Resources>
+            <Image x:Key="Vanilla" Source="/grassblock.png"/>
+            <Image x:Key="Error" Source="/tnt.png"/>
+            <Image x:Key="Other" Source="/grassblock.png"/>
+            <Image x:Key="Unknown" Source="/cauldron_lava.png"/>
+            <Image x:Key="UnSupport" Source="/stone.png"/>
+            <Image x:Key="Forge" Source="/anvil.png"/>
+            <Image x:Key="NeoForge" Source="/neoforge.png"/>
+            <Image x:Key="Fabric" Source="/banner_pattern.png"/>
+        </Grid.Resources>
+        <ikw:SimpleStackPanel Orientation="Vertical">
+            <ui:SettingsCard x:Name="HeaderCard" Header="1.21.4" Description="原版 1.21.4">
+                <ui:SettingsCard.Resources>
+                    <ResourceDictionary>
+                        <sys:Double x:Key="SettingsCardHeaderIconMaxSize">64</sys:Double>
+                    </ResourceDictionary>
+                </ui:SettingsCard.Resources>                    
+                <ui:SettingsCard.HeaderIcon>
+                    <Image Source="/grassblock.png"/>
+                </ui:SettingsCard.HeaderIcon>
+                <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="3">
+                    <Button Content="删除此版本" Foreground="Red" Click="Delete"/>
+                    <!-- <Button Content="修改版本名称"/> -->
+                    <Button Content="选择此版本" Click="Choose"/>
+                </ikw:SimpleStackPanel>
+            </ui:SettingsCard>
+            <ui:SettingsExpander x:Name="ModExpander" IsEnabled="False" IsExpanded="False" Header="Mod 管理" Description="管理游戏模组" Content="此版本不可安装模组，请安装 Forge / Fabric 或其他加载器">
+                <ui:SettingsExpander.HeaderIcon>
+                    <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.OEM}"></ui:FontIcon>
+                </ui:SettingsExpander.HeaderIcon>
+            </ui:SettingsExpander>
+            <ui:SettingsExpander x:Name="SetExpander" Header="版本设置" Description="修改游戏设置" IsExpanded="True">
+                <ui:SettingsExpander.HeaderIcon>
+                    <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Settings}"></ui:FontIcon>
+                </ui:SettingsExpander.HeaderIcon>
+                <!-- <ui:SettingsExpander.Items> -->
+                <!--     <ui:SettingsCard Header="JVM 参数前缀" Description="位于 -D 参数前、-X参数后，如 -Xmx2G {你的参数} -Dos.version=11"> -->
+                <!--         <ui:SettingsCard.HeaderIcon> -->
+                <!--             <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.CollapseContentSingle}"></ui:FontIcon> -->
+                <!--         </ui:SettingsCard.HeaderIcon> -->
+                <!--         <TextBox Text="-Dfile.encoding=utf-8" TextWrapping="Wrap"/> -->
+                <!--     </ui:SettingsCard> -->
+                <!--     <ui:SettingsCard Header="JVM 参数后缀" Description="位于游戏主类后，如 net.minecraft.client.main.Main {你的参数} -\-userType Legacy"> -->
+                <!--         <ui:SettingsCard.HeaderIcon> -->
+                <!--             <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.CollapseContentSingle}"></ui:FontIcon> -->
+                <!--         </ui:SettingsCard.HeaderIcon> -->
+                <!--         <TextBox Text="-width" TextWrapping="Wrap"/> -->
+                <!--     </ui:SettingsCard> -->
+                <!-- </ui:SettingsExpander.Items> -->
+            </ui:SettingsExpander>
+            <Button HorizontalAlignment="Right" Content="返回" Click="BackButton_Click"/>
+        </ikw:SimpleStackPanel>
+    </Grid>
+</ui:Page>

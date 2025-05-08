@@ -283,7 +283,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Basic\Config.cs" />
+    <Compile Include="Account\Model\Account.cs" />
+    <Compile Include="Basic\Config\Config.cs" />
+    <Compile Include="Basic\Config\Secrets.cs" />
     <Compile Include="Basic\JavaManager.cs" />
     <Compile Include="Basic\Updater.cs" />
     <Compile Include="Controls\LineTeachingTip.xaml.cs">
@@ -292,30 +294,46 @@
     <Compile Include="Controls\Test.xaml.cs">
       <DependentUpon>Test.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Minecraft\GameLauncher.cs" />
-    <Compile Include="Minecraft\GamePath.cs" />
-    <Compile Include="Minecraft\LocalProfile.cs" />
-    <Compile Include="Minecraft\ModLoader.cs" />
-    <Compile Include="Minecraft\ProfileManager.cs" />
-    <Compile Include="Minecraft\ProfileStatus.cs" />
-    <Compile Include="Minecraft\UnknownVersionException.cs" />
-    <Compile Include="Pages\AccountTypes\MicrosoftLoginPage.xaml.cs">
-      <DependentUpon>MicrosoftLoginPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\AddAccountPage.xaml.cs">
-      <DependentUpon>AddAccountPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\AccountManagePage.xaml.cs">
+    <Compile Include="Minecraft\Download\DownloadSource.cs" />
+    <Compile Include="Minecraft\Download\DownloadTools.cs" />
+    <Compile Include="Minecraft\Download\Exceptions\InvalidLibraryJsonException.cs" />
+    <Compile Include="Minecraft\Download\GameDownloader.cs" />
+    <Compile Include="Minecraft\Download\Model\DVersion.cs" />
+    <Compile Include="Minecraft\Download\Model\LibraryFile.cs" />
+    <Compile Include="Minecraft\Download\Model\NetFile.cs" />
+    <Compile Include="Minecraft\Download\Model\VanillaLibraryJson.cs" />
+    <Compile Include="Minecraft\Download\Model\Rule.cs" />
+    <Compile Include="Minecraft\Launch\GameLauncher.cs" />
+    <Compile Include="Minecraft\Launch\GameLaunchHelper.cs" />
+    <Compile Include="Minecraft\Profile\Exceptions\UnknownVersionException.cs" />
+    <Compile Include="Minecraft\Profile\Model\GamePath.cs" />
+    <Compile Include="Minecraft\Profile\Model\LocalProfile.cs" />
+    <Compile Include="Minecraft\Profile\Model\ModLoader.cs" />
+    <Compile Include="Minecraft\Profile\Model\ProfileStatus.cs" />
+    <Compile Include="Minecraft\Profile\ProfileManager.cs" />
+    <Compile Include="Pages\AccountPage\AccountManagePage.xaml.cs">
       <DependentUpon>AccountManagePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\DownloadPage.xaml.cs">
+    <Compile Include="Pages\AccountPage\AccountPage.xaml.cs">
+      <DependentUpon>AccountPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\AccountPage\AccountTypes\MicrosoftLoginPage.xaml.cs">
+      <DependentUpon>MicrosoftLoginPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\AccountPage\AddAccountPage.xaml.cs">
+      <DependentUpon>AddAccountPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\DownloadPage\DownloadPage.xaml.cs">
       <DependentUpon>DownloadPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\DownloadTypes\DownloadMinecraftPage.xaml.cs">
+    <Compile Include="Pages\DownloadPage\DownloadTypes\DownloadMinecraftPage.xaml.cs">
       <DependentUpon>DownloadMinecraftPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\ProfileManagePage.xaml.cs">
+    <Compile Include="Pages\ProfilePage\ProfileManagePage.xaml.cs">
       <DependentUpon>ProfileManagePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ProfilePage\ProfilePage.xaml.cs">
+      <DependentUpon>ProfilePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\TaskPage.xaml.cs">
       <DependentUpon>TaskPage.xaml</DependentUpon>
@@ -325,12 +343,6 @@
     </Compile>
     <Compile Include="Pages\SettingPage.xaml.cs">
       <DependentUpon>SettingPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\ProfilePage.xaml.cs">
-      <DependentUpon>ProfilePage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\AccountPage.xaml.cs">
-      <DependentUpon>AccountPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\HomePage.xaml.cs">
       <DependentUpon>HomePage.xaml</DependentUpon>
@@ -348,10 +360,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Account\Account.cs" />
     <Compile Include="Account\AccountManager.cs" />
     <Compile Include="Account\OAuth\OAuth.cs" />
-    <Compile Include="Basic\Secrets.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -362,29 +372,37 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Pages\AccountTypes\MicrosoftLoginPage.xaml">
+    <Page Include="Pages\AccountPage\AccountManagePage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\AddAccountPage.xaml">
+    <Page Include="Pages\AccountPage\AccountPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\AccountManagePage.xaml">
+    <Page Include="Pages\AccountPage\AccountTypes\MicrosoftLoginPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\DownloadPage.xaml">
+    <Page Include="Pages\AccountPage\AddAccountPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\DownloadTypes\DownloadMinecraftPage.xaml">
+    <Page Include="Pages\DownloadPage\DownloadPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\ProfileManagePage.xaml">
+    <Page Include="Pages\DownloadPage\DownloadTypes\DownloadMinecraftPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\ProfilePage\ProfileManagePage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\ProfilePage\ProfilePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\TaskPage.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -398,14 +416,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\ProfilePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\AccountPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Pages\HomePage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -413,9 +423,6 @@
     <Page Include="Styles\ExpanderStyle.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Minecraft\DownloadSource.cs" />
-    <Compile Include="Minecraft\GameDownloader.cs" />
-    <Compile Include="Minecraft\DVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using LMC.Account;
 using LMC.Minecraft;
+using LMC.Minecraft.Profile;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages

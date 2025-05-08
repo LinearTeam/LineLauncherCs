@@ -5,6 +5,8 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using iNKORE.UI.WPF.Modern.Controls.Helpers;
 using LMC.Basic;
+using LMC.Basic.Config;
+using LMC.Pages.AccountPage;
 using Microsoft.Win32;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
@@ -43,9 +45,9 @@ namespace LMC.Pages
             Config.WriteGlobal("ui", "theme", Theme.IsOn ? "light" : "dark");
             try
             {
-                AccountPage.ChangeTheme(Theme.IsOn);
+                AccountPage.AccountPage.ChangeTheme(Theme.IsOn);
                 AddAccountPage.ChangeTheme(Theme.IsOn);
-                DownloadPage.ChangeTheme(Theme.IsOn);
+                DownloadPage.DownloadPage.ChangeTheme(Theme.IsOn);
             }
             catch { }
         }
