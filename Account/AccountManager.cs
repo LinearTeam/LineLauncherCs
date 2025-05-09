@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 
 namespace LMC.Account
 {

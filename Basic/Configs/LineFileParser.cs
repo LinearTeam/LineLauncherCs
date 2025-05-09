@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Input;
 
-namespace LMC.Basic
+namespace LMC.Basic.Configs
 {
     
     public class LineFileParser

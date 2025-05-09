@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using LMC.Account;
 using LMC.Minecraft;
+using LMC.Minecraft.Launch;
 using LMC.Minecraft.Profile;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
@@ -45,6 +46,13 @@ namespace LMC.Pages
         private void AccountButton_OnClick(object sender, RoutedEventArgs e)
         {
             MainWindow.Navigate(MainWindow.AccountPage);
+        }
+
+        private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            GameLaunchHelper gameLaunchHelper = new GameLaunchHelper();
+            gameLaunchHelper.LaunchGame(await ProfileManager.GetSelectedProfile());
+            MainWindow.Navigate(MainWindow.DownloadPage);
         }
     }
 }

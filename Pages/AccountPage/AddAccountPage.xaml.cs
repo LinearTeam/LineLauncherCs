@@ -9,7 +9,7 @@ using iNKORE.UI.WPF.Controls;
 using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 using LMC.Pages.AccountPage.AccountTypes;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 

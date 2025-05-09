@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using iNKORE.UI.WPF.Controls;
 using iNKORE.UI.WPF.Modern.Controls;
+using LMC.Basic.Configs;
 
 namespace LMC.Basic
 {

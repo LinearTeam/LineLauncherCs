@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using LMC.Basic;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 using LMC.Minecraft.Download;
 using LMC.Minecraft.Profile.Exceptions;
 using LMC.Minecraft.Profile.Model;

@@ -120,7 +120,7 @@ namespace LMC.Pages.ProfilePage
                     }
                     else if (profile.ModLoader.ModLoaderType == ModLoaderType.Vanilla)
                     {
-                        profileItem.Description = "原版 " + profile.Version;
+                        profileItem.Description = "Minecraft " + profile.Version;
                         ImageKey = "Vanilla";
                     }
                     else

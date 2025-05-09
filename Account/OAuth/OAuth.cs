@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.ComponentModel.Design;
 using Common;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 
 namespace LMC.Account.OAuth
 {

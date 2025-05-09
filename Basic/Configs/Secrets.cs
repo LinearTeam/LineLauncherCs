@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using iNKORE.UI.WPF.Modern.Controls;
 
-namespace LMC.Basic.Config
+namespace LMC.Basic.Configs
 {
     public class Secrets
     {

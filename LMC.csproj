@@ -103,6 +103,7 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
+    <Reference Include="mscorlib" />
     <Reference Include="netstandard" />
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
       <HintPath>packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -134,6 +135,13 @@
       <HintPath>packages\System.Diagnostics.Tracing.4.3.0\lib\net462\System.Diagnostics.Tracing.dll</HintPath>
       <Private>True</Private>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Drawing.Common, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Drawing.Common.10.0.0-preview.3.25173.2\lib\net462\System.Drawing.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Drawing.Primitives.4.3.0\lib\net45\System.Drawing.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="System.Globalization.Calendars, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Globalization.Calendars.4.3.0\lib\net46\System.Globalization.Calendars.dll</HintPath>
@@ -284,9 +292,13 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Account\Model\Account.cs" />
-    <Compile Include="Basic\Config\Config.cs" />
-    <Compile Include="Basic\Config\Secrets.cs" />
+    <Compile Include="Basic\Configs\Config.cs" />
+    <Compile Include="Basic\Configs\LineFileParser.cs" />
+    <Compile Include="Basic\Configs\Secrets.cs" />
+    <Compile Include="Basic\Exceptions\IBaseException.cs" />
+    <Compile Include="Basic\Exceptions\InvalidJavaException.cs" />
     <Compile Include="Basic\JavaManager.cs" />
+    <Compile Include="Basic\Model\Java.cs" />
     <Compile Include="Basic\Updater.cs" />
     <Compile Include="Controls\LineTeachingTip.xaml.cs">
       <DependentUpon>LineTeachingTip.xaml</DependentUpon>
@@ -309,6 +321,7 @@
     <Compile Include="Minecraft\Download\Model\Rule.cs" />
     <Compile Include="Minecraft\Launch\GameLauncher.cs" />
     <Compile Include="Minecraft\Launch\GameLaunchHelper.cs" />
+    <Compile Include="Minecraft\Launch\Model\MinecraftJson.cs" />
     <Compile Include="Minecraft\Profile\Exceptions\UnknownVersionException.cs" />
     <Compile Include="Minecraft\Profile\Model\GamePath.cs" />
     <Compile Include="Minecraft\Profile\Model\LocalProfile.cs" />
@@ -339,14 +352,17 @@
     <Compile Include="Pages\ProfilePage\ProfilePage.xaml.cs">
       <DependentUpon>ProfilePage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\SettingsPage\JavaPage.xaml.cs">
+      <DependentUpon>JavaPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\SettingsPage\SettingPage.xaml.cs">
+      <DependentUpon>SettingPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\TaskPage.xaml.cs">
       <DependentUpon>TaskPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\AboutPage.xaml.cs">
       <DependentUpon>AboutPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\SettingPage.xaml.cs">
-      <DependentUpon>SettingPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\HomePage.xaml.cs">
       <DependentUpon>HomePage.xaml</DependentUpon>
@@ -358,6 +374,7 @@
     <Compile Include="Utils\Downloader.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Utils\VersionUtils.cs" />
     <Page Include="Controls\LineTeachingTip.xaml" />
     <Page Include="Controls\Test.xaml" />
     <Page Include="MainWindow.xaml">
@@ -370,7 +387,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Basic\LineFileParser.cs" />
     <Compile Include="Basic\Logger.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -408,15 +424,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Pages\SettingsPage\JavaPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\SettingsPage\SettingPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Pages\TaskPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\AboutPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Pages\SettingPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

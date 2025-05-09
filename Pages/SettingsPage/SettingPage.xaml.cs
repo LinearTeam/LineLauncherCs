@@ -3,14 +3,12 @@ using System.IO;
 using System.Windows;
 using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
-using iNKORE.UI.WPF.Modern.Controls.Helpers;
-using LMC.Basic;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 using LMC.Pages.AccountPage;
 using Microsoft.Win32;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
-namespace LMC.Pages
+namespace LMC.Pages.SettingsPage
 {
     /// <summary>
     /// HomePage.xaml 的交互逻辑
@@ -18,11 +16,14 @@ namespace LMC.Pages
     public partial class SettingPage : Page
     {
         private static ToggleSwitch s_theme;
+        public static SettingPage Instance;
         public SettingPage()
         {
             InitializeComponent();
             s_theme = Theme;
             LoadSettings();
+            Slider.Value = Config.ReadGlobal("java", "depth") == null ? 4 : int.Parse(Config.ReadGlobal("java", "depth"));
+            Slider.ValueChanged += Slider_OnValueChanged;
         }
 
         public static void LoadSettings()
@@ -85,5 +86,15 @@ namespace LMC.Pages
             }
         }
 
+        public static JavaPage JavaPage = new JavaPage();
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            MainWindow.Navigate(JavaPage);
+        }
+
+        private void Slider_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Config.WriteGlobal("java", "depth", ((int) Slider.Value).ToString());
+        }
     }
 }

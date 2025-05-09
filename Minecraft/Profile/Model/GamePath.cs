@@ -17,6 +17,11 @@ namespace LMC.Minecraft.Profile.Model
         public GamePath()
         { }
 
+        public override string ToString()
+        {
+            return Path;
+        }
+
         public GamePath(string name, string path)
         {
             Path = path;

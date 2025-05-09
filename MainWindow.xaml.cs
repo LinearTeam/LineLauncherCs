@@ -13,12 +13,13 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
 using LMC.Basic;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 using LMC.Controls;
 using LMC.Pages;
 using LMC.Pages.AccountPage;
 using LMC.Pages.DownloadPage;
 using LMC.Pages.ProfilePage;
+using LMC.Pages.SettingsPage;
 using LMC.Utils;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 using MessageBox = iNKORE.UI.WPF.Modern.Controls.MessageBox;
@@ -298,8 +299,10 @@ namespace LMC
             Directory.CreateDirectory("./.minecraft");
             Directory.CreateDirectory("./.minecraft/versions");
             Test test = new Test();
-            
             test.Show();
+            
+            
+            Task.Run(() => JavaManager.SearchJava(Config.ReadGlobal("java", "depth") == null ? 4 : int.Parse(Config.ReadGlobal("java", "depth")))).ConfigureAwait(false);
         }
 
 

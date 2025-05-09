@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -129,19 +130,25 @@ namespace LMC.Minecraft.Download
         public static List<LibraryFile> VanillaLibraryJsonToLibraryFile(VanillaLibraryJson libraryJson)
         {
             List<LibraryFile> libraryFiles = new List<LibraryFile>();
-            bool windows = true;
-            foreach (var r in libraryJson.Rules)
+            if (libraryJson.Name.Contains("linux") || libraryJson.Name.Contains("macos") || libraryJson.Name.Contains("arm"))
             {
-                if(r == null) continue;
-                if(r.Os == null && r.Action == "allow") windows = true;
-                if(r.Os == null && r.Action == "disallow") windows = false;
-                if (r.Os.System == "windows" && r.Action == "allow") {  windows = true; break; }
-                if(r.Os.System == "windows" && r.Action == "disallow"){ windows = false; break; }
-                if(r.Os.System != "windows" && r.Action == "allow") windows = false;
-                if(r.Os.System != "windows" && r.Action == "disallow") windows = true;
+                return libraryFiles;                
             }
+            bool windows = true;
             
-            if (libraryJson.Name.Contains("arm") && windows) windows = false;
+            
+            // foreach (var r in libraryJson.Rules)
+            // {
+            //     if(r == null) continue;
+            //     if((r.Os == null || r.Os.System == null || r.Os.Arch == null || r.Os.Version == null) && r.Action == "allow") windows = true;
+            //     if(r.Os == null && r.Action == "disallow") windows = false;
+            //     if (r.Os.System == "windows" && r.Action == "allow") {  windows = true; break; }
+            //     if(r.Os.System == "windows" && r.Action == "disallow"){ windows = false; break; }
+            //     if(r.Os.System != null && r.Os.System != "windows" && r.Action == "allow") windows = false;
+            //     if(r.Os.System != "windows" && r.Action == "disallow") windows = true;
+            // }
+
+            
             if(!windows) return libraryFiles;
             if (libraryJson.Downloads.Artifact != null)
             {
@@ -152,7 +159,7 @@ namespace LMC.Minecraft.Download
                 lf.Size = libraryJson.Downloads.Artifact.Size;
                 lf.Url = libraryJson.Downloads.Artifact.Url;
                 lf.Sha1 = libraryJson.Downloads.Artifact.Sha1;
-                lf.IsNativeLib = false;
+                lf.IsNativeLib = libraryJson.Name.Contains("natives");
                 libraryFiles.Add(lf);
             }
 

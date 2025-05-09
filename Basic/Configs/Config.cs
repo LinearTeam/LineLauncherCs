@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LMC.Basic.Config
+namespace LMC.Basic.Configs
 {
     public class Config
     {

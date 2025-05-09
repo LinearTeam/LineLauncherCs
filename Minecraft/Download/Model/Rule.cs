@@ -8,8 +8,8 @@ namespace LMC.Minecraft.Download.Model
     {
         [JsonPropertyName("os")]
         public Os? Os { get; set; }
-        [JsonPropertyName("features")]
-        public Dictionary<string, string>? Features { get; set; }
+        // [JsonPropertyName("features")]
+        // public Dictionary<string, string>? Features { get; set; }
         [JsonPropertyName("action")]
         public string Action { get; set; }
     }

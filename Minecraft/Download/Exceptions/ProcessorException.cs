@@ -1,9 +1,10 @@
 ﻿using System;
+using LMC.Basic;
 using LMC.Minecraft.Download.Model;
 
 namespace LMC.Minecraft.Download.Exceptions
 {
-    public class ProcessorException : Exception
+    public class ProcessorException : Exception, IBaseException
     {
         public int ExitCode { get; }
         public Processor Process { get; }
@@ -12,6 +13,11 @@ namespace LMC.Minecraft.Download.Exceptions
         {
             ExitCode = exitCode;
             Process = process;
+        }
+
+        public string GetLogString()
+        {
+            return Message + $"，Process: {Process.Jar}，退出码: {ExitCode}";
         }
     }
 }

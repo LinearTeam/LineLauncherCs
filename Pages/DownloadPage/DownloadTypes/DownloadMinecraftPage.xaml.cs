@@ -12,7 +12,7 @@ using iNKORE.UI.WPF.Modern;
 using iNKORE.UI.WPF.Modern.Common.IconKeys;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Basic;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 using LMC.Minecraft;
 using LMC.Minecraft.Download;
 using LMC.Minecraft.Download.Model;

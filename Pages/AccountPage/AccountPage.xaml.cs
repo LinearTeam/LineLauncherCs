@@ -12,7 +12,7 @@ using iNKORE.UI.WPF.Modern.Common.IconKeys;
 using iNKORE.UI.WPF.Modern.Controls;
 using LMC.Account;
 using LMC.Basic;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 
 namespace LMC.Pages.AccountPage

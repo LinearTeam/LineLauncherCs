@@ -1,227 +1,252 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+using LMC.Account;
 using LMC.Basic;
+using LMC.Minecraft.Download;
+using LMC.Minecraft.Download.Model;
+using LMC.Minecraft.Launch.Model;
+using LMC.Minecraft.Profile;
+using LMC.Minecraft.Profile.Model;
+using LMC.Tasks;
 using LMC.Utils;
 
 namespace LMC.Minecraft.Launch
 {
-    public class JvmCommand
+    public class GameLauncher
     {
-        private string _literalCommand;
-        public void AppendExpressionPair(string key, string value)
-        {
-            _literalCommand += $"-{key}=\"{value}\" ";
-        }
-
-        public string GetLiteralCommand()
-        {
-            if (_literalCommand != null)
-            {
-                return _literalCommand;
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
-
-        public void GenerateMemoryArgs(string maxMemorySize)
-        {
-            _literalCommand += $"-Xmx{maxMemorySize}M ";
-        }
-
-        public void MakeUpGeneralJvmArg(string targetJava)
-        {
-            _literalCommand += $"\"{targetJava}\" -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow ";
-        }
-    }
-    public class MinecraftCommand
-    {
-        private string _literalCommand;
-        public void Append(string key, string value)
-        {
-            _literalCommand += $"--{key} \"{value}\" ";
-        }
-
-        public string GetLiteralCommand()
-        {
-            if (_literalCommand != null)
-            {
-                return _literalCommand;
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
-    }
-    public class GameLauncher {
-
-        private readonly string _mcDir;
-        private readonly string _mcVer;
-        private readonly string _mcJava;
-        private readonly string _maxMem;
-        private readonly Dictionary<string, dynamic> _userInfo;
-        private readonly Dictionary<string, dynamic> _windowArgs;
-        private readonly Dictionary<string, dynamic> _extendArgs;
-        private readonly MinecraftCommand _minecraftCommandLine = new MinecraftCommand();
-        private readonly JvmCommand _jvmCommandLine = new JvmCommand();
         private static Logger s_logger = new Logger("GL");
-
-        public GameLauncher(
-        string minecraftDirectory, string minecraftVersion,
-        string targetJava, Dictionary<string, dynamic> userInformation,
-        string maxMemory, Dictionary<string, dynamic> windowArguments,
-        Dictionary<string, dynamic> extendArguments)
+        public string GamePath { get; set; }
+        public int SubTaskForLaunchGame(string game, int taskId, int root)
         {
-            _mcDir = minecraftDirectory;
-            _userInfo = userInformation;
-            _mcVer = minecraftVersion;
-            _mcJava = targetJava;
-            _userInfo = userInformation;
-            _maxMem = maxMemory;
-            _extendArgs = extendArguments;
-            _windowArgs = windowArguments;
-        }
-
-
-        public void GenerateUserInfo()
-        {
-            if (this._userInfo != null)
+            Account.Model.Account account = null;
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
             {
-                foreach (dynamic i in this._userInfo)
-                {
-                    _minecraftCommandLine.Append(i.Key, i.Value);
+                TaskManager.Values.Add(taskId, new Dictionary<string, object>());
+                account = await AccountManager.GetSelectedAccount();
+                account.AccessToken = "0000000000";
+                account.Uuid = Guid.NewGuid().ToString();
+                var jsonPath = Path.Combine(GamePath, "versions", game, game + ".json");
+                var mcJson = JsonSerializer.Deserialize<MinecraftJson>(File.ReadAllText(jsonPath));
+                var jsonStr = File.ReadAllText(jsonPath);
+                var libs = DownloadTools.ParseLibraryFiles(JsonUtils.GetValueFromJson(jsonStr, "libraries"));
+                var major = JsonUtils.GetValueFromJson(jsonStr, "javaVersion.majorVersion");
+                TaskManager.Values[taskId].Add("mcJson", mcJson);
+                TaskManager.Values[taskId].Add("major", major);
+                TaskManager.Values[taskId].Add("json", jsonStr);
+                TaskManager.Values[taskId].Add("libs", libs);
+            }, "解析版本信息");
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
+            {
+                var start = DateTime.Now;
+                GameDownloader gd = new GameDownloader();
+                var libs = TaskManager.Values[taskId]["libs"] as List<LibraryFile>;
+                string backup;
+                var totalLibs = DownloadTools.LibraryFilesToNetFiles(libs, GamePath);
+                string indexJson = File.ReadAllText($"{GamePath}/versions/{game}/{game}.json");
+                await gd.DownloadFilesAsync(totalLibs);
 
+                var end = DateTime.Now;
+                s_logger.Info($"依赖库文件下载耗时{end.Subtract(start).TotalSeconds}s");
+            }, "补全游戏依赖库");
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
+            {
+                GameDownloader gd = new GameDownloader();
+                var indexJson = TaskManager.Values[taskId]["mcJson"] as MinecraftJson;
+                string url = indexJson.AssetIndex.Url;
+                string sha1 = indexJson.AssetIndex.Sha1;
+                string path = $"{GamePath}/assets/indexes/{indexJson.AssetIndex.Id}.json";
+                if ((await gd.CalculateFileSHA1(path)).ToLower() != sha1.ToLower())
+                {
+                    var indexFile = new NetFile(){
+                        Url = url,
+                        Hash = sha1,
+                        Path = path
+                    };
+
+                    await gd.DownloadFileAsync(indexFile);                    
                 }
-            }
-        }
 
-        public void GenerateWindowArgs()
-        {
-            if (this._windowArgs != null)
+                var source = new DownloadSource();
+                source.Bmclapi();
+                var assets = DownloadTools.ParseAssetObjects(File.ReadAllText(path), source, GamePath);
+                var start = DateTime.Now;
+                string backup;
+                await gd.DownloadFilesAsync(assets).ConfigureAwait(false);
+                
+                var end = DateTime.Now;
+
+                s_logger.Info($"资源文件下载耗时{end.Subtract(start).TotalSeconds}s");
+                CopyFolder(Path.Combine(GamePath, "assets", "objects"), Path.Combine(GamePath, "assets", "virtual", "legacy"));
+                
+            }, "补全游戏资源文件");
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
             {
-                foreach (dynamic i in this._windowArgs)
+                Directory.CreateDirectory(Path.Combine(GamePath, "versions", game, game + "-natives"));
+                var libs = TaskManager.Values[taskId]["libs"] as List<LibraryFile>;
+                foreach (var lib in libs)
                 {
-                    _minecraftCommandLine.Append(i.Key, i.Value);
-                }
-            }
-        }
-
-        public void GenerateJvmArgs()
-        {
-            _jvmCommandLine.MakeUpGeneralJvmArg(_mcJava);
-            _jvmCommandLine.GenerateMemoryArgs(_maxMem);
-            _jvmCommandLine.AppendExpressionPair("Dos.name", "Windows 10");
-            _jvmCommandLine.AppendExpressionPair("Dos.version", "10.0");
-            _jvmCommandLine.AppendExpressionPair("Dorg.lwjgl.util.DebugLoader", "true");
-            _jvmCommandLine.AppendExpressionPair("Dorg.lwjgl.util.Debug", "true");
-            _jvmCommandLine.AppendExpressionPair("Dos.version", "10.0");
-            _jvmCommandLine.AppendExpressionPair("Dminecraft.launcher.brand", "LMC");
-            _jvmCommandLine.AppendExpressionPair("Dminecraft.launcher.version", "");
-            _jvmCommandLine.AppendExpressionPair("Djava.library.path", $"{_mcDir}/versions/{_mcVer}/{_mcVer}-natives");
-        }
-
-        public string GenerateClassPaths()
-        {
-            string filePath = $"{_mcDir}/versions/{_mcVer}/{_mcVer}.json";
-            string jsonstring = File.ReadAllText(filePath);
-            string classPathArgs = "-cp ";
-
-            _minecraftCommandLine.Append("version", _mcVer);
-            _minecraftCommandLine.Append("assetIndex", JsonUtils.GetValueFromJson(jsonstring, "assets"));
-            _minecraftCommandLine.Append("assetsIndex", JsonUtils.GetValueFromJson(jsonstring, "assets"));
-            _minecraftCommandLine.Append("assetsDir", $"{_mcDir}/assets");
-            _minecraftCommandLine.Append("gameDir", $"{_mcDir}/versions/{_mcVer}");
-
-            string librariesStr = JsonUtils.GetValueFromJson(jsonstring, "libraries");
-            JsonArray larr = JsonArray.Parse(librariesStr).AsArray();
-            foreach (var lib in larr)
-            {
-                string url;
-                string path;
-                string libStr = lib.ToJsonString();
-                bool windows = false;
-                if (JsonUtils.GetValueFromJson(libStr, "rules") != null)
-                {
-                    string rules = JsonUtils.GetValueFromJson(libStr, "rules");
-                    JsonArray rarr = JsonArray.Parse(rules).AsArray();
-                    foreach (var rule in rarr)
+                    if(!lib.IsNativeLib) continue;
+                    using var fs = new FileStream(Path.Combine(GamePath, "libraries", lib.Path), FileMode.Open);
+                    using ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Read);
+                    archive.Entries.ForEach(e =>
                     {
-                        string ruleStr = rule.ToJsonString();
-                        if (JsonUtils.GetValueFromJson(ruleStr, "os.name") == "windows" && JsonUtils.GetValueFromJson(ruleStr, "action") == "allow")
+                        if (e.Name.EndsWith(".dll"))
                         {
-                            windows = true;
-                            break;
+                            e.ExtractToFile(Path.Combine(GamePath, "versions", game, $"{game}-natives", e.Name), true);
                         }
-                        if (JsonUtils.GetValueFromJson(ruleStr, "os.name") == "windows" && JsonUtils.GetValueFromJson(ruleStr, "action") == "disallow")
+                    });
+                }
+            },"解压库文件");
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
+            {
+                var mcJson = TaskManager.Values[taskId]["mcJson"] as MinecraftJson;
+                var libs = TaskManager.Values[taskId]["libs"] as List<LibraryFile>;
+                var json = TaskManager.Values[taskId]["json"] as string;
+
+                #region JvmArgs
+
+                StringBuilder argBuilder = new StringBuilder();
+                argBuilder.Append("-Xmx4G -XX:+UseG1GC -Dos.name=\"Windows 10\" -Dos.version=10.0 ");
+                Dictionary<string, string> gameArguments = new Dictionary<string, string>();
+                gameArguments.Add("${classpath_separator}", ";");
+                gameArguments.Add("${natives_directory}", $"\"{Path.Combine(GamePath, "versions", game, game + "-natives")}\"");
+                gameArguments.Add("${library_directory}", $"\"{Path.Combine(GamePath, "libraries")}\"");
+                gameArguments.Add("${libraries_directory}", $"\"{Path.Combine(GamePath, "libraries")}\"");
+                gameArguments.Add("${launcher_name}", "LMC");
+                gameArguments.Add("${launcher_version}", App.LauncherVersion);
+                gameArguments.Add("${version_name}", game);
+                gameArguments.Add("${version_type}", mcJson.Type);
+                gameArguments.Add("${game_directory}", $"\"{Path.Combine(GamePath, "versions", game)}\"");
+                gameArguments.Add("${assets_root}", $"\"{Path.Combine(GamePath, "assets")}\"");
+                gameArguments.Add("${user_properties}", "{}");
+                gameArguments.Add("${auth_player_name}", account.Id);
+                gameArguments.Add("${auth_uuid}", account.Uuid);
+                gameArguments.Add("${auth_access_token}", account.AccessToken);
+                gameArguments.Add("${access_token}", account.AccessToken);
+                gameArguments.Add("${auth_session}", account.AccessToken);
+                gameArguments.Add("${user_type}", account.Type == AccountType.MSA ? "msa" : "legacy");
+                gameArguments.Add("${game_assets}", $"\"{Path.Combine(GamePath, @"assets\virtual\legacy")}\"");
+                gameArguments.Add("${assets_index_name}", mcJson.AssetIndex.Id);
+
+
+                if (!string.IsNullOrEmpty(JsonUtils.GetValueFromJson(json, "arguments.jvm")))
+                {
+                    var node = JsonNode.Parse(JsonUtils.GetValueFromJson(json, "arguments.jvm")).AsArray();
+                    foreach (var arg in node)
+                    {
+                        var argStr = arg.ToString();
+                        if (!string.IsNullOrEmpty(JsonUtils.GetValueFromJson(argStr, "rules")))
                         {
-                            windows = false;
-                            break;
-                        }
-                        if (JsonUtils.GetValueFromJson(ruleStr, "os.name") != "windows" && JsonUtils.GetValueFromJson(ruleStr, "action") == "disallow")
-                        {
-                            windows = true;
+                            var rules = JsonSerializer.Deserialize<Rule[]>(JsonUtils.GetValueFromJson(argStr, "rules"));
+                            bool windows = false;
+                            foreach (var r in rules)
+                            {
+                                if (r.Os != null && (r.Os.Arch == "x86" || r.Os.System == "windows"))
+                                {
+                                    windows = true;
+                                }
+                            }
+
+                            if (windows)
+                            {
+                                argBuilder.Append($"{ReplaceArgs(gameArguments, JsonUtils.GetValueFromJson(argStr, "value"))} ");
+                                continue;
+                            }
                             continue;
                         }
-                        //TODO: 判断平台
-                        if (JsonUtils.GetValueFromJson(ruleStr, "os.arch").Contains("amd") && JsonUtils.GetValueFromJson(ruleStr, "action") == "disallow")
-                        {
-                            windows = false;
-                            break;
-                        }
+                        argBuilder.Append(ReplaceArgs(gameArguments, arg.ToString()) + " ");
                     }
-
                 }
-                else { windows = true; }
-
-                if (windows)
+                
+                argBuilder.Append(" -cp \"");
+                
+                foreach (var lib in libs)
                 {
-                    path = $"{_mcDir}/libraries/{JsonUtils.GetValueFromJson(libStr, "downloads.artifact.path")}";
-                    if (path.Contains("arm64")) continue;
-                    classPathArgs += $"\"{path}\";";
+                    argBuilder.Append(Path.Combine(GamePath, "libraries", lib.Path) + ";");
                 }
-                if (JsonUtils.GetValueFromJson(libStr, "downloads.natives.windows") != null)
+                
+                argBuilder.Append(Path.Combine(GamePath, "versions", game, game + ".jar") + "\" ");
+
+                argBuilder.Append(mcJson.MainClass + " ");
+                if (!string.IsNullOrEmpty(JsonUtils.GetValueFromJson(json, "arguments.game")))
                 {
-                    libStr = JsonUtils.GetValueFromJson(libStr, $"downloads.classifiers.{JsonUtils.GetValueFromJson(libStr, "downloads.natives.windows")}");
-                    path = $"{_mcDir}/libraries/{JsonUtils.GetValueFromJson(libStr, "path")}";
-                    if (path.Contains("arm64")) continue;
-                    classPathArgs += $"\"{path}\";";
+                    var node = JsonNode.Parse(JsonUtils.GetValueFromJson(json, "arguments.game")).AsArray();
+                    foreach (var arg in node)
+                    {
+                        var argStr = arg.ToString();
+                        if (!string.IsNullOrEmpty(JsonUtils.GetValueFromJson(argStr, "rules")))
+                        {
+                            var rules = JsonSerializer.Deserialize<Rule[]>(JsonUtils.GetValueFromJson(argStr, "rules"));
+                            bool windows = false;
+                            foreach (var r in rules)
+                            {
+                                if (r.Os != null && (r.Os.Arch == "x86" || r.Os.System == "windows"))
+                                {
+                                    windows = true;
+                                }
+                            }
+
+                            if (windows)
+                            {
+                                argBuilder.Append($"{ReplaceArgs(gameArguments, JsonUtils.GetValueFromJson(argStr, "value"))} ");
+                                continue;
+                            }
+                            continue;
+                        }
+                        argBuilder.Append(ReplaceArgs(gameArguments, arg.ToString()) + " ");
+                    }
                 }
 
+                TaskManager.Values[taskId].Add("launchArgs", argBuilder.ToString());
+
+                #endregion
+
+            }, "生成启动命令");
+            return root;
+        }
+
+        private string ReplaceArgs(Dictionary<string, string> args, string arg)
+        {
+            args.ForEach(kvp => arg = arg.Replace(kvp.Key, kvp.Value).Trim());
+            return arg;
+        }
+        
+        public int CopyFolder(string sourceFolder, string destFolder)
+        {
+            try
+            {
+                if (!System.IO.Directory.Exists(destFolder))
+                {
+                    System.IO.Directory.CreateDirectory(destFolder);
+                }
+                string[] files = System.IO.Directory.GetFiles(sourceFolder);
+                foreach (string file in files)
+                {
+                    string name = System.IO.Path.GetFileName(file);
+                    string dest = System.IO.Path.Combine(destFolder, name);
+                    System.IO.File.Copy(file, dest);
+                }
+                string[] folders = System.IO.Directory.GetDirectories(sourceFolder);
+                foreach (string folder in folders)
+                {
+                    string name = System.IO.Path.GetFileName(folder);
+                    string dest = System.IO.Path.Combine(destFolder, name);
+                    CopyFolder(folder, dest);
+                }
+                return 1;
             }
-            classPathArgs += $"\"{_mcDir}/versions/{_mcVer}/{_mcVer}.jar\" {JsonUtils.GetValueFromJson(jsonstring, "mainClass")} ";
-            return classPathArgs;
-        }
+            catch (Exception e)
+            {
+                return 0;
+            }
 
-        public void OrganizeArgs()
-        {
-            GenerateUserInfo();
-            GenerateWindowArgs();
-            GenerateJvmArgs();
-            string totalCommand = _jvmCommandLine.GetLiteralCommand() + GenerateClassPaths() + _minecraftCommandLine.GetLiteralCommand();
-            File.WriteAllText("./LMC/LatestLaunch.bat", totalCommand);
-            string fullPath = Directory.GetParent("./LMC/LatestLaunch.bat").FullName + "\\LatestLaunch.bat";
-            Process.Start(fullPath);
-        }
-    }
-
-    public class Test
-    {
-        public static void STest()
-        {
-            Dictionary<string, dynamic> a = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> b = new Dictionary<string, dynamic>();
-            Dictionary<string, dynamic> c = null;
-            a["userType"] = "Legacy";
-            a["username"] = "Dongxuelian";
-            a["accessToken"] = "3153145";
-            b["width"] = "873";
-            b["height"] = "508";
-            GameLauncher example = new GameLauncher("D:/LMC/.minecraft", "1.12.2", "E:\\Java22\\bin\\java.exe", a, "4096", b, c);
-            example.OrganizeArgs();
         }
     }
 }

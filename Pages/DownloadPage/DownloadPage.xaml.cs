@@ -4,7 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using iNKORE.UI.WPF.Modern;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 using LMC.Pages.DownloadPage.DownloadTypes;
 using Page = iNKORE.UI.WPF.Modern.Controls.Page;
 

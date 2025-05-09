@@ -9,7 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using LMC.Account;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 using Newtonsoft.Json;
 
 

@@ -15,5 +15,6 @@
             <ui:HyperlinkButton x:Name="ProfileButton" Click="ProfileButton_OnClick"/>
             <ui:HyperlinkButton x:Name="AccountButton" Click="AccountButton_OnClick"/>
         </ikw:SimpleStackPanel>
+        <Button Content="启动游戏" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,0" Width="100" Height="40" Click="ButtonBase_OnClick"></Button>
     </Grid>
 </ui:Page>

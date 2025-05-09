@@ -12,8 +12,10 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Threading;
 using LMC.Basic;
+using LMC.Basic.Configs;
 using LMC.Minecraft.Download.Exceptions;
 using LMC.Minecraft.Download.Model;
 using LMC.Minecraft.Profile;
@@ -97,22 +99,32 @@ namespace LMC.Minecraft.Download
             string forge = "", string fabricApi = "")
         {
             GamePath = ProfileManager.GetSelectedGamePath().Path;
-            if (!(isOptifine || isFabric || isForge))
+            try
             {
-                _logger.Info($"新的原版游戏下载任务: {versionId} , 名称: {versionName}");
-                await DownloadGame(versionId, versionName);
-            }
+                if (!(isOptifine || isFabric || isForge))
+                {
+                    _logger.Info($"新的原版游戏下载任务: {versionId} , 名称: {versionName}");
+                    await DownloadGame(versionId, versionName);
+                }
 
-            if (!(isOptifine || isForge) && isFabric)
-            {
-                _logger.Info($"新的仅Fabric下载任务: {versionId} : {fabric} : {fabricApi} , 名称: {versionName}");
-                await DownloadGame(versionId, versionName, fabric, fabricApi);
-            }
+                if (!(isOptifine || isForge) && isFabric)
+                {
+                    _logger.Info($"新的仅Fabric下载任务: {versionId} : {fabric} : {fabricApi} , 名称: {versionName}");
+                    await DownloadGame(versionId, versionName, fabric, fabricApi);
+                }
 
-            if (!(isOptifine || isFabric) && isForge)
+                if (!(isOptifine || isFabric) && isForge)
+                {
+                    _logger.Info($"新的仅Forge下载任务: {versionId} : {forge} , 名称: {versionName}");
+                    await DownloadGame(versionId, versionName, forge);
+                }
+            }
+            catch (Exception e)
             {
-                _logger.Info($"新的仅Forge下载任务: {versionId} : {forge} , 名称: {versionName}");
-                await DownloadGame(versionId, versionName, forge);
+                if (e is IBaseException be)
+                {
+                    _logger.Error(be, "下载游戏");
+                }
             }
         }
 
@@ -345,7 +357,12 @@ namespace LMC.Minecraft.Download
                     _logger.Info("处理器：" + proc.Jar);
 
                     if(proc.Sides != null && !proc.Sides.Contains("client")) continue;
-                    string java = JavaManager.GetJavaWithMinVersion(8);
+                    var java = JavaManager.GetJavaWithMinVersion(new Version("8.0"));
+                    if (java == null)
+                    {
+                        MainWindow.ShowDialog("确认", "Forge 安装失败，因为启动器内没有 Java 8 以上的 Java 用于执行安装处理器。请在 设置 - 游戏设置 - Java管理 中添加/安装 Java 8 以上的 Java 后重试", "错误").ConfigureAwait(false);
+                    }
+                    if (java == null) throw new Exception("无可用的 Java 8 以上 Java，请安装/添加 Java 8 以上 Java 后重试。");
                     StringBuilder sb = new StringBuilder($" -cp \"");
 
                     proc.ClassPath.ForEach((p) => sb.Append(Path.Combine(GamePath, "libraries", DownloadTools.GetLibraryFile(p)) + ";"));
@@ -397,10 +414,11 @@ namespace LMC.Minecraft.Download
                     _logger.Info("=====================Processor Info=====================");
                     _logger.Info("Runnning...");
                     Process process = new Process();
-                    ProcessStartInfo startInfo = new ProcessStartInfo(java);
+                    ProcessStartInfo startInfo = new ProcessStartInfo(java.Path);
                     startInfo.Arguments = sb.ToString();
                     startInfo.UseShellExecute = false;
                     startInfo.RedirectStandardOutput = true;
+                    startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                     process.StartInfo = startInfo;
                     process.Start();
                     process.OutputDataReceived += (sender, args) =>
@@ -692,7 +710,7 @@ namespace LMC.Minecraft.Download
             }
         }
 
-        private async Task DownloadFileAsync(NetFile f, string defHost = "", string backupHost = "",string currentRoot = "", List<string> cachedRoots = null, int pid = 0)
+        public async Task DownloadFileAsync(NetFile f, string defHost = "", string backupHost = "",string currentRoot = "", List<string> cachedRoots = null, int pid = 0)
         {
             cachedRoots ??= new List<string>();
             foreach (var root in cachedRoots)

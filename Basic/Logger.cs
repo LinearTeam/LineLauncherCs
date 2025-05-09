@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using LMC.Basic.Config;
+using LMC.Basic.Configs;
 
 namespace LMC.Basic
 {
@@ -83,7 +83,10 @@ namespace LMC.Basic
         public void Info(string msg) => Log("INFO", msg);
         public void Error(string msg) => Log("ERROR", msg);
         public void Warn(string msg) => Log("WARN", msg);
-
+        public void Error(IBaseException e, string func)
+        {
+            Error($"在 {func} 时 发生错误 {e.GetType()} : {e.GetLogString()}");
+        }
         public void Debug(string msg)
         {
             if (DebugMode)
