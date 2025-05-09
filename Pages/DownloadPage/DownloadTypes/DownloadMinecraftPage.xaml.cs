@@ -57,7 +57,63 @@ namespace LMC.Pages.DownloadPage.DownloadTypes
             fview.SelectedIndex = 0;
             back.IsEnabled = false;
             next.IsEnabled = false;
+            fab.SelectionChanged += ModLoaderSelectionChanged;
+            opti.SelectionChanged += ModLoaderSelectionChanged;
+            forge.SelectionChanged += ModLoaderSelectionChanged;
+            
             Task.Run(LoadDataAsync);
+        }
+
+        private void ChangeEnableStatus(bool isForge)
+        {
+            if (isForge && fab.Items.Count > 1)
+            {
+                if (forge.SelectedIndex != 0)
+                {
+                    fab.SelectedIndex = 0;
+                    fab.IsEnabled = false;
+                }
+                else
+                {
+                    fab.IsEnabled = true;
+                }
+                return;
+            }
+            if(forge.Items.Count <= 1) return;
+            if (fab.SelectedIndex != 0)
+            {
+                forge.SelectedIndex = 0;
+                forge.IsEnabled = false;
+            }
+            else
+            {
+                forge.IsEnabled = true;
+            }
+            
+        }
+
+        private bool _preparing = true;
+        
+        private void ModLoaderSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(_preparing) return;
+            var isForge = sender.Equals(forge);
+            ChangeEnableStatus(isForge);
+            var res = vcard.Header;
+            if (fab.SelectedIndex != 0)
+            {
+                res += "-Fabric " + fab.SelectedItem;
+            }
+            if (forge.SelectedIndex != 0)
+            {
+                res += "-Forge " + forge.SelectedItem;
+            }
+            if (opti.SelectedIndex != 0)
+            {
+                res += "-OptiFine_" + opti.SelectedItem.ToString().Replace(" ", "_");
+            }
+
+            tbc.Text = res.ToString();
         }
 
         private async Task LoadDataAsync()
@@ -204,26 +260,26 @@ namespace LMC.Pages.DownloadPage.DownloadTypes
                 }
             }
 
-            if (Directory.Exists($"{ProfileManager.GetSelectedGamePath().Path}/versions/{name}"))
-            {
-                return false;
-            }
+            
 
             return true;
         }
 
+        
         private async void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
+            _preparing = true;
             try
             {
                 if (sender is SettingsCard card)
                 {
-                    tbc.Text = card.Header.ToString();
-                    vcard.Header = card.Header.ToString();
                     var gd = new GameDownloader();
                     LoadingMask.Visibility = Visibility.Visible;
                     var res = await gd.GetForgeFabricOptifineVersionList(card.Header.ToString());
                     fview.SelectedIndex = 1;
+                    opti.SelectedIndex = 0;
+                    fab.SelectedIndex = 0;
+                    forge.SelectedIndex = 0;
                     fab.Items.Clear();
                     opti.Items.Clear();
                     forge.Items.Clear();
@@ -233,6 +289,8 @@ namespace LMC.Pages.DownloadPage.DownloadTypes
                     fab.IsEnabled = true;
                     forge.IsEnabled = true;
                     opti.IsEnabled = true;
+                    tbc.Text = card.Header.ToString();
+                    vcard.Header = card.Header.ToString();
                     if (res.fabs == null || res.fabs.Count <= 0)
                     {
                         fab.IsEnabled = false;
@@ -267,6 +325,7 @@ namespace LMC.Pages.DownloadPage.DownloadTypes
                     next.IsEnabled = true;
                     back.IsEnabled = true;
                     LoadingMask.Visibility = Visibility.Collapsed;
+                    _preparing = false;
                 }
             }
             catch(Exception ex)
@@ -296,7 +355,14 @@ namespace LMC.Pages.DownloadPage.DownloadTypes
                 return;
             }
 
-            lac.Content = "版本名不可用，可能因为文件夹已存在，以空格开头、结尾，包含特殊字符（如\\、/、|、\"、:、?等）";
+            if (Directory.Exists($"{ProfileManager.GetSelectedGamePath().Path}/versions/{tbc.Text}"))
+            {
+                lac.Content = "版本名不可用，因为文件夹已存在";
+                lac.Foreground = new SolidColorBrush(Color.FromScRgb(100, 1, 0, 0));
+                _val = false;
+            }
+            
+            lac.Content = "版本名不可用，因为不能以空格开头、结尾，包含特殊字符（如\\、/、|、\"、:、?等）";
             lac.Foreground = new SolidColorBrush(Color.FromScRgb(100, 1, 0, 0));
             _val = false;
 
