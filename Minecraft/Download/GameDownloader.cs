@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -11,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using System.Windows.Threading;
 using LMC.Basic;
+using LMC.Minecraft.Download.Exceptions;
 using LMC.Minecraft.Download.Model;
 using LMC.Minecraft.Profile;
 using LMC.Tasks;
@@ -104,8 +108,56 @@ namespace LMC.Minecraft.Download
                 _logger.Info($"新的仅Fabric下载任务: {versionId} : {fabric} : {fabricApi} , 名称: {versionName}");
                 await DownloadGame(versionId, versionName, fabric, fabricApi);
             }
+
+            if (!(isOptifine || isFabric) && isForge)
+            {
+                _logger.Info($"新的仅Forge下载任务: {versionId} : {forge} , 名称: {versionName}");
+                await DownloadGame(versionId, versionName, forge);
+            }
         }
 
+        private async Task DownloadGame(string versionId, string versionName, string forge)
+        {
+            var task = TaskManager.Instance.CreateTask(5, "下载 Forge 版本 : " + versionName + $"  ({versionId}-{forge})");
+            _tokenSource = task.CancellationTokenSource;
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(5);
+            timer.Tick += (s, e) =>
+            {
+                if (_tokenSource.IsCancellationRequested || task.Status == ExecutionStatus.Failed)
+                {
+                    try
+                    {
+                        Directory.Delete($"{GamePath}/versions/{versionName}", true);
+                        timer.Stop();
+                        timer.IsEnabled = false;
+                    }
+                    catch
+                    {
+                    }
+                }
+            };
+            var i = SubTaskForVanilla(versionId, versionName, task.Id, 0);
+            i = SubTaskForHighVersionForge(versionId, versionName, forge, task.Id, i);
+            TaskManager.Instance.AddSubTask(task.Id, ++i, async ctx =>
+            {
+                string path = $"{GamePath}/versions/{versionName}";
+                Directory.CreateDirectory($"{path}/LMC/");
+                File.Create($"{path}/LMC/version.line").Close();
+                var lineFileParser = new LineFileParser();
+                lineFileParser.Write($"{path}/LMC/version.line", "name", versionName, "base");
+                lineFileParser.Write($"{path}/LMC/version.line", "isModPack", "N", "modpack");
+                lineFileParser.Write($"{path}/LMC/version.line", "Fabric", "N", "loader");
+                lineFileParser.Write($"{path}/LMC/version.line", "Forge", forge, "loader");
+                lineFileParser.Write($"{path}/LMC/version.line", "Optifine", "N", "loader");
+                lineFileParser.Write($"{path}/LMC/version.line", "id", versionId, "base");
+            }, "完成下载");
+            
+            timer.Start();
+            task.Status = ExecutionStatus.Waiting;
+            Task.Run(() => TaskManager.Instance.ExecuteTasksAsync());
+        }
+        
         /// <summary>
         /// 下载Fabric游戏
         /// </summary>
@@ -115,7 +167,7 @@ namespace LMC.Minecraft.Download
         /// <param name="fabricApi">Fabric Api版本</param>
         private async Task DownloadGame(string versionId, string versionName, string fabric, string fabricApi = "")
         {
-            var task = TaskManager.Instance.CreateTask(5, "下载 Fabric 版本 : " + versionName + $"({versionId}-{fabric}) {fabricApi}");
+            var task = TaskManager.Instance.CreateTask(5, "下载 Fabric 版本 : " + versionName + $"  ({versionId}-{fabric}) {fabricApi}");
             _tokenSource = task.CancellationTokenSource;
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromSeconds(5);
@@ -148,7 +200,7 @@ namespace LMC.Minecraft.Download
                 lineFileParser.Write($"{path}/LMC/version.line", "Forge", "N", "loader");
                 lineFileParser.Write($"{path}/LMC/version.line", "Optifine", "N", "loader");
                 lineFileParser.Write($"{path}/LMC/version.line", "id", versionId, "base");
-            }, "完成下载");
+            }, "完成下载"); 
 
             timer.Start();
             task.Status = ExecutionStatus.Waiting;
@@ -203,6 +255,212 @@ namespace LMC.Minecraft.Download
         }
 
         #region DownloadTasks
+
+        private int SubTaskForHighVersionForge(string versionId, string versionName, string forge, int taskId, int root)
+        {
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
+            {
+                var installerPath = Path.Combine("LMC", "temp", "forgeInstaller",Guid.NewGuid() + ".jar");
+                if (_downloadSource.SourceType == 0)
+                {
+                    var installerUrl = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{versionId}-{forge}/forge-{versionId}-{forge}-installer.jar";
+                    Downloader downloader = new Downloader(installerUrl, installerPath);
+                    await downloader.DownloadFileAsync();
+                }
+                else
+                {
+                    var installerUrl = $"https://bmclapi2.bangbang93.com/forge/download?mcversion={versionId}&version={forge}&format=jar&category=installer";
+                    Downloader downloader = new Downloader(installerUrl, installerPath);
+                    await downloader.DownloadFileAsync();
+                }
+                TaskManager.Values[taskId]["installerPath"] = installerPath;
+            }, "获取 Forge 安装器");
+            
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
+            {
+                string installerPath = TaskManager.Values[taskId]["installerPath"] as string;
+                using Stream fs = new FileStream(installerPath, FileMode.Open);
+                ZipArchive installer = new ZipArchive(fs, ZipArchiveMode.Read);
+                var ip = installer.GetEntry("install_profile.json");
+                using var ipStream = ip.Open();
+                ForgeInstallProfile fip = JsonSerializer.Deserialize<ForgeInstallProfile>(ipStream);
+                var libraries = new List<LibraryFile>();
+                fip.Libraries.ForEach((f) => libraries.AddRange(DownloadTools.VanillaLibraryJsonToLibraryFile(f)));
+                using var forgeJsonStream = installer.GetEntry("version.json").Open();
+                var forgeJson = JsonNode.Parse(forgeJsonStream);
+                libraries.AddRange(DownloadTools.ParseLibraryFiles(forgeJson["libraries"].ToString()));
+                var netFiles = DownloadTools.LibraryFilesToNetFiles(libraries, GamePath);
+                TaskManager.Values[taskId]["forgeLibs"] = netFiles;
+                TaskManager.Values[taskId]["ipModel"] = fip;
+                TaskManager.Values[taskId]["forgeJson"] = forgeJson;
+            }, "解析依赖库");
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
+            {
+                var netFiles = TaskManager.Values[taskId]["forgeLibs"] as List<NetFile>;
+                var backup = "";
+                if (_downloadSource.SourceType == 0)
+                {
+                    var source = new DownloadSource();
+                    source.Bmclapi();
+                    backup = source.Forge;
+                    await DownloadFilesAsync(netFiles, _downloadSource.Forge, backup);
+                }
+                else
+                {
+                    var source = new DownloadSource();
+                    backup = source.Forge;
+                    await DownloadFilesAsync(netFiles, _downloadSource.Forge, backup);
+                }
+            },"下载 Forge 依赖库");
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
+            {
+                string installerPath = TaskManager.Values[taskId]["installerPath"] as string;
+                using Stream fs = new FileStream(installerPath, FileMode.Open);
+                ZipArchive installer = new ZipArchive(fs, ZipArchiveMode.Read);
+                var clientLzma = installer.GetEntry("client.lzma");
+                if (clientLzma != null)
+                {
+                    using var clientLzmaStream = clientLzma.Open();
+                    using var lfs = new FileStream(Path.Combine(GamePath, "libraries", DownloadTools.GetLibraryFile($"net.minecraftforge:forge:{forge}:clientdata@lzma")), FileMode.Create);
+                    await clientLzmaStream.CopyToAsync(lfs);
+                }
+                
+                var serverLzma = installer.GetEntry("server.lzma");
+                if (serverLzma != null)
+                {
+                    using var serverLzmaStream = serverLzma.Open();
+                    using var lfs = new FileStream(Path.Combine(GamePath,"libraries", DownloadTools.GetLibraryFile($"net.minecraftforge:forge:{forge}:serverdata@lzma")), FileMode.Create);
+                    await serverLzmaStream.CopyToAsync(lfs);
+                }
+                
+            }, "解压所需的文件");
+            TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
+            {
+                string installerPath = TaskManager.Values[taskId]["installerPath"] as string;
+                using Stream fs = new FileStream(installerPath, FileMode.Open);
+                ZipArchive installer = new ZipArchive(fs, ZipArchiveMode.Read);
+                var ip = TaskManager.Values[taskId]["ipModel"] as ForgeInstallProfile;
+                foreach (var proc in ip.Processors)
+                {
+                    _logger.Info("处理器：" + proc.Jar);
+
+                    if(proc.Sides != null && !proc.Sides.Contains("client")) continue;
+                    string java = JavaManager.GetJavaWithMinVersion(8);
+                    StringBuilder sb = new StringBuilder($" -cp \"");
+
+                    proc.ClassPath.ForEach((p) => sb.Append(Path.Combine(GamePath, "libraries", DownloadTools.GetLibraryFile(p)) + ";"));
+                    sb.Append(Path.Combine(GamePath, "libraries", DownloadTools.GetLibraryFile(proc.Jar)));
+                    sb.Append($"\" {DownloadTools.GetMainClassFromJar(Path.Combine(GamePath, "libraries", DownloadTools.GetLibraryFile(proc.Jar)))} ");
+
+                    bool mojmap = false;
+                    foreach (var arg in proc.Args)
+                    {
+                        if (arg.Equals("DOWNLOAD_MOJMAPS"))
+                        {
+                            mojmap = true;
+                            break;
+                        }
+                        var targ = arg.Replace("{MINECRAFT_JAR}", Path.Combine(GamePath, "versions", versionName, $"{versionName}.jar"));
+                        targ = targ.Replace("{BINPATCH}", Path.Combine(GamePath, "libraries", DownloadTools.GetLibraryFile($"net.minecraftforge:forge:{forge}:clientdata@lzma")));
+                        targ = targ.Replace("{INSTALLER}", Path.GetFullPath(installerPath));
+                        targ = targ.Replace("{SIDE}", "client");
+                        targ = targ.Replace("{ROOT}", Path.GetFullPath(GamePath));
+                        if (ip.Data.ContainsKey(targ.Replace("{", "").Replace("}", "")))
+                        {
+                            targ = ip.Data[targ.Replace("{", "").Replace("}", "")].Client;
+                        }
+
+                        if (targ.StartsWith("[") && targ.EndsWith("]"))
+                        {
+                            targ = DownloadTools.GetLibraryFile(targ);
+                        }
+                        targ = '"' + targ + '"';
+                        sb.Append(targ + " ");
+                    }
+
+                    if (mojmap)
+                    {
+                        var vanillaJson = File.ReadAllText(Path.Combine(GamePath, "versions", versionName, versionName + ".json"));
+                        var netFile = new NetFile();
+                        netFile.Url = JsonUtils.GetValueFromJson(vanillaJson, "downloads.client_mappings.url");
+                        netFile.Hash = JsonUtils.GetValueFromJson(vanillaJson, "downloads.client_mappings.sha1");
+                        netFile.Path = DownloadTools.GetLibraryFile(ip.Data["MOJMAPS"].Client);
+                        _logger.Info("正在下载 MOJMAPS");
+                        await DownloadFileAsync(netFile);
+                        _logger.Info("已下载 MOJMAPS");
+                        continue;
+                    }
+                    _logger.Info("=====================Processor Info=====================");
+                    _logger.Info($"Processor : {proc.Jar}");
+                    _logger.Info($"CommandLine: {sb}");
+                    _logger.Info($"Java: {java}");
+                    _logger.Info("=====================Processor Info=====================");
+                    _logger.Info("Runnning...");
+                    Process process = new Process();
+                    ProcessStartInfo startInfo = new ProcessStartInfo(java);
+                    startInfo.Arguments = sb.ToString();
+                    startInfo.UseShellExecute = false;
+                    startInfo.RedirectStandardOutput = true;
+                    process.StartInfo = startInfo;
+                    process.Start();
+                    process.OutputDataReceived += (sender, args) =>
+                    {
+                        _logger.Info($"[Process][{proc.Jar}] " + args.Data);
+                    };
+                    process.BeginOutputReadLine(); 
+                    DispatcherTimer timer = new DispatcherTimer();
+                    timer.Interval = TimeSpan.FromSeconds(1);
+                    timer.Tick += (sender, args) =>
+                    {
+                        if (_tokenSource.IsCancellationRequested)
+                        {
+                            process.Kill();
+                            timer.Stop();
+                            timer.IsEnabled = false;
+                        }
+                    };
+                    timer.Start();
+                    process.WaitForExit();
+                    if (_tokenSource.IsCancellationRequested)
+                    {
+                        _logger.Info("Cancelled process.");
+                        return;
+                    }
+                    int exitCode = process.ExitCode;
+                    timer.Stop();
+                    timer.IsEnabled = false;
+                    _logger.Info($"");
+                    _logger.Info("=====================Processor Result=====================");
+                    _logger.Info($"Processor : {proc.Jar}");
+                    _logger.Info($"CommandLine: {sb}");
+                    _logger.Info($"Java: {java}");
+                    _logger.Info($"ExitCode: {exitCode}");
+                    _logger.Info("=====================Processor Result=====================");
+                    if (exitCode != 0)
+                    {
+                        throw new ProcessorException(exitCode, proc, "执行处理器时退出码不为0。");
+                    }
+                }
+                
+                var forgeJson = TaskManager.Values[taskId]["forgeJson"] as JsonNode;
+                var vanilla = JsonNode.Parse(File.ReadAllText(Path.Combine(GamePath, "versions", versionName, versionName + ".json")));
+                vanilla["mainClass"] = forgeJson["mainClass"].DeepClone();
+                var totalLibs = vanilla["libraries"].DeepClone().AsArray();
+                foreach (var lib in forgeJson["libraries"].AsArray()) { totalLibs.Add(lib.DeepClone()); }
+                vanilla["libraries"] = totalLibs.DeepClone();
+                vanilla["id"] = versionName;
+                vanilla["forgeVersion"] = forge;
+                var totalGameArgs = vanilla["arguments"]["game"].DeepClone().AsArray();
+                if (forgeJson["arguments"] != null && forgeJson["arguments"]["game"] != null) { foreach (var gameArg in forgeJson["arguments"]["game"].AsArray()) { totalGameArgs.Add(gameArg.DeepClone()); } }
+                var totalJvmArgs = vanilla["arguments"]["jvm"].DeepClone().AsArray();
+                if (forgeJson["arguments"] != null && forgeJson["arguments"]["jvm"] != null) { foreach (var jvmArg in forgeJson["arguments"]["jvm"].AsArray()) { totalJvmArgs.Add(jvmArg.DeepClone()); } }
+
+                vanilla["arguments"]["game"] = totalGameArgs.DeepClone();
+                vanilla["arguments"]["jvm"] = totalJvmArgs.DeepClone();
+                File.WriteAllText(Path.Combine(GamePath, "versions", versionName, versionName + ".json"), vanilla.ToJsonString(new JsonSerializerOptions{WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping}));
+            },"执行安装");
+            return root;
+        }
         private int SubTaskForFabric(string versionId, string versionName, string fabric, int taskId, int root, string fabricApi = "")
         {
             TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
@@ -213,7 +471,23 @@ namespace LMC.Minecraft.Download
                 node["id"] = versionId;
                 var fabricLibraries = DownloadTools.ParseLibraryFiles(JsonUtils.GetValueFromJson(fabJson, "libraries"));
                 TaskManager.Values[taskId]["fabricLibs"] = fabricLibraries;
-                File.WriteAllText($"{GamePath}/versions/{versionName}/{versionName}.json", node.ToJsonString(new JsonSerializerOptions{WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping}));
+                var vanilla = JsonNode.Parse(File.ReadAllText(Path.Combine(GamePath, "versions", versionName, versionName + ".json")));
+                
+                vanilla["mainClass"] = node["mainClass"].DeepClone();
+                var totalLibs = vanilla["libraries"].DeepClone().AsArray();
+                foreach (var lib in node["libraries"].AsArray()) { totalLibs.Add(lib.DeepClone()); }
+                vanilla["libraries"] = totalLibs.DeepClone();
+                vanilla["id"] = versionName;
+                vanilla["fabricVersion"] = fabric;
+                var totalGameArgs = vanilla["arguments"]["game"].DeepClone().AsArray();
+                if (node["arguments"] != null && node["arguments"]["game"] != null) { foreach (var gameArg in node["arguments"]["game"].AsArray()) { totalGameArgs.Add(gameArg.DeepClone()); } }
+                var totalJvmArgs = vanilla["arguments"]["jvm"].DeepClone().AsArray();
+                if (node["arguments"] != null && node["arguments"]["jvm"] != null) { foreach (var jvmArg in node["arguments"]["jvm"].AsArray()) { totalJvmArgs.Add(jvmArg.DeepClone()); } }
+
+                vanilla["arguments"]["game"] = totalGameArgs.DeepClone();
+                vanilla["arguments"]["jvm"] = totalJvmArgs.DeepClone();
+                File.WriteAllText(Path.Combine(GamePath, "versions", versionName, versionName + ".json"), vanilla.ToJsonString(new JsonSerializerOptions{WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping}));
+
             }, "解析 Fabric 信息");
             TaskManager.Instance.AddSubTask(taskId, ++root, async ctx =>
             {

@@ -120,7 +120,13 @@ namespace LMC.Minecraft.Download
             return netFiles;
         }
 
-        private static List<LibraryFile> VanillaLibraryJsonToLibraryFile(VanillaLibraryJson libraryJson)
+        /// <summary>
+        /// 将<see cref="VanillaLibraryJson"/>中的项提取为<see cref="LibraryFile"/>
+        /// </summary>
+        /// <param name="libraryJson">传入的LibraryJson</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidLibraryJsonException">CLassifiers无法找到对应的key</exception>
+        public static List<LibraryFile> VanillaLibraryJsonToLibraryFile(VanillaLibraryJson libraryJson)
         {
             List<LibraryFile> libraryFiles = new List<LibraryFile>();
             bool windows = true;
@@ -176,6 +182,11 @@ namespace LMC.Minecraft.Download
                 name = name.Replace("[", "").Replace("]", "");
             }
 
+            if (name.StartsWith("{") && name.EndsWith("}"))
+            {
+                name = name.Replace("{", "").Replace("}", "");
+            }
+            
             return $"{GetLibraryFileName(name)}";
         }
 
@@ -198,7 +209,7 @@ namespace LMC.Minecraft.Download
                 return pathBase;
             }
         }
-        private static string GetMainClassFromJar(string MainJarPath) {
+        public static string GetMainClassFromJar(string MainJarPath) {
             using (var zip = ZipFile.Open(MainJarPath, ZipArchiveMode.Read)) {
                 var mainfest = zip.GetEntry("META-INF/MANIFEST.MF");
                 var stream = new StreamReader(mainfest.Open());

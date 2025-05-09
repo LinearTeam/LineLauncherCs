@@ -297,8 +297,12 @@
     <Compile Include="Minecraft\Download\DownloadSource.cs" />
     <Compile Include="Minecraft\Download\DownloadTools.cs" />
     <Compile Include="Minecraft\Download\Exceptions\InvalidLibraryJsonException.cs" />
+    <Compile Include="Minecraft\Download\Exceptions\ProcessorException.cs" />
     <Compile Include="Minecraft\Download\GameDownloader.cs" />
     <Compile Include="Minecraft\Download\Model\DVersion.cs" />
+    <Compile Include="Minecraft\Download\Model\Forge\ForgeInstallProfile.cs" />
+    <Compile Include="Minecraft\Download\Model\Forge\IPData.cs" />
+    <Compile Include="Minecraft\Download\Model\Forge\Processor.cs" />
     <Compile Include="Minecraft\Download\Model\LibraryFile.cs" />
     <Compile Include="Minecraft\Download\Model\NetFile.cs" />
     <Compile Include="Minecraft\Download\Model\VanillaLibraryJson.cs" />
