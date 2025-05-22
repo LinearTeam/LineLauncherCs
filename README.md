@@ -1,3 +1,7 @@
+## Note | 注意
+The LMC in this branch is old version and based on WPF. The latest version has been remake based on Avalonia, please refer to the 'main' branch.   
+这个分支中的LMC是旧版的基于WPF的LMC。最新版本已经基于Avalonia重写，请参阅`main`分支。 
+
 简体中文版 | [ENGLISH VERSION](https://github.com/IceCreamTeamICT/LineLauncherCs/blob/main/README-EN.md)
 # <img src="/ico.ico" alt="Logo" width="25" height="25"> LineLauncherCs
 ![](https://img.shields.io/github/license/LinearTeam/LineLauncherCs)
