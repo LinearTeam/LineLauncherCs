@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LMCUI", "LMCUI\LMCUI.csproj", "{91EC1CBE-B0E6-405D-9E07-D5442287E7C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LMCCore", "LMCCore\LMCCore.csproj", "{97B3AE6A-6222-42AE-B968-2FE92D1B69EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LMCCore.Test", "LMCCore.Test\LMCCore.Test.csproj", "{D1151C21-006C-455C-ABA7-F21328E5006B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{91EC1CBE-B0E6-405D-9E07-D5442287E7C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91EC1CBE-B0E6-405D-9E07-D5442287E7C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91EC1CBE-B0E6-405D-9E07-D5442287E7C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91EC1CBE-B0E6-405D-9E07-D5442287E7C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97B3AE6A-6222-42AE-B968-2FE92D1B69EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97B3AE6A-6222-42AE-B968-2FE92D1B69EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97B3AE6A-6222-42AE-B968-2FE92D1B69EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97B3AE6A-6222-42AE-B968-2FE92D1B69EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1151C21-006C-455C-ABA7-F21328E5006B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1151C21-006C-455C-ABA7-F21328E5006B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1151C21-006C-455C-ABA7-F21328E5006B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1151C21-006C-455C-ABA7-F21328E5006B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
