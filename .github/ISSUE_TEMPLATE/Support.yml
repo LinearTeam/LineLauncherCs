@@ -1,0 +1,27 @@
+name: 技术支持
+description: 需要帮助？
+title: "[Support] "
+labels: ["帮助支持","处理中"]
+assignees:
+  - tmdakm
+body:
+  - type: markdown
+    attributes:
+      value: |
+        开发者会亲自联系你为你提供1对1的技术支持，请确保这是一个重大问题，比如各种平台适配等。
+  - type: textarea
+    id: descr
+    attributes:
+      label: 简述需求
+      description: 你为什么需要提供技术支持？
+      placeholder: 因为我电脑没有安装原神...
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 这是否是个重大问题而非诸如如何找到日志文件这种无意义问题？
+      description: 请确保您只在重大问题上需要技术支持
+      options:
+        - label: 是的，这是个重大问题
+          required: true
