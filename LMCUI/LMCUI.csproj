@@ -6,6 +6,7 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <ApplicationIcon>ico.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,5 +20,20 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="FluentAvaloniaUI" Version="2.4.0-preview1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LMCCore\LMCCore.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AvaloniaResource Include="Assets\LMC.png" />
+      <None Remove="LMC.png" />
+      <AvaloniaResource Include="Assets\ico.png" />
+      <None Remove="ico.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Pages\OOBE\" />
     </ItemGroup>
 </Project>

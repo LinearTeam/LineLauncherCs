@@ -2,8 +2,44 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sty="using:FluentAvalonia.Styling"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+        xmlns:lmcui="clr-namespace:LMCUI"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LMCUI.MainWindow"
-        Title="LMCUI">
-    Welcome to Avalonia!
+        Title="Line Launcher"
+        Height="468"
+        Width="900">
+    <Grid>
+        <ui:NavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged">
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="启动" Tag="LaunchPage" IconSource="Play" />
+                <ui:NavigationViewItem Content="版本管理" Tag="VersionManagePage" IconSource="Games" />
+                <ui:NavigationViewItem Content="下载" Tag="DownloadPage" IconSource="Download">
+                    <ui:NavigationViewItem.MenuItems>
+                        <ui:NavigationViewItem Content="下载版本" IconSource="New" Tag="DownloadMinecraftPage" />
+                        <ui:NavigationViewItem Content="下载模组" IconSource="Upload" Tag="DownloadModPage" />
+                    </ui:NavigationViewItem.MenuItems>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="账号管理" Tag="AccountPage" IconSource="People" />
+            </ui:NavigationView.MenuItems>
+            <ui:NavigationView.Header>
+                <ui:BreadcrumbBar Name="mainBcb" ItemClicked="MainBcb_OnItemClicked">
+                    <ui:BreadcrumbBar.ItemTemplate>
+                        <DataTemplate DataType="lmcui:BreadCrumbBarItem">
+                            <ui:BreadcrumbBarItem Content="{Binding}" AutomationProperties.Name="{Binding Title}">
+                                <ui:BreadcrumbBarItem.ContentTemplate>
+                                    <DataTemplate DataType="lmcui:BreadCrumbBarItem">
+                                        <TextBlock FontSize="20" Text="{Binding Title}"/>
+                                    </DataTemplate>
+                                </ui:BreadcrumbBarItem.ContentTemplate>
+                            </ui:BreadcrumbBarItem>
+                        </DataTemplate>
+                    </ui:BreadcrumbBar.ItemTemplate>
+                </ui:BreadcrumbBar>
+            </ui:NavigationView.Header>
+            <ui:Frame Name="mainFrm" />
+        </ui:NavigationView>
+    </Grid>
 </Window>
