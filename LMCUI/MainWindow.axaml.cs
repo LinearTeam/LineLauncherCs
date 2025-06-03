@@ -7,6 +7,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using FluentAvalonia.UI.Controls;
 using FluentAvalonia.UI.Windowing;
+using LMC.Basic;
 using LMCUI;
 using LMCUI.Controls;
 using LMCUI.Pages;
@@ -40,6 +41,7 @@ public partial class MainWindow : AppWindow
         s_isCodeChangeSelection = true;
         Instance.mnv.SelectedItem = item;
         s_isCodeChangeSelection = false;
+
         switch (type)
         {
             case NavigateType.Append:

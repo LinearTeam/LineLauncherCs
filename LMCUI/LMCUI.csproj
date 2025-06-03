@@ -24,6 +24,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\LMCCore\LMCCore.csproj" />
+      <ProjectReference Include="..\LMC\LMC.csproj" />
     </ItemGroup>
 
     <ItemGroup>

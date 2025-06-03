@@ -8,27 +8,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="63a900f6-e47d-410e-971d-33078eb465e5" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/LMCUI/Assets/LMC.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Assets/ico.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreen.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreenContent.axaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreenContent.axaml.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/LaunchPage/LaunchPage.axaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/LaunchPage/LaunchPage.axaml.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/PageBase.axaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/PageBase.axaml.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/VersionManagePage/VersionManagePage.axaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/VersionManagePage/VersionManagePage.axaml.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/ico.ico" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/avalonia.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/avalonia.xml" afterDir="false" />
+    <list default="true" id="63a900f6-e47d-410e-971d-33078eb465e5" name="更改" comment=":sparkles: 基础UI框架">
+      <change afterPath="$PROJECT_DIR$/LMC/Basic/Logger.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMC/Config/LineFileParser.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMC/Current.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMC/LMC.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCCore.Test/LMCCore.Test.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/LMCCore.Test/LMCCore.Test.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/App.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/App.axaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/LMCUI.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/LMCUI.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/MainWindow.axaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LineLauncherCs.sln" beforeDir="false" afterPath="$PROJECT_DIR$/LineLauncherCs.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -129,7 +118,7 @@
       <workItem from="1748515398259" duration="659000" />
       <workItem from="1748534807859" duration="616000" />
       <workItem from="1748618231009" duration="2102000" />
-      <workItem from="1748933483680" duration="8538000" />
+      <workItem from="1748933483680" duration="11765000" />
     </task>
     <task id="LOCAL-00001" summary="👍项目文件">
       <option name="closed" value="true" />
@@ -139,7 +128,15 @@
       <option name="project" value="LOCAL" />
       <updated>1747998363840</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary=":sparkles: 基础UI框架">
+      <option name="closed" value="true" />
+      <created>1748948916352</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1748948916352</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -173,6 +170,7 @@
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="项目文件" />
-    <option name="LAST_COMMIT_MESSAGE" value="项目文件" />
+    <MESSAGE value=":sparkles: 基础UI框架" />
+    <option name="LAST_COMMIT_MESSAGE" value=":sparkles: 基础UI框架" />
   </component>
 </project>
