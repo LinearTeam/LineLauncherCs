@@ -1,0 +1,17 @@
+﻿<pages:PageBase xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+             xmlns:pages="clr-namespace:LMCUI.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LMCUI.Pages.SettingsPage.SettingsPage">
+    <Grid Margin="30, 60">
+        <StackPanel Orientation="Vertical">
+            <ui:SettingsExpander IsClickEnabled="True" Header="游戏设置" Description="与游戏的下载、启动相关的设置" 
+                                 IconSource="Games" ActionIconSource=""/>
+        </StackPanel>
+    </Grid>
+</pages:PageBase>

@@ -12,7 +12,7 @@
         Height="468"
         Width="900">
     <Grid>
-        <ui:NavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged">
+        <ui:NavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged" IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem Content="启动" Tag="LaunchPage" IconSource="Play" />
                 <ui:NavigationViewItem Content="版本管理" Tag="VersionManagePage" IconSource="Games" />

@@ -9,20 +9,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="63a900f6-e47d-410e-971d-33078eb465e5" name="更改" comment=":sparkles: 基础UI框架">
-      <change afterPath="$PROJECT_DIR$/LMC/Basic/Logger.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMC/Config/LineFileParser.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMC/Current.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMC/LMC.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/SettingsPage.axaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/SettingsPage.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/avalonia.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/avalonia.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/LMCUI.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/LMCUI.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMCUI/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/MainWindow.axaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LineLauncherCs.sln" beforeDir="false" afterPath="$PROJECT_DIR$/LineLauncherCs.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -35,12 +35,12 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/LinearTeam/LineLauncherCs&quot;,
-    &quot;accountId&quot;: &quot;3ed12359-9481-4613-8208-f49bda7a0d1e&quot;
+    &quot;url&quot;: &quot;https://github.com/LinearTeam/LineLauncherCs.git&quot;,
+    &quot;accountId&quot;: &quot;09d4e235-b968-473e-b7fd-7bbaadb20b8b&quot;
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/fc717c258e7843348dd3b2e0bf039a661f8c00/52/5565550a/StandardAssetLoader.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo">{
@@ -56,7 +56,9 @@
   &quot;keyToString&quot;: {
     &quot;.NET 项目.LMCUI.executor&quot;: &quot;Debug&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -119,6 +121,9 @@
       <workItem from="1748534807859" duration="616000" />
       <workItem from="1748618231009" duration="2102000" />
       <workItem from="1748933483680" duration="11765000" />
+      <workItem from="1752267017657" duration="789000" />
+      <workItem from="1752860731293" duration="639000" />
+      <workItem from="1752861453520" duration="2588000" />
     </task>
     <task id="LOCAL-00001" summary="👍项目文件">
       <option name="closed" value="true" />
@@ -155,7 +160,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="master" />
+                        <option value="main" />
                       </list>
                     </value>
                   </entry>

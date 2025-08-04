@@ -1,6 +1,9 @@
 ﻿namespace LMC;
 
-public class Current
+using Basic.Configs;
+
+public static class Current
 {
-    public static string LMCPATH = Path.GetFullPath("LMC");
+    public static string LMCPath = Path.GetFullPath("LMC");
+    public static AppConfig AppConfig { get; set; }
 }

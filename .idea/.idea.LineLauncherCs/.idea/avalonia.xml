@@ -8,6 +8,7 @@
         <entry key="LMCUI/MainWindow.axaml" value="LMCUI/LMCUI.csproj" />
         <entry key="LMCUI/Pages/LaunchPage/LaunchPage.axaml" value="LMCUI/LMCUI.csproj" />
         <entry key="LMCUI/Pages/PageBase.axaml" value="LMCUI/LMCUI.csproj" />
+        <entry key="LMCUI/Pages/SettingsPage/SettingsPage.axaml" value="LMCUI/LMCUI.csproj" />
         <entry key="LMCUI/Pages/VersionManagePage/VersionManagePage.axaml" value="LMCUI/LMCUI.csproj" />
         <entry key="LMCUI/UI/LineSplashScreenContent.axaml" value="LMCUI/LMCUI.csproj" />
       </map>

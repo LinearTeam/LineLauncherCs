@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using FluentAvalonia.UI.Controls;
@@ -12,6 +13,7 @@ using LMCUI;
 using LMCUI.Controls;
 using LMCUI.Pages;
 using LMCUI.Pages.LaunchPage;
+using LMCUI.Pages.SettingsPage;
 using LMCUI.Pages.VersionManagePage;
 
 namespace LMCUI;
@@ -19,7 +21,13 @@ namespace LMCUI;
 public partial class MainWindow : AppWindow
 {
     private static bool s_isCodeChangeSelection = false;
-    private static Type[] s_directNavigationPages = new[]{typeof(LaunchPage), typeof(VersionManagePage)};
+
+    private static Type[] s_directNavigationPages = new[]
+    {
+        typeof(LaunchPage), 
+        typeof(VersionManagePage), 
+        typeof(SettingsPage)
+    };
     public static MainWindow Instance { get; private set; } = null!;
     public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new ObservableCollection<BreadCrumbBarItem>();
     public MainWindow()
@@ -27,6 +35,11 @@ public partial class MainWindow : AppWindow
         Instance = this;
         InitializeComponent();
         SplashScreen = new LineSplashScreen();
+        Loaded += OnLoaded;
+    }
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        mnv.SettingsItem.Tag = "SettingsPage";
     }
 
     public static void NavigatePage(PageNavigateWay way, NavigateType type, string? tag = null)

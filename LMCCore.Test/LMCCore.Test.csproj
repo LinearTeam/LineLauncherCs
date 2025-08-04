@@ -13,4 +13,8 @@
       <ProjectReference Include="..\LMCCore\LMCCore.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="NLog" Version="6.0.2" />
+    </ItemGroup>
+
 </Project>
