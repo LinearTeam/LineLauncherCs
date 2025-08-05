@@ -8,13 +8,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="63a900f6-e47d-410e-971d-33078eb465e5" name="更改" comment=":sparkles: 基础UI框架">
-      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/SettingsPage.axaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/SettingsPage.axaml.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/avalonia.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/avalonia.xml" afterDir="false" />
+    <list default="true" id="63a900f6-e47d-410e-971d-33078eb465e5" name="更改" comment="">
+      <change afterPath="$PROJECT_DIR$/LMC/LifeCycle/Startup.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/MainWindow.axaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMC/Basic/Configs/AppConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Basic/Configs/AppConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMC/Basic/Configs/ConfigManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Basic/Configs/ConfigManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMC/Basic/Logging/Logger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Basic/Logging/Logger.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMC/Current.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Current.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreenContent.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreenContent.axaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreenContent.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreenContent.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README-EN.md" beforeDir="false" afterPath="$PROJECT_DIR$/README-EN.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,9 +44,15 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/40e1999c15e843a48dc2fb33a7454ea8d2c00/f2/99141275/LogManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/45ada8c418664ff394ffd30455aab498c90910/c4/d8a19b62/AttributeUsageAttribute.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/4d0906399f28447196ed01e421776aa5360c00/64/d1e14512/AppWindow.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
@@ -124,6 +134,8 @@
       <workItem from="1752267017657" duration="789000" />
       <workItem from="1752860731293" duration="639000" />
       <workItem from="1752861453520" duration="2588000" />
+      <workItem from="1754339914310" duration="7785000" />
+      <workItem from="1754415380655" duration="5259000" />
     </task>
     <task id="LOCAL-00001" summary="👍项目文件">
       <option name="closed" value="true" />
@@ -141,7 +153,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748948916352</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary=":construction: WIP 2025-8-05">
+      <option name="closed" value="true" />
+      <created>1754347587496</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1754347587497</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -176,6 +196,7 @@
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="项目文件" />
     <MESSAGE value=":sparkles: 基础UI框架" />
-    <option name="LAST_COMMIT_MESSAGE" value=":sparkles: 基础UI框架" />
+    <MESSAGE value=":construction: WIP 2025-8-05" />
+    <option name="LAST_COMMIT_MESSAGE" value=":construction: WIP 2025-8-05" />
   </component>
 </project>

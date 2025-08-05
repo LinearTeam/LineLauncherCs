@@ -31,7 +31,7 @@ public class Logger
             var logDir = Path.Combine(Current.LMCPath, "logs");
             Directory.CreateDirectory(logDir);
 
-            var appConfig = Current.AppConfig;
+            var appConfig = Current.Config;
             LogLevel configLogLevel = appConfig?.LogLevel ?? LogLevel.Info;
             NLog.LogLevel minLogLevel = MapToNLogLevel(configLogLevel);
             

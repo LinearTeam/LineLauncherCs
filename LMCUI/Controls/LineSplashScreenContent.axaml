@@ -6,6 +6,7 @@
              x:Class="LMCUI.Controls.LineSplashScreenContent">
     <StackPanel Orientation="Vertical" MaxWidth="500" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="5">
         <Image Source="/Assets/LMC.png" MaxHeight="400" MaxWidth="400"/>
+        <Label Name="pl" HorizontalContentAlignment="Center"></Label>
         <ProgressBar Name="pb"/>
     </StackPanel>
 </UserControl>

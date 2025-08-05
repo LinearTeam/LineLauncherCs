@@ -6,3 +6,4 @@ using Logging;
 public class AppConfig {
     public LogLevel LogLevel { get; set; } = LogLevel.Info;
 }
+

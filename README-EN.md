@@ -14,8 +14,9 @@ LMC previously had a WPF version located in the `wpf` branch. Due to WPF's lack 
 
 ### Roadmap
 - ~~Project reconstruction~~
-- Basic UI
+- ~~Basic UI~~
 - Java management
+- Help Center
 - Version management
 - Account management
 - OOBE

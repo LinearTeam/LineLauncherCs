@@ -71,7 +71,8 @@ public static class ConfigManager {
 
         if (!File.Exists(filePath))
         {
-            return new T();
+            Save(configName, new T());
+            return Load<T>(configName);
         }
 
         try
@@ -128,26 +129,7 @@ public static class ConfigManager {
 
 
     static string GetConfigPath(string configName) {
-        string baseDir;
-
-        if (OperatingSystem.IsWindows())
-        {
-            baseDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            baseDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            "Library/Application Support");
-        }
-        else // Linux
-        {
-            baseDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            string? xdgConfig = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-            baseDir = !string.IsNullOrEmpty(xdgConfig) ? xdgConfig : Path.Combine(baseDir, ".config");
-        }
-
-        return Path.Combine(baseDir, "LMC", $"{configName}.config.json");
+        return Path.Combine(Current.LMCPath, "LMC", $"{configName}.config.json");
     }
 
     static int GetConfigVersion(Type configType) {
