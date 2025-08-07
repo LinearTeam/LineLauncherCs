@@ -4,6 +4,8 @@ using Avalonia.Markup.Xaml;
 
 namespace LMCUI;
 
+using I18n;
+
 public partial class App : Application
 {
     public override void Initialize()
@@ -17,7 +19,7 @@ public partial class App : Application
         {
             desktop.MainWindow = new MainWindow();
         }
-
+        
         base.OnFrameworkInitializationCompleted();
     }
     

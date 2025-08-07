@@ -33,6 +33,9 @@
       <None Remove="LMC.png" />
       <AvaloniaResource Include="Assets\ico.png" />
       <None Remove="ico.png" />
+      <None Update="Languages\zh-CN.xml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>

@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using Configs;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -85,7 +86,7 @@ public class Logger
         
     public void Error(Exception e, string func)
     {
-        _nlogLogger.Error(e, $"An exception occurred when {func}");
+        _nlogLogger.Error($"An exception occurred when {func}:\n{e}");
     }
 
     public void Debug(string msg)

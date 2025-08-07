@@ -5,6 +5,7 @@
         xmlns:sty="using:FluentAvalonia.Styling"
         xmlns:ui="using:FluentAvalonia.UI.Controls"
         xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+        xmlns:i18n="clr-namespace:LMCUI.I18n"
         xmlns:lmcui="clr-namespace:LMCUI"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LMCUI.MainWindow"
@@ -14,15 +15,15 @@
     <Grid>
         <ui:NavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged" IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="启动" Tag="LaunchPage" IconSource="Play" />
-                <ui:NavigationViewItem Content="版本管理" Tag="VersionManagePage" IconSource="Games" />
-                <ui:NavigationViewItem Content="下载" Tag="DownloadPage" IconSource="Download">
+                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.LaunchPage}" Tag="LaunchPage" IconSource="Play" />
+                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.VersionManagePage}" Tag="VersionManagePage" IconSource="Games" />
+                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadPage}" Tag="DownloadPage" IconSource="Download">
                     <ui:NavigationViewItem.MenuItems>
-                        <ui:NavigationViewItem Content="下载版本" IconSource="New" Tag="DownloadMinecraftPage" />
-                        <ui:NavigationViewItem Content="下载模组" IconSource="Upload" Tag="DownloadModPage" />
+                        <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadMinecraftPage}" IconSource="New" Tag="DownloadMinecraftPage" />
+                        <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadModPage}" IconSource="Upload" Tag="DownloadModPage" />
                     </ui:NavigationViewItem.MenuItems>
                 </ui:NavigationViewItem>
-                <ui:NavigationViewItem Content="账号管理" Tag="AccountPage" IconSource="People" />
+                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.AccountPage}" Tag="AccountPage" IconSource="People" />
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.Header>
                 <ui:BreadcrumbBar Name="mainBcb" ItemClicked="MainBcb_OnItemClicked">

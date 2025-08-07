@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Localization>
+    <MainWindow>
+        <NavItems>
+            <LaunchPage>启动</LaunchPage>
+            <VersionManagePage>版本管理</VersionManagePage>
+            <DownloadPage>下载</DownloadPage>
+            <DownloadMinecraftPage>下载游戏</DownloadMinecraftPage>
+            <DownloadModPage>下载模组</DownloadModPage>
+            <AccountPage>账号管理</AccountPage>
+            <SettingsPage>设置</SettingsPage>
+        </NavItems>
+    </MainWindow>
+    
+    <Pages>
+        <SettingsPage>
+            <Title>设置</Title>
+        </SettingsPage>
+
+        <LaunchPage>
+            <Title>启动</Title>
+        </LaunchPage>
+
+        <VersionManagePage>
+            <Title>版本管理</Title>
+        </VersionManagePage>
+    </Pages>
+</Localization>

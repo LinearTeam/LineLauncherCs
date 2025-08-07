@@ -1,3 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-Console.WriteLine("Hello, World!");
+using LMC;
+using LMC.LifeCycle;
+using LMCCore.Java;
+
+Console.WriteLine("Hello World!");

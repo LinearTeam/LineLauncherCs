@@ -18,6 +18,9 @@ using LMCUI.Pages.VersionManagePage;
 
 namespace LMCUI;
 
+using System.Globalization;
+using I18n;
+
 public partial class MainWindow : AppWindow
 {
     private static bool s_isCodeChangeSelection = false;
@@ -40,6 +43,7 @@ public partial class MainWindow : AppWindow
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         mnv.SettingsItem.Tag = "SettingsPage";
+        mnv.SettingsItem.Content = I18nManager.Instance.GetString("MainWindow.NavItems.SettingsPage");
     }
 
     public static void NavigatePage(PageNavigateWay way, NavigateType type, string? tag = null)
@@ -51,6 +55,7 @@ public partial class MainWindow : AppWindow
     {
         if(type == NavigateType.Backward && tag == null) throw new ArgumentNullException(nameof(tag), "Argument 'tag' cannot be null when 'type' is 'Backward'.");
         Instance.mainFrm.Navigate(page, param);
+        ((PageBase)Instance.mainFrm.Content).Title = I18nManager.Instance.GetString(((PageBase)Instance.mainFrm.Content).Title);
         s_isCodeChangeSelection = true;
         Instance.mnv.SelectedItem = item;
         s_isCodeChangeSelection = false;

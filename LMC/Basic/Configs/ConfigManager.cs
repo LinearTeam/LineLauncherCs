@@ -21,6 +21,7 @@
 namespace LMC.Basic.Configs;
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
@@ -28,6 +29,9 @@ using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+using NLog;
+using Logger=Logging.Logger;
 
 #region 注解
 [AttributeUsage(AttributeTargets.Class)]
@@ -59,77 +63,73 @@ public class ConfigRemovedAttribute(int sinceVersion) : Attribute {
 
 public static class ConfigManager {
     const string _versionProperty = "$version";
+    private static readonly ConcurrentDictionary<string, object> _configLocks = new();
+    private static Logger s_logger = new Logger("ConfigManager");
+    
     static readonly JsonSerializerOptions s_serializerOptions = new()
     {
         WriteIndented = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver() // 基于反射的解析器
     };
 
     public static T Load<T>(string configName) where T : new() {
         string filePath = GetConfigPath(configName);
+        object configLock = _configLocks.GetOrAdd(configName, _ => new object());
 
-        if (!File.Exists(filePath))
-        {
-            Save(configName, new T());
-            return Load<T>(configName);
-        }
+        lock (configLock) {
+            if (!File.Exists(filePath)) {
+                var defaultConfig = new T();
+                SaveInternal(configName, defaultConfig, filePath);
+                return defaultConfig;
+            }
 
-        try
-        {
-            string json = File.ReadAllText(filePath);
-            var jsonObject = JsonNode.Parse(json) as JsonObject;
+            try {
+                string json = File.ReadAllText(filePath);
+                var jsonObject = JsonNode.Parse(json) as JsonObject;
 
-            if (jsonObject == null)
-            {
+                if (jsonObject == null) return new T();
+
+                int configVersion = jsonObject.TryGetPropertyValue(_versionProperty, out var versionNode)
+                    ? versionNode?.GetValue<int>() ?? 1
+                    : 1;
+
+                int targetVersion = GetConfigVersion(typeof(T));
+                if (configVersion != targetVersion) {
+                    MigrateConfiguration(jsonObject, configVersion, targetVersion);
+                }
+
+                jsonObject.Remove(_versionProperty);
+                return jsonObject.Deserialize<T>(s_serializerOptions) ?? new T();
+            } catch {
                 return new T();
             }
-
-            int configVersion = jsonObject.TryGetPropertyValue(_versionProperty, out var versionNode)
-                ? versionNode?.GetValue<int>() ?? 1
-                : 1;
-
-            int targetVersion = GetConfigVersion(typeof(T));
-
-            if (configVersion != targetVersion)
-            {
-                MigrateConfiguration(jsonObject, configVersion, targetVersion);
-            }
-
-            jsonObject.Remove(_versionProperty);
-
-            return jsonObject.Deserialize<T>(s_serializerOptions) ?? new T();
-        }
-        catch
-        {
-            return new T();
         }
     }
 
     public static void Save<T>(string configName, T config) {
         string filePath = GetConfigPath(configName);
-        string configDir = Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException("Could not get config directory");
-
-        if (!Directory.Exists(configDir))
-        {
-            Directory.CreateDirectory(configDir);
+        object configLock = _configLocks.GetOrAdd(configName, _ => new object());
+        
+        lock (configLock) {
+            SaveInternal(configName, config, filePath);
         }
+    }
+
+    private static void SaveInternal<T>(string configName, T config, string filePath) {
+        string configDir = Path.GetDirectoryName(filePath)!;
+        Directory.CreateDirectory(configDir);
 
         var jsonObject = JsonObject.Create(JsonSerializer.SerializeToElement(config, s_serializerOptions));
-
-        if (jsonObject == null)
-        {
-            return;
-        }
+        if (jsonObject == null) return;
 
         jsonObject[_versionProperty] = GetConfigVersion(typeof(T));
-
         File.WriteAllText(filePath, jsonObject.ToJsonString(s_serializerOptions));
     }
 
-
     static string GetConfigPath(string configName) {
-        return Path.Combine(Current.LMCPath, "LMC", $"{configName}.config.json");
+        return Path.Combine(Current.LMCPath, $"{configName}.config.json");
     }
 
     static int GetConfigVersion(Type configType) {

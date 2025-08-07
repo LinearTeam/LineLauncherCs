@@ -1,4 +1,4 @@
-﻿namespace LMC.Config;
+﻿namespace LMC.Basic;
 
 using System;
 using System.Collections.Generic;

@@ -8,10 +8,11 @@
              xmlns:pages="clr-namespace:LMCUI.Pages"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LMCUI.Pages.SettingsPage.SettingsPage">
-    <Grid Margin="30, 60">
+    <Grid Margin="60, 20, 40, 30">
         <StackPanel Orientation="Vertical">
             <ui:SettingsExpander IsClickEnabled="True" Header="游戏设置" Description="与游戏的下载、启动相关的设置" 
                                  IconSource="Games" ActionIconSource=""/>
+            
         </StackPanel>
     </Grid>
 </pages:PageBase>

@@ -5,6 +5,7 @@ using Avalonia.Controls;
 namespace LMCUI.Controls;
 
 using System;
+using I18n;
 using LMC.LifeCycle;
 
 public partial class LineSplashScreenContent : UserControl
@@ -18,10 +19,11 @@ public partial class LineSplashScreenContent : UserControl
     {
         pb.Value = 0;
         await Startup.Initialize((pim => {
-            pb.Value = (int)Math.Round(((double)pim.progress / pim.total * 100)
+            pb.Value = (int)Math.Round(((double)pim.Progress / pim.Total * 100)
                 , MidpointRounding.AwayFromZero);
-            pl.Content = $"{pim.progress} / {pim.total} {pim.msg}";
+            pl.Content = $"{pim.Progress} / {pim.Total} {pim.Message}";
         }));
+        I18nManager.Instance.LoadAllLanguages();
         await Task.Delay(800, ct);
         pb.Value = 100;
     }

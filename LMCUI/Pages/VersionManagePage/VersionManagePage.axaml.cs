@@ -8,7 +8,7 @@ namespace LMCUI.Pages.VersionManagePage;
 
 public partial class VersionManagePage : PageBase
 {
-    public VersionManagePage() : base("版本管理","VersionManagePage")
+    public VersionManagePage() : base("Pages.VersionManagePage.Title","VersionManagePage")
     {
         InitializeComponent();
     }
