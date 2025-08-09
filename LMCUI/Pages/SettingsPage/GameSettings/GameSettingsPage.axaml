@@ -1,0 +1,66 @@
+﻿<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:sty="using:FluentAvalonia.Styling"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
+                xmlns:gameSettings="clr-namespace:LMCUI.Pages.SettingsPage.GameSettings"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="LMCUI.Pages.SettingsPage.GameSettings.GameSettingsPage">
+    
+    <Grid Margin="60, 20, 40, 30">
+        <Grid.Resources>
+            <DataTemplate DataType="{x:Type gameSettings:JavaItem}" x:Key="JavaItemDT">
+                <ui:SettingsExpanderItem Description="{Binding Path=Path}"
+                                         IsClickEnabled="True" ActionIconSource="OpenFolder"
+                                         Tag="{Binding Path=Path}" Click="JavaItemExpander_Click">
+                    <ui:SettingsExpanderItem.Content>
+                        <TextBlock Text="{Binding Path=Header}" Foreground="{Binding Path=Foreground}"/>
+                    </ui:SettingsExpanderItem.Content>
+                    <behaviors:HoverFooterBehavior.FooterContentTemplate>
+                        <ControlTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,5,0" Spacing="3">
+                                <Button Tag="{Binding Path=Path}" Content="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.JavaListItem.SelectButton}" Classes="accent" Click="SelectJava_Click"/>
+                                <Button Tag="{Binding Path=Path}" Click="RemoveJava_Click">
+                                    <ui:SymbolIcon Symbol="Delete" Foreground="Red"/>
+                                </Button>
+                            </StackPanel>
+                        </ControlTemplate>
+                    </behaviors:HoverFooterBehavior.FooterContentTemplate>
+                </ui:SettingsExpanderItem>
+            </DataTemplate>
+        </Grid.Resources>
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical" Spacing="1">
+                <Label Content="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.Title}" Margin="0, 20"/>
+                <ui:SettingsExpander Name="jle" IconSource="BulletList" Header="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.Header}"
+                                     Description="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.Description}" ItemTemplate="{StaticResource JavaItemDT}">
+                </ui:SettingsExpander>
+                <ui:SettingsExpander Header="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.Header}" IconSource="Add" ActionIconSource="NewFolder"
+                                     Description="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.Description}" IsClickEnabled="True" Click="AddJava_Click">
+                    <ui:SettingsExpander.Footer>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="" Name="SearchStatus" VerticalAlignment="Center"/>
+                            <Button Margin="0,0,5,0" Click="SearchJava_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="1">
+                                    <ui:SymbolIcon Symbol="Zoom"/>
+                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.Footer.SearchButton}"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ui:SettingsExpander.Footer>
+                </ui:SettingsExpander>
+                <ui:SettingsExpander Header="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.AutoSelectExpander.Header}" IconSource="Games"
+                                     Description="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.AutoSelectExpander.Description}">
+                    <ui:SettingsExpander.Footer>
+                        <ToggleSwitch Name="AutoSelectJavaToggleSwitch" IsCheckedChanged="AutoSelectJava_Changed" OffContent="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.AutoSelectExpander.Footer.ToggleSwitchButton.OffContent}" OnContent="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.AutoSelectExpander.Footer.ToggleSwitchButton.OnContent}"/>
+                    </ui:SettingsExpander.Footer>
+                </ui:SettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</pages:PageBase>

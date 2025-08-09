@@ -10,6 +10,8 @@ using Microsoft.Win32;
 public static class JavaManager {
     static readonly Logger s_logger = new("JavaManager");
 
+    private static readonly object _configLock = new object();
+
     public async static Task AddJava(string javaPath, Action<TaskCallbackInfo>? callback = null, bool force = false) {
         callback ??= cbi => {};
 
@@ -31,33 +33,38 @@ public static class JavaManager {
             throw new Exception("Invalid Java");
         }
         
+        lock (_configLock) {
+            if(!Current.Config.JavaPaths.Contains(javaPath)) 
+                Current.Config.JavaPaths.Add(javaPath);
+            ConfigManager.Save("app", Current.Config);
+        }
         s_logger.Info($"[添加 Java/{prcId}] ({i} / {total}) : 完成添加");
         callback.Invoke(new(i++, total,"完成添加"));
-        if(!Current.Config.JavaPaths.Contains(javaPath)) Current.Config.JavaPaths.Add(javaPath);
-        ConfigManager.Save("app", Current.Config);
     }
 
     public static void RemoveJava(string javaPath) {
         javaPath = Path.GetFullPath(javaPath);
         s_logger.Info($"禁用Java : {javaPath}");
 
-        if (Current.Config.JavaPaths.Contains(javaPath))
-        {
-            Current.Config.JavaPaths.Remove(javaPath);
+        lock (_configLock) {
+            if (Current.Config.JavaPaths.Contains(javaPath)) {
+                Current.Config.JavaPaths.Remove(javaPath);
+            }
+            ConfigManager.Save("app", Current.Config);
         }
         
-        ConfigManager.Save("app", Current.Config);
     }
     
     public async static Task<LocalJava> GetJavaInfo(string path) {
+        path = Path.GetFullPath(path);
         s_logger.Info($"获取Java信息：{path}");
         var release = Path.Combine(path, "release");
-        s_logger.Info($"release 文件路径: {release}");
+        s_logger.Debug($"release 文件路径: {release}");
         var lines = await File.ReadAllLinesAsync(release);
         var ve = from l in lines
             where l.Replace("=", ":").StartsWith("JAVA_VERSION:", StringComparison.OrdinalIgnoreCase)
             select l;
-        s_logger.Info($"过滤的版本字符串: {string.Join(", ", ve)}");
+        s_logger.Debug($"过滤的版本字符串: {string.Join(", ", ve)}");
         LocalJava java = new();
         java.Path = path;
         java.Version = Version.Parse(ve.First()
@@ -70,7 +77,7 @@ public static class JavaManager {
             where l.Replace("=", ":").StartsWith("IMPLEMENTOR:", StringComparison.OrdinalIgnoreCase)
             select l;
         
-        s_logger.Info($"过滤的发行商字符串: {string.Join(", ", impl)}");
+        s_logger.Debug($"过滤的发行商字符串: {string.Join(", ", impl)}");
 
         if (impl.Any())
         {
@@ -82,7 +89,7 @@ public static class JavaManager {
         
         java.IsJdk = File.Exists(Path.Combine(path, "bin", IsWindows() ? "javac.exe" : "javac"));
         
-        s_logger.Info(@$"最终Java：
+        s_logger.Debug(@$"最终Java：
 路径：{path}
 版本：{java.Version}
 发行商：{java.Implementor}
@@ -100,23 +107,23 @@ public static class JavaManager {
         int i = 1;
         
         s_logger.Info($"[Java 搜索] ({i}/{total}) 环境变量");
-        callback.Invoke(new(i++, total, "正在搜索环境变量"));
+        callback.Invoke(new(i++, total, "Messages.JavaManager.SearchJava.Progress.Variables"));
         await FindViaEnvironmentVariables(paths);
 
         s_logger.Info($"[Java 搜索] ({i}/{total}) Registry");
-        callback.Invoke(new(i++, total, "正在搜索注册表(仅 Windows)"));
+        callback.Invoke(new(i++, total, "Messages.JavaManager.SearchJava.Progress.Registry"));
         await FindViaRegistry(paths);
 
         s_logger.Info($"[Java 搜索] ({i}/{total}) 默认路径");
-        callback.Invoke(new(i++, total, "正在搜索 Java 默认安装路径"));
+        callback.Invoke(new(i++, total, "Messages.JavaManager.SearchJava.Progress.StandardPaths"));
         await FindViaStandardPaths(paths);
 
         s_logger.Info($"[Java 搜索] ({i}/{total}) MCRuntime");
-        callback.Invoke(new(i++, total, "正在搜索 Minecraft 官方启动器目录下的 Java"));
+        callback.Invoke(new(i++, total, "Messages.JavaManager.SearchJava.Progress.MinecraftRuntime"));
         await FindViaMinecraft(paths);
 
         s_logger.Info($"[Java 搜索] ({i}/{total}) LMCDir");
-        callback.Invoke(new(i++, total, "正在搜索启动器目录下的 Java"));
+        callback.Invoke(new(i++, total, "Messages.JavaManager.SearchJava.Progress.CurrentDir"));
         await FindViaCurrentDirectory(paths);
 
         return [..paths];
@@ -147,7 +154,7 @@ public static class JavaManager {
                 if (parentDir != null && await IsValidJavaRoot(parentDir))
                 {
                     s_logger.Info($"[Java 搜索] PATH: {parentDir}");
-                    paths.Add(parentDir);
+                    paths.Add(Path.GetFullPath(parentDir));
                 }
             }
         }
@@ -181,7 +188,7 @@ public static class JavaManager {
                 if (!string.IsNullOrEmpty(javaHome) && await IsValidJavaRoot(javaHome))
                 {
                     s_logger.Info($"[Java 搜索] REG: {javaHome}");
-                    paths.Add(javaHome);
+                    paths.Add(Path.GetFullPath(javaHome));
                 }
             }
         }
@@ -255,7 +262,7 @@ public static class JavaManager {
             if (await IsValidJavaRoot(directory))
             {
                 s_logger.Info($"[Java 搜索] Dir: {directory}");
-                paths.Add(directory);
+                paths.Add(Path.GetFullPath(directory));
                 return;
             }
 

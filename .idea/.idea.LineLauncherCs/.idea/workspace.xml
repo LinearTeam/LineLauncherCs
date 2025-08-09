@@ -9,32 +9,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="63a900f6-e47d-410e-971d-33078eb465e5" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/LMC/Basic/TaskCallbackInfo.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCCore/Java/JavaManager.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCCore/Java/LocalJava.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/I18n/I18nBindingExtension.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/I18n/I18nManager.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/I18n/XmlLanguageLoader.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LMCUI/Languages/zh-CN.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMCUI/Behaviors/HoverFooterBehavior.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMCUI/Languages/en-US.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/GameSettings/GameSettingsPage.axaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/GameSettings/GameSettingsPage.axaml.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LMCUI/Utils/CrossPlatformUtils.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/avalonia.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/avalonia.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LineLauncherCs/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMC/Basic/Configs/AppConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Basic/Configs/AppConfig.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMC/Basic/Configs/ConfigManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Basic/Configs/ConfigManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMC/Basic/LineFileParser.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Basic/LineFileParser.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMC/Basic/Logging/Logger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Basic/Logging/Logger.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMC/Current.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/Current.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMC/LMC.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/LMC.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMC/LifeCycle/Startup.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMC/LifeCycle/Startup.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCCore.Test/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCCore.Test/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCCore/LMCCore.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/LMCCore/LMCCore.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMCCore/Java/JavaManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCCore/Java/JavaManager.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/App.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/App.axaml.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreenContent.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Controls/LineSplashScreenContent.axaml.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/LMCUI.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/LMCUI.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LMCUI/Languages/zh-CN.xml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Languages/zh-CN.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/MainWindow.axaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/Pages/LaunchPage/LaunchPage.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Pages/LaunchPage/LaunchPage.axaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/Pages/LaunchPage/LaunchPage.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Pages/LaunchPage/LaunchPage.axaml.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/SettingsPage.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/SettingsPage.axaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/SettingsPage.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Pages/SettingsPage/SettingsPage.axaml.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LMCUI/Pages/VersionManagePage/VersionManagePage.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LMCUI/Pages/VersionManagePage/VersionManagePage.axaml.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,15 +65,19 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/40e1999c15e843a48dc2fb33a7454ea8d2c00/9e/1b92e1c2/Logger.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/40e1999c15e843a48dc2fb33a7454ea8d2c00/f2/99141275/LogManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/45ada8c418664ff394ffd30455aab498c90910/1b/311a78f5/Task.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/45ada8c418664ff394ffd30455aab498c90910/2a/5574db9f/ExceptionDispatchInfo.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/45ada8c418664ff394ffd30455aab498c90910/57/a067fca9/ThrowHelper.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/45ada8c418664ff394ffd30455aab498c90910/81/50020e6f/SafeFileHandle.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/45ada8c418664ff394ffd30455aab498c90910/a8/9afd8012/Environment.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/45ada8c418664ff394ffd30455aab498c90910/b9/70f025f8/String.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/45ada8c418664ff394ffd30455aab498c90910/c4/d8a19b62/AttributeUsageAttribute.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/4d0906399f28447196ed01e421776aa5360c00/38/1e1cdf8f/Frame.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/4d0906399f28447196ed01e421776aa5360c00/64/d1e14512/AppWindow.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b63c84ad97464e279b2f4b0d7ea7115543918/74/336f0856/ConcurrentDictionary`2.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e4ba17fd73fe4293a1db9ef81599a06716e910/a1/b2a412bc/ThrowHelper.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/e777cf0c0c7c4c38af1ea95eef7a413c104400/36/d4cf8420/Control.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/LMCUI/MainWindow.axaml.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/LMCUI/Pages/SettingsPage/GameSettings/GameSettingsPage.axaml.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
@@ -101,6 +98,7 @@
     &quot;.NET 项目.LMCUI.executor&quot;: &quot;Debug&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.50088185&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -108,7 +106,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.sourceCode.C#&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -174,7 +172,11 @@
       <workItem from="1754433998540" duration="10812000" />
       <workItem from="1754508395897" duration="8098000" />
       <workItem from="1754533237013" duration="1881000" />
-      <workItem from="1754535177165" duration="1867000" />
+      <workItem from="1754535177165" duration="3206000" />
+      <workItem from="1754538945375" duration="1221000" />
+      <workItem from="1754616200640" duration="9229000" />
+      <workItem from="1754626437524" duration="3902000" />
+      <workItem from="1754708986207" duration="11925000" />
     </task>
     <task id="LOCAL-00001" summary="👍项目文件">
       <option name="closed" value="true" />
@@ -216,7 +218,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754421092131</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary=":construction: WIP 2025-8-07">
+      <option name="closed" value="true" />
+      <created>1754537103926</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1754537103926</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -254,7 +264,8 @@
     <MESSAGE value=":construction: WIP 2025-8-05" />
     <MESSAGE value=":construction: WIP 2025-8-06" />
     <MESSAGE value=":shit: ?" />
-    <option name="LAST_COMMIT_MESSAGE" value=":shit: ?" />
+    <MESSAGE value=":construction: WIP 2025-8-07" />
+    <option name="LAST_COMMIT_MESSAGE" value=":construction: WIP 2025-8-07" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

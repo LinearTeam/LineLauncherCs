@@ -5,12 +5,15 @@ using Avalonia.Markup.Xaml;
 namespace LMCUI;
 
 using I18n;
+using LMC.LifeCycle;
 
 public partial class App : Application
 {
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        Startup.Initialize().Wait();
+        I18nManager.Instance.LoadAllLanguages();
     }
 
     public override void OnFrameworkInitializationCompleted()

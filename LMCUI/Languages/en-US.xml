@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Localization>
+    <MainWindow>
+        <NavItems>
+            <LaunchPage>Launch</LaunchPage>
+            <VersionManagePage>Version Management</VersionManagePage>
+            <DownloadPage>Download</DownloadPage>
+            <DownloadMinecraftPage>Download Game</DownloadMinecraftPage>
+            <DownloadModPage>Download Mods</DownloadModPage>
+            <AccountPage>Account Management</AccountPage>
+            <SettingsPage>Settings</SettingsPage>
+        </NavItems>
+    </MainWindow>
+    <Pages>
+        <SettingsPage>
+            <Title>Settings</Title>
+            <GameSettingsPageNav>
+                <Header>Game Settings</Header>
+                <Description>Settings related to game downloading, ​​launching, and more</Description>
+            </GameSettingsPageNav>
+            <GameSettingsPage>
+                <Title>Game Settings</Title>
+                <JavaRuntime>
+                    <Title>Java Runtime</Title>
+                    <JavaListExpander>
+                        <Header>Java list</Header>
+                        <EmptyHeader>No Java found</EmptyHeader>
+                        <Description>View all Java runtimes stored in the launcher</Description>
+                        <JavaListItem>
+                            <SelectButton>Select</SelectButton>
+                            <Enabled>Enabled</Enabled>
+                        </JavaListItem>
+                    </JavaListExpander>
+                    <ImportExpander>
+                        <Header>Import Java</Header>
+                        <Description>Import Java runtimes from your system into the list above</Description>
+                        <Footer>
+                            <SearchButton>Search for Java</SearchButton>
+                        </Footer>
+                        <ChooseJavaDialog>
+                            <Title>Select Java Executable</Title>
+                        </ChooseJavaDialog>
+                        <StatusText>
+                            <SearchProgress>{2} ({0} / {1})</SearchProgress>
+                            <SearchSuccess>Search completed!</SearchSuccess>
+                            <SearchFailed>Search failed: {0}</SearchFailed>
+                            <AddSuccess>Added successfully!</AddSuccess>
+                            <AddFailed>Error: {0}</AddFailed>
+                        </StatusText>
+                    </ImportExpander>
+                    <AutoSelectExpander>
+                        <Header>Auto-Select Java</Header>
+                        <Description>Let the launcher automatically select the Java runtime required to launch the game (this will override manually selected Java)</Description>
+                        <Footer>
+                            <ToggleSwitchButton>
+                                <OnContent>Enabled</OnContent>
+                                <OffContent>Disabled</OffContent>
+                            </ToggleSwitchButton>
+                        </Footer>
+                    </AutoSelectExpander>
+                </JavaRuntime>
+            </GameSettingsPage>
+        </SettingsPage>
+        <LaunchPage>
+            <Title>Launch</Title>
+        </LaunchPage>
+        <VersionManagePage>
+            <Title>Version Management</Title>
+        </VersionManagePage>
+    </Pages>
+    <Messages>
+        <JavaManager>
+            <SearchJava>
+                <Progress>
+                    <Variables>Searching environment variables</Variables>
+                    <Registry>Searching registry (Windows only)</Registry>
+                    <StandardPaths>Searching default Java installation paths</StandardPaths>
+                    <MinecraftRuntime>Searching Java in Minecraft official launcher directory</MinecraftRuntime>
+                    <CurrentDir>Searching Java in launcher directory</CurrentDir>
+                </Progress>
+            </SearchJava>
+        </JavaManager>
+    </Messages>
+</Localization>

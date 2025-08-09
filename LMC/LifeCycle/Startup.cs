@@ -12,11 +12,10 @@ public class Startup {
     static Logger s_logger;
     
     //DO NOT TRANSLATE
-    public async static Task Initialize(Action<TaskCallbackInfo> callback) {
+    public async static Task Initialize() {
         int total = 2;
         int i = 1;
         
-        callback?.Invoke(new(i++, total, "创建必要文件"));
         CreateDirectory();
 
         s_logger = new Logger("Startup");
@@ -32,7 +31,6 @@ public class Startup {
         s_logger.Info($".NET 运行环境： {RuntimeInformation.FrameworkDescription}");
         s_logger.Info("=============LMC 运行信息=============");
         
-        callback?.Invoke(new(i++, total, "加载配置文件"));
         LoadConfiguration();
     }
 

@@ -13,6 +13,10 @@
         Height="468"
         Width="900">
     <Grid>
+        <!-- 这会导致控件透明，在修复此问题前不使用背景图像 -->
+        <!-- <Grid.Background> -->
+        <!--     <ImageBrush Source="/Assets/LMC.png"/> -->
+        <!-- </Grid.Background> -->
         <ui:NavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged" IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.LaunchPage}" Tag="LaunchPage" IconSource="Play" />
@@ -32,7 +36,7 @@
                             <ui:BreadcrumbBarItem Content="{Binding}" AutomationProperties.Name="{Binding Title}">
                                 <ui:BreadcrumbBarItem.ContentTemplate>
                                     <DataTemplate DataType="lmcui:BreadCrumbBarItem">
-                                        <TextBlock FontSize="20" Text="{Binding Title}"/>
+                                        <TextBlock FontSize="20" Text="{Binding Title}" LineHeight="30"/>
                                     </DataTemplate>
                                 </ui:BreadcrumbBarItem.ContentTemplate>
                             </ui:BreadcrumbBarItem>

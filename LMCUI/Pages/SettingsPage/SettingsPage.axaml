@@ -5,14 +5,19 @@
              xmlns:sty="using:FluentAvalonia.Styling"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+             xmlns:i18n="clr-namespace:LMCUI.I18n"
              xmlns:pages="clr-namespace:LMCUI.Pages"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LMCUI.Pages.SettingsPage.SettingsPage">
     <Grid Margin="60, 20, 40, 30">
-        <StackPanel Orientation="Vertical">
-            <ui:SettingsExpander IsClickEnabled="True" Header="游戏设置" Description="与游戏的下载、启动相关的设置" 
-                                 IconSource="Games" ActionIconSource=""/>
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical">
+                <ui:SettingsExpander IsClickEnabled="True" 
+                                     Header="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPageNav.Header}"
+                                     Description="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPageNav.Description}" 
+                                     IconSource="Games" ActionIconSource="ChevronRight" Click="GameSettingsExpander_OnClick" />
             
-        </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </pages:PageBase>

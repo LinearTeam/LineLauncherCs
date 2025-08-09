@@ -15,6 +15,53 @@
     <Pages>
         <SettingsPage>
             <Title>设置</Title>
+            <GameSettingsPageNav>
+                <Header>游戏设置</Header>
+                <Description>与游戏的下载、启动等相关的设置</Description>
+            </GameSettingsPageNav>
+            <GameSettingsPage>
+                <Title>游戏设置</Title>
+                <JavaRuntime>
+                    <Title>Java 运行时</Title>
+                    <JavaListExpander>
+                        <Header>Java 列表</Header>
+                        <EmptyHeader>当前没有任何 Java</EmptyHeader>
+                        <Description>查看启动器中存储的所有 Java 运行时</Description>
+                        <JavaListItem>
+                            <SelectButton>选择</SelectButton>
+                            <Enabled>已启用</Enabled>
+                        </JavaListItem>
+                    </JavaListExpander>
+                    <ImportExpander>
+                        <Header>导入 Java</Header>
+                        <Description>将系统中的 Java 运行时导入上方的列表</Description>
+                        <Footer>
+                            <SearchButton>搜索 Java</SearchButton>
+                        </Footer>
+                        <ChooseJavaDialog>
+                            <Title>请选择 Java 可执行文件</Title>
+                        </ChooseJavaDialog>
+                        <StatusText>
+                            <SearchProgress>{2} ({0} / {1})</SearchProgress>
+                            <SearchSuccess>搜索成功！</SearchSuccess>
+                            <SearchFailed>搜索失败：{0}</SearchFailed>
+                            <AddSuccess>添加成功！</AddSuccess>
+                            <AddFailed>错误：{0}</AddFailed>
+                        </StatusText>
+                    </ImportExpander>
+                    <AutoSelectExpander>
+                        <Header>自动选择 Java</Header>
+                        <Description>让启动器自动选择启动游戏所需的 Java 运行时 (这将无视选择的 Java)</Description>
+                        <Footer>
+                            <ToggleSwitchButton>
+                                <OnContent>启用</OnContent>
+                                <OffContent>禁用</OffContent>
+                            </ToggleSwitchButton>
+                        </Footer>
+                    </AutoSelectExpander>
+                </JavaRuntime>
+            </GameSettingsPage>
+            
         </SettingsPage>
 
         <LaunchPage>
@@ -25,4 +72,17 @@
             <Title>版本管理</Title>
         </VersionManagePage>
     </Pages>
+    <Messages>
+        <JavaManager>
+            <SearchJava>
+                <Progress>
+                    <Variables>正在搜索环境变量</Variables>
+                    <Registry>正在搜索注册表(仅 Windows)</Registry>
+                    <StandardPaths>正在搜索 Java 默认安装路径</StandardPaths>
+                    <MinecraftRuntime>正在搜索 Minecraft 官方启动器目录下的 Java</MinecraftRuntime>
+                    <CurrentDir>正在搜索启动器目录下的 Java</CurrentDir>
+                </Progress>
+            </SearchJava>
+        </JavaManager>
+    </Messages>
 </Localization>

@@ -86,7 +86,7 @@ public class Logger
         
     public void Error(Exception e, string func)
     {
-        _nlogLogger.Error($"An exception occurred when {func}:\n{e}");
+        _nlogLogger.Error($"在执行操作 {func} 时遇到错误:\n{e}");
     }
 
     public void Debug(string msg)
