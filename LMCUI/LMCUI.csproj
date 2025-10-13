@@ -39,6 +39,8 @@
       <None Update="Languages\en-US.xml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Remove="Assets\test.png" />
+      <AvaloniaResource Include="Assets\test.png" />
     </ItemGroup>
 
     <ItemGroup>

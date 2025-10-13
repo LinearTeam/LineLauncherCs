@@ -18,18 +18,18 @@ public static class JavaManager {
         int prcId = new Random().Next(100, 999);
         
         javaPath = Path.GetFullPath(javaPath);
-        s_logger.Info($"[添加 Java/{prcId}] : {javaPath}");
+        s_logger.Debug($"[添加 Java/{prcId}] : {javaPath}");
 
         
         int i = 1;  
         int total = 2;
         
-        s_logger.Info($"[添加 Java/{prcId}] ({i} / {total}) : 校验Java");
+        s_logger.Debug($"[添加 Java/{prcId}] ({i} / {total}) : 校验Java");
         callback(new(i++, total,"校验 Java"));
         var isValid = await IsValidJavaRoot(javaPath);
         if (!isValid)
         {
-            s_logger.Warn($"[添加 Java/{prcId}] 校验失败");
+            s_logger.Warn($"[添加 Java/{prcId}] 校验失败: " + javaPath);
             throw new Exception("Invalid Java");
         }
         
@@ -38,7 +38,7 @@ public static class JavaManager {
                 Current.Config.JavaPaths.Add(javaPath);
             ConfigManager.Save("app", Current.Config);
         }
-        s_logger.Info($"[添加 Java/{prcId}] ({i} / {total}) : 完成添加");
+        s_logger.Debug($"[添加 Java/{prcId}] ({i} / {total}) : 完成添加");
         callback.Invoke(new(i++, total,"完成添加"));
     }
 

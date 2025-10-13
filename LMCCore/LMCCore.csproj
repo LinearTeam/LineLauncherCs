@@ -14,4 +14,8 @@
       <ProjectReference Include="..\LMC\LMC.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Account\OAuth\" />
+    </ItemGroup>
+
 </Project>

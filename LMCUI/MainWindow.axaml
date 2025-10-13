@@ -11,7 +11,9 @@
         x:Class="LMCUI.MainWindow"
         Title="Line Launcher"
         Height="468"
-        Width="900">
+        Width="900"
+        MinHeight="600"
+        MinWidth="600">
     <Grid>
         <!-- 这会导致控件透明，在修复此问题前不使用背景图像 -->
         <!-- <Grid.Background> -->

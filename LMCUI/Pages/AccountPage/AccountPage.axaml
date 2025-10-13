@@ -1,0 +1,155 @@
+﻿<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:sty="using:FluentAvalonia.Styling"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:model="clr-namespace:LMCCore.Account.Model;assembly=LMCCore"
+                xmlns:currentPage="clr-namespace:LMCUI.Pages.AccountPage"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="LMCUI.Pages.AccountPage.AccountPage">
+    <pages:PageBase.Resources>
+        <ResourceDictionary>
+            <currentPage:AuthlibDescriptionConverter x:Key="AuthlibDescriptionConverter" />
+        </ResourceDictionary>
+    </pages:PageBase.Resources>
+    <Grid Margin="60, 20, 40, 30">
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical">
+                <ui:SettingsExpander Header="账户列表"
+                                     Description="启动器中已经存储的账户" Name="acclist"
+                                     IconSource="BulletList" ActionIconSource="ChevronRight">
+                    <ui:SettingsExpander.DataTemplates>
+    <!-- MicrosoftAccount -->
+            <DataTemplate DataType="model:MicrosoftAccount">
+                <ui:SettingsExpanderItem
+                    Description="{Binding Uuid}"
+                    ActionIconSource="ChevronRight"
+                    IsClickEnabled="True">
+                    <ui:SettingsExpanderItem.IconSource>
+                        <ui:ImageIconSource Source="/Assets/test.png" />
+                    </ui:SettingsExpanderItem.IconSource>
+                    <ui:SettingsExpanderItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Text=" (微软账户)" />
+                        </StackPanel>
+                    </ui:SettingsExpanderItem.Content>
+                    <ui:SettingsExpanderItem.Footer>
+                        <StackPanel Orientation="Horizontal" Spacing="3">
+                            <Button Click="Button_CopyUuid">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Copy" />
+                                    <TextBlock Text=" 复制 UUID" />
+                                </StackPanel>
+                            </Button>
+                            <Button>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Delete" Foreground="Red" />
+                                    <TextBlock />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ui:SettingsExpanderItem.Footer>
+                </ui:SettingsExpanderItem>
+            </DataTemplate>
+
+            <!-- OfflineAccount -->
+            <DataTemplate DataType="model:OfflineAccount">
+                <ui:SettingsExpanderItem
+                    Description="{Binding Uuid}"
+                    ActionIconSource="ChevronRight"
+                    IsClickEnabled="True">
+                    <ui:SettingsExpanderItem.IconSource>
+                        <ui:ImageIconSource Source="/Assets/test.png" />
+                    </ui:SettingsExpanderItem.IconSource>
+                    <ui:SettingsExpanderItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Text=" (离线账户)" />
+                        </StackPanel>
+                    </ui:SettingsExpanderItem.Content>
+                    <ui:SettingsExpanderItem.Footer>
+                        <StackPanel Orientation="Horizontal" Spacing="3">
+                            <Button Click="Button_CopyUuid">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Copy" />
+                                    <TextBlock Text=" 复制 UUID" />
+                                </StackPanel>
+                            </Button>
+                            <Button>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Delete" Foreground="Red" />
+                                    <TextBlock />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ui:SettingsExpanderItem.Footer>
+                </ui:SettingsExpanderItem>
+            </DataTemplate>
+
+            <!-- AuthlibAccount -->
+            <DataTemplate DataType="model:AuthlibAccount">
+                <ui:SettingsExpanderItem
+                    ActionIconSource="ChevronRight"
+                    IsClickEnabled="True">
+                    <ui:SettingsExpanderItem.IconSource>
+                        <ui:ImageIconSource Source="/Assets/test.png" />
+                    </ui:SettingsExpanderItem.IconSource>
+                    <ui:SettingsExpanderItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Text=" (第三方账户)" />
+                        </StackPanel>
+                    </ui:SettingsExpanderItem.Content>
+                    <ui:SettingsExpanderItem.Description>
+                        <MultiBinding Converter="{StaticResource AuthlibDescriptionConverter}">
+                            <Binding Path="Username" />
+                            <Binding Path="Uuid" />
+                        </MultiBinding>
+                    </ui:SettingsExpanderItem.Description>
+                    <ui:SettingsExpanderItem.Footer>
+                        <StackPanel Orientation="Horizontal" Spacing="3">
+                            <Button Click="Button_CopyUsername">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Mail" />
+                                    <TextBlock Text=" 复制用户名" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="Button_CopyUuid">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Copy" />
+                                    <TextBlock Text=" 复制 UUID" />
+                                </StackPanel>
+                            </Button>
+                            <Button>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Delete" Foreground="Red" />
+                                    <TextBlock />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ui:SettingsExpanderItem.Footer>
+                </ui:SettingsExpanderItem>
+            </DataTemplate>
+                    </ui:SettingsExpander.DataTemplates>
+                </ui:SettingsExpander>
+                <ui:SettingsExpander Header="添加账户"
+                                     Description="添加一个新的 Microsoft 、离线或第三方 Yggdrasil 认证服务器账户"
+                                     IconSource="AddFriend">
+                    <ui:SettingsExpander.Footer>
+                        <Button>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="AddFriend" />
+                                <TextBlock Text=" 添加"></TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </ui:SettingsExpander.Footer>
+                </ui:SettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</pages:PageBase>

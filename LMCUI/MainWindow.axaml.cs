@@ -12,6 +12,7 @@ using LMC.Basic;
 using LMCUI;
 using LMCUI.Controls;
 using LMCUI.Pages;
+using LMCUI.Pages.AccountPage;
 using LMCUI.Pages.LaunchPage;
 using LMCUI.Pages.SettingsPage;
 using LMCUI.Pages.VersionManagePage;
@@ -29,7 +30,8 @@ public partial class MainWindow : AppWindow
     {
         typeof(LaunchPage), 
         typeof(VersionManagePage), 
-        typeof(SettingsPage)
+        typeof(SettingsPage),
+        typeof(AccountPage)
     };
     public static MainWindow Instance { get; private set; } = null!;
     public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new ObservableCollection<BreadCrumbBarItem>();
@@ -55,7 +57,7 @@ public partial class MainWindow : AppWindow
     {
         if(type == NavigateType.Backward && tag == null) throw new ArgumentNullException(nameof(tag), "Argument 'tag' cannot be null when 'type' is 'Backward'.");
         Instance.mainFrm.Navigate(page, param);
-        ((PageBase)Instance.mainFrm.Content).Title = I18nManager.Instance.GetString(((PageBase)Instance.mainFrm.Content).Title);
+            ((PageBase)Instance.mainFrm.Content).Title = I18nManager.Instance.GetString(((PageBase)Instance.mainFrm.Content).Title);
         s_isCodeChangeSelection = true;
         Instance.mnv.SelectedItem = item;
         s_isCodeChangeSelection = false;
