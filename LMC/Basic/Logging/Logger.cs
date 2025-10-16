@@ -1,4 +1,6 @@
-﻿namespace LMC.Basic.Logging;
+﻿using System.Collections.Concurrent;
+
+namespace LMC.Basic.Logging;
 
 using System;
 using System.IO;
@@ -13,6 +15,7 @@ public class Logger
     private readonly NLog.Logger _nlogLogger;
     public static string LoggerVersion = "L2A6";
     public static bool DebugMode = false;
+    public static readonly ConcurrentDictionary<string, string> SensitiveData = new();
 
     public Logger(string module, string filePath = "not")
     {
@@ -79,21 +82,28 @@ public class Logger
             _ => NLog.LogLevel.Info
         };
     }
-
-    public void Info(string msg) => _nlogLogger.Info(msg);
-    public void Error(string msg) => _nlogLogger.Error(msg);
-    public void Warn(string msg) => _nlogLogger.Warn(msg);
+    private static string ReplaceSensitivtyData(string msg)
+    {
+        foreach (var kv in SensitiveData)
+        {
+            if(!string.IsNullOrWhiteSpace(kv.Key)) msg = msg.Replace(kv.Key, kv.Value);
+        }
+        return msg;
+    }
+    public void Info(string msg) => _nlogLogger.Info(ReplaceSensitivtyData(msg));
+    public void Error(string msg) => _nlogLogger.Error(ReplaceSensitivtyData(msg));
+    public void Warn(string msg) => _nlogLogger.Warn(ReplaceSensitivtyData(msg));
         
     public void Error(Exception e, string func)
     {
-        _nlogLogger.Error($"在执行操作 {func} 时遇到错误:\n{e}");
+        Error($"在执行操作 {func} 时遇到错误:\n{e}");
     }
 
     public void Debug(string msg)
     {
         if (DebugMode)
         {
-            _nlogLogger.Debug(msg);
+            _nlogLogger.Debug(ReplaceSensitivtyData(msg));
         }
     }
 

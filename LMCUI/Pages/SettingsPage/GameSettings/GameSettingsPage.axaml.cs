@@ -65,7 +65,7 @@ public partial class GameSettingsPage : PageBase {
             else
             {
                 jle.Header = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.Header");
-            }
+            } 
             list.ForEach(ji => ji.Foreground = ji.IsSelected ? Brushes.LawnGreen : Foreground);
             _javaItems = new ObservableCollection<JavaItem>(list);
             return jle.ItemsSource = _javaItems;

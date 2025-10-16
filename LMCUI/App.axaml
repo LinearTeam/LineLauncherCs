@@ -4,6 +4,7 @@
              xmlns:sty="using:FluentAvalonia.Styling"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+             xmlns:utils="clr-namespace:LMCUI.Utils"
 
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -12,4 +13,9 @@
         <FluentTheme />
         <sty:FluentAvaloniaTheme />
     </Application.Styles>
+    <Application.Resources>
+        <ResourceDictionary>
+            <utils:Base64ToImageConverter x:Key="Base64ToImageConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
 </Application>

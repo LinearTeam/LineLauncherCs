@@ -40,10 +40,20 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Remove="Assets\test.png" />
-      <AvaloniaResource Include="Assets\test.png" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Pages\OOBE\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Pages\AccountPage\AddAccountWizard\AddAccountWizard.axaml.cs">
+        <DependentUpon>AddAccountWizard.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Pages\AccountPage\AddAccount\AuthlibStep\AuthlibStep.axaml.cs">
+        <DependentUpon>IndexStep.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>

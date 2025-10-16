@@ -1,0 +1,19 @@
+﻿<add:AddAccountStep xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:add="clr-namespace:LMCUI.Pages.AccountPage.AddAccount"
+             xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="300"
+             x:Class="LMCUI.Pages.AccountPage.AddAccount.Offline.GameIdWarnStep">
+    <StackPanel Orientation="Vertical" Spacing="3">
+        <TextBlock Text="添加离线账户" FontSize="20" FontWeight="Bold"/>
+        <TextBlock Text=""/>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+            <ui:SymbolIcon Symbol="Important" FontSize="30"/>
+            <TextBlock Text="您的 Minecraft 用户名应当仅包含数字、字母、下划线，并且小于16个字符。否则有可能导致无法进入单人存档、服务器。" TextWrapping="WrapWithOverflow" MaxWidth="360"/>
+        </StackPanel>
+        <TextBlock Text=""/>
+        <TextBlock Text="是否继续？"/>
+    </StackPanel>
+</add:AddAccountStep>

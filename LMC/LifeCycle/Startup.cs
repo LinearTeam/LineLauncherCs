@@ -1,4 +1,6 @@
-﻿namespace LMC.LifeCycle;
+﻿using NLog.Targets;
+
+namespace LMC.LifeCycle;
 
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -30,7 +32,6 @@ public class Startup {
         s_logger.Info($"RuntimeID： {RuntimeInformation.RuntimeIdentifier}");
         s_logger.Info($".NET 运行环境： {RuntimeInformation.FrameworkDescription}");
         s_logger.Info("=============LMC 运行信息=============");
-        
         LoadConfiguration();
     }
 

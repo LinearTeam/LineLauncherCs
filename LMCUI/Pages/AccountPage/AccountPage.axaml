@@ -9,6 +9,7 @@
                 xmlns:pages="clr-namespace:LMCUI.Pages"
                 xmlns:model="clr-namespace:LMCCore.Account.Model;assembly=LMCCore"
                 xmlns:currentPage="clr-namespace:LMCUI.Pages.AccountPage"
+                xmlns:add="clr-namespace:LMCUI.Pages.AccountPage.AddAccount"
                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                 x:Class="LMCUI.Pages.AccountPage.AccountPage">
     <pages:PageBase.Resources>
@@ -30,7 +31,7 @@
                     ActionIconSource="ChevronRight"
                     IsClickEnabled="True">
                     <ui:SettingsExpanderItem.IconSource>
-                        <ui:ImageIconSource Source="/Assets/test.png" />
+                        <ui:ImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
                     </ui:SettingsExpanderItem.IconSource>
                     <ui:SettingsExpanderItem.Content>
                         <StackPanel Orientation="Horizontal">
@@ -44,6 +45,12 @@
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Copy" />
                                     <TextBlock Text=" 复制 UUID" />
+                                </StackPanel>
+                            </Button>
+                            <Button>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Refresh" />
+                                    <TextBlock/>
                                 </StackPanel>
                             </Button>
                             <Button>
@@ -64,7 +71,7 @@
                     ActionIconSource="ChevronRight"
                     IsClickEnabled="True">
                     <ui:SettingsExpanderItem.IconSource>
-                        <ui:ImageIconSource Source="/Assets/test.png" />
+                        <ui:ImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
                     </ui:SettingsExpanderItem.IconSource>
                     <ui:SettingsExpanderItem.Content>
                         <StackPanel Orientation="Horizontal">
@@ -97,7 +104,7 @@
                     ActionIconSource="ChevronRight"
                     IsClickEnabled="True">
                     <ui:SettingsExpanderItem.IconSource>
-                        <ui:ImageIconSource Source="/Assets/test.png" />
+                        <ui:ImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
                     </ui:SettingsExpanderItem.IconSource>
                     <ui:SettingsExpanderItem.Content>
                         <StackPanel Orientation="Horizontal">
@@ -127,6 +134,12 @@
                             </Button>
                             <Button>
                                 <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Refresh" />
+                                    <TextBlock/>
+                                </StackPanel>
+                            </Button>
+                            <Button>
+                                <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Delete" Foreground="Red" />
                                     <TextBlock />
                                 </StackPanel>
@@ -141,7 +154,7 @@
                                      Description="添加一个新的 Microsoft 、离线或第三方 Yggdrasil 认证服务器账户"
                                      IconSource="AddFriend">
                     <ui:SettingsExpander.Footer>
-                        <Button>
+                        <Button Click="Button_AddAccount">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="AddFriend" />
                                 <TextBlock Text=" 添加"></TextBlock>

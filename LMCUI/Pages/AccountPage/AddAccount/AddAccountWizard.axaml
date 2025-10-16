@@ -1,0 +1,18 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+             xmlns:pages="clr-namespace:LMCUI.Pages"
+             mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="300"
+             x:Class="LMCUI.Pages.AccountPage.AddAccount.AddAccountWizard">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Orientation="Vertical" Spacing="5">
+                <ui:Frame Name="contentFrm" IsVisible="False"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
