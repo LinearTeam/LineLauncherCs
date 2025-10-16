@@ -18,7 +18,7 @@ namespace LMCUI.Pages.AccountPage;
 
 public partial class AccountPage : PageBase
 {
-    public AccountPage() : base("账号管理", "AccountPage")
+    public AccountPage() : base("Pages.AccountPage.Title", "AccountPage")
     {
         InitializeComponent();
         _ = Task.Run(RefreshAccountList);
