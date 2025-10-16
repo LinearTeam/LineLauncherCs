@@ -13,6 +13,67 @@
     </MainWindow>
     
     <Pages>
+        <AccountPage>
+            <AccountListExpander>
+                <Header>账户列表</Header>
+                <Description>启动器中已经存储的账户</Description>
+                <NoAccountsDescription>当前没有任何账户，你可以在下方添加一个新账户</NoAccountsDescription>
+                <AccountTypeSuffix>
+                    <Microsoft> (微软账户)</Microsoft>
+                    <Offline> (离线账户)</Offline>
+                    <Authlib> (第三方账户)</Authlib>
+                </AccountTypeSuffix>
+                <CopyUuidText> 复制 UUID</CopyUuidText>
+                <CopyUsernameText> 复制用户名</CopyUsernameText>
+            </AccountListExpander>
+            <AddAccountExpander>
+                <Header>添加账户</Header>
+                <Description>添加一个新的 Microsoft 、离线或第三方 Yggdrasil 认证服务器账户</Description>
+                <AddButtonText> 添加</AddButtonText>
+            </AddAccountExpander>
+            <AddAccountWizard>
+                <Title>添加账户向导</Title>
+                <CloseButton>关闭</CloseButton>
+                <PreviousButton>上一步</PreviousButton>
+                <NextButton>下一步</NextButton>
+                <FinishButton>完成</FinishButton>
+                <Steps>
+                    <IndexStep>
+                        <Title>选择账户类型</Title>
+                        <AccountTypes>
+                            <Microsoft>
+                                <Name>微软账户</Name>
+                                <Description>可以进入启用了正版验证的服务器。</Description>
+                            </Microsoft>
+                            <Offline>
+                                <Name>离线账户</Name>
+                                <Description>仅能进入未开启正版验证的服务器。</Description>
+                            </Offline>
+                            <Authlib>
+                                <Name>第三方账户</Name>
+                                <Description>可以加入使用第三方 Yggdrasil 验证的服务器。</Description>
+                            </Authlib>
+                        </AccountTypes>
+                    </IndexStep>
+                    <OfflineStep>
+                        <Title>添加离线账户</Title>
+                        <Watermarks>
+                            <GameId>游戏ID...</GameId>
+                            <UUID>UUID (可选，为空将由启动器自动生成)</UUID>
+                        </Watermarks>
+                        <ValidationMessages>
+                            <EmptyGameId>请输入游戏 ID！</EmptyGameId>
+                            <InvalidUUID>无效的 UUID！</InvalidUUID>
+                        </ValidationMessages>
+                        <GameIdWarnStep>
+                            <Title>添加离线账户</Title>
+                            <WarningMessage>您的 Minecraft 用户名应当仅包含数字、字母、下划线，并且小于16个字符。否则有可能导致无法进入单人存档、服务器。</WarningMessage>
+                            <Confirmation>是否继续？</Confirmation>
+                        </GameIdWarnStep>
+                    </OfflineStep>
+                </Steps>
+            </AddAccountWizard>
+        </AccountPage>
         <SettingsPage>
             <Title>设置</Title>
             <GameSettingsPageNav>
@@ -84,5 +145,10 @@
                 </Progress>
             </SearchJava>
         </JavaManager>
+        <AccountManager>
+            <AddAccount>
+                <Duplicate>该账户已存在，不能重复添加</Duplicate>
+            </AddAccount>
+        </AccountManager>
     </Messages>
 </Localization>

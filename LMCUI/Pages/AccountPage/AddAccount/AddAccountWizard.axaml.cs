@@ -2,11 +2,15 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Media.Animation;
+using LMCCore.Account;
+using LMCCore.Account.Model;
+using LMC.Basic.Logging;
 
 namespace LMCUI.Pages.AccountPage.AddAccount;
 
 public partial class AddAccountWizard : UserControl
 {
+    private static readonly Logger s_logger = new("AddAccountWizard");
     private readonly Action<(bool hasPrev, bool hasNext, bool isFinal)> _buttonStateChanged;
     private readonly Action<(bool hasPrev, bool hasNext)> _stepButtonStateChanged;
     private void StepButtonStateChanged((bool hasPrev, bool hasNext) state)
@@ -34,7 +38,25 @@ public partial class AddAccountWizard : UserControl
         if (contentFrm.Content is AddAccountStep step)
         {
             var next = step.NextStep();
-            if(step.IsFinalStep()) return;
+            if (step.IsFinalStep())
+            {
+                var account = step.GetFinalAccount();
+                if(account != null) 
+                {
+                    try
+                    {
+                        s_logger.Info($"添加账户: {account.Name} (类型: {account.Type})");
+                        AccountManager.Add(account);
+                        s_logger.Info($"成功添加: {account.Name} (类型: {account.Type})");
+                    }
+                    catch (Exception ex)
+                    {
+                        s_logger.Error(ex, $"添加账户{account.Name} (类型: {account.Type})");
+                        throw;
+                    }
+                }
+                return;
+            }
             if (next.type != null)
             {
                 contentFrm.Navigate(next.type, null, new SlideNavigationTransitionInfo
@@ -78,4 +100,5 @@ public abstract class AddAccountStep : UserControl
     public abstract (Type? type, object? data) PreviousStep();
     public virtual bool IsFinalStep() => false;
     public virtual void Closed() { }
+    public virtual Account? GetFinalAccount() => null;
 }

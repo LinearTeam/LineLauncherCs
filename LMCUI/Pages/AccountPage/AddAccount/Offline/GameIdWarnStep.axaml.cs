@@ -11,6 +11,8 @@ public partial class GameIdWarnStep : AddAccountStep
 {
     private string? _gameId;
     private string? _uuid;
+    private Account? _account;
+    
     public GameIdWarnStep()
     {
         InitializeComponent();
@@ -20,20 +22,22 @@ public partial class GameIdWarnStep : AddAccountStep
         var offlineData = ((string? id, string? uuid))data!;
         _gameId = offlineData.id;
         _uuid = offlineData.uuid;
+        buttonStateChanged.Invoke((true, true));
     }
     public override (Type? type, object? data) NextStep()
     {
-        var uuid = string.IsNullOrWhiteSpace(_uuid) ? Guid.NewGuid().ToString() : _uuid;
-        var name = string.IsNullOrWhiteSpace(_gameId) ? throw new Exception("Game id is null") : _gameId;
+        if (_gameId == null) return (null, null);
+        var name = string.IsNullOrWhiteSpace(_gameId) ? throw new Exception("Game id is empty") : _gameId;
+        var uuid = string.IsNullOrWhiteSpace(_uuid) ? AccountManager.GenerateOfflineUuid(name) : _uuid;
         var account = new OfflineAccount{
             Name = name,
             Uuid = uuid,
-            Type = AccountType.Offline,
+            Type = AccountType.Offline
         };
-        //TODO: Compute UUID and skin
-        AccountManager.Add(account);
+        _account = account;
         return (null, null);
     }
-    public override (Type? type, object? data) PreviousStep() => (typeof(OfflineStep), null);
+    public override (Type? type, object? data) PreviousStep() => (typeof(OfflineStep), (_gameId, _uuid));
     public override bool IsFinalStep() => true;
+    public override Account? GetFinalAccount() => _account;
 }

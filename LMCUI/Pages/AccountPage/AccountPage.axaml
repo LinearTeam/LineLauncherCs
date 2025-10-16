@@ -20,9 +20,9 @@
     <Grid Margin="60, 20, 40, 30">
         <ScrollViewer>
             <StackPanel Orientation="Vertical">
-                <ui:SettingsExpander Header="账户列表"
-                                     Description="启动器中已经存储的账户" Name="acclist"
-                                     IconSource="BulletList" ActionIconSource="ChevronRight">
+                <ui:SettingsExpander Header="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Header}"
+                                     Description="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Description}" 
+                                     Name="acclist" IconSource="BulletList" ActionIconSource="ChevronRight">
                     <ui:SettingsExpander.DataTemplates>
     <!-- MicrosoftAccount -->
             <DataTemplate DataType="model:MicrosoftAccount">
@@ -36,7 +36,7 @@
                     <ui:SettingsExpanderItem.Content>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" />
-                            <TextBlock Text=" (微软账户)" />
+                            <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Microsoft}" />
                         </StackPanel>
                     </ui:SettingsExpanderItem.Content>
                     <ui:SettingsExpanderItem.Footer>
@@ -44,7 +44,7 @@
                             <Button Click="Button_CopyUuid">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Copy" />
-                                    <TextBlock Text=" 复制 UUID" />
+                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}" />
                                 </StackPanel>
                             </Button>
                             <Button>
@@ -53,7 +53,7 @@
                                     <TextBlock/>
                                 </StackPanel>
                             </Button>
-                            <Button>
+                            <Button Click="Button_Delete">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Delete" Foreground="Red" />
                                     <TextBlock />
@@ -76,7 +76,7 @@
                     <ui:SettingsExpanderItem.Content>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" />
-                            <TextBlock Text=" (离线账户)" />
+                            <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Offline}" />
                         </StackPanel>
                     </ui:SettingsExpanderItem.Content>
                     <ui:SettingsExpanderItem.Footer>
@@ -84,10 +84,10 @@
                             <Button Click="Button_CopyUuid">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Copy" />
-                                    <TextBlock Text=" 复制 UUID" />
+                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}" />
                                 </StackPanel>
                             </Button>
-                            <Button>
+                            <Button Click="Button_Delete" >
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Delete" Foreground="Red" />
                                     <TextBlock />
@@ -109,7 +109,7 @@
                     <ui:SettingsExpanderItem.Content>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" />
-                            <TextBlock Text=" (第三方账户)" />
+                            <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Authlib}" />
                         </StackPanel>
                     </ui:SettingsExpanderItem.Content>
                     <ui:SettingsExpanderItem.Description>
@@ -123,13 +123,13 @@
                             <Button Click="Button_CopyUsername">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Mail" />
-                                    <TextBlock Text=" 复制用户名" />
+                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUsernameText}" />
                                 </StackPanel>
                             </Button>
                             <Button Click="Button_CopyUuid">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Copy" />
-                                    <TextBlock Text=" 复制 UUID" />
+                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}" />
                                 </StackPanel>
                             </Button>
                             <Button>
@@ -138,7 +138,7 @@
                                     <TextBlock/>
                                 </StackPanel>
                             </Button>
-                            <Button>
+                            <Button Click="Button_Delete" >
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Delete" Foreground="Red" />
                                     <TextBlock />
@@ -150,14 +150,14 @@
             </DataTemplate>
                     </ui:SettingsExpander.DataTemplates>
                 </ui:SettingsExpander>
-                <ui:SettingsExpander Header="添加账户"
-                                     Description="添加一个新的 Microsoft 、离线或第三方 Yggdrasil 认证服务器账户"
+                <ui:SettingsExpander Header="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountExpander.Header}"
+                                     Description="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountExpander.Description}"
                                      IconSource="AddFriend">
                     <ui:SettingsExpander.Footer>
                         <Button Click="Button_AddAccount">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="AddFriend" />
-                                <TextBlock Text=" 添加"></TextBlock>
+                                <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountExpander.AddButtonText}"></TextBlock>
                             </StackPanel>
                         </Button>
                     </ui:SettingsExpander.Footer>

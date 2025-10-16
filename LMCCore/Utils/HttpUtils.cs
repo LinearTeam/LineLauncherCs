@@ -101,7 +101,7 @@ public sealed class HttpUtils
             return this;
         }
 
-        public async Task<HttpResponseMessage> SendAsync()
+        public async Task<HttpResponseMessage> SendAsync(CancellationToken cancellationToken = default)
         {
             using var request = new HttpRequestMessage(_method, _url);
             request.Content = _content;
@@ -116,27 +116,50 @@ public sealed class HttpUtils
                 {
                     if (!_timeout.HasValue) continue;
                     using var cts = new CancellationTokenSource(_timeout.Value);
+                    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
                     try
                     {
-                        return await s_httpClient.SendAsync(request, cts.Token);
+                        return await s_httpClient.SendAsync(request, linkedCts.Token);
                     }
-                    catch (TaskCanceledException) when (cts.IsCancellationRequested)
+                    catch (TaskCanceledException ex) when (cts.IsCancellationRequested)
                     {
-                        throw new TimeoutException($"Request timed out after {_timeout.Value.TotalSeconds} seconds");
+                        throw new TimeoutException($"Request timed out after {_timeout.Value.TotalSeconds} seconds", ex);
+                    }
+                    catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(cancellationToken);
                     }
                 }
                 catch (Exception)
                 {
                     if(i == _retry - 1) throw;
-                    if(_retryDelay > 0) await Task.Delay(_retryDelay);
+                    if(_retryDelay > 0) 
+                    {
+                        try
+                        {
+                            await Task.Delay(_retryDelay, cancellationToken);
+                        }
+                        catch (TaskCanceledException)
+                        {
+                            throw new OperationCanceledException(cancellationToken);
+                        }
+                    }
                 }
             }
-            return await s_httpClient.SendAsync(request);
+            
+            try
+            {
+                return await s_httpClient.SendAsync(request, cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                throw new OperationCanceledException(cancellationToken);
+            }
         }
 
-        public Task<HttpResponseMessage> GetAsync() => WithMethod(HttpMethod.Get).SendAsync();
+        public Task<HttpResponseMessage> GetAsync(CancellationToken cancellationToken = default) => WithMethod(HttpMethod.Get).SendAsync(cancellationToken);
 
-        public Task<HttpResponseMessage> PostAsync() => WithMethod(HttpMethod.Post).SendAsync();
+        public Task<HttpResponseMessage> PostAsync(CancellationToken cancellationToken = default) => WithMethod(HttpMethod.Post).SendAsync(cancellationToken);
     }
 
     public static class ContentBuilder

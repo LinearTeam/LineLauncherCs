@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+using LMCCore.Account;
+using LMCCore.Account.Model;
+using LMCUI.I18n;
 
 namespace LMCUI.Pages.AccountPage.AddAccount.Offline;
 
 public partial class OfflineStep : AddAccountStep
 {
     private Action<(bool hasPrev, bool hasNext)>? _buttonStateChanged;
+    private bool _isFinal;
+    private Account? _account;
+
     public OfflineStep()
     {
         InitializeComponent();
@@ -16,6 +20,12 @@ public partial class OfflineStep : AddAccountStep
     public override void Enter(object? data, Action<(bool hasPrev, bool hasNext)> buttonStateChanged)
     {
         _buttonStateChanged = buttonStateChanged;
+        if (data != null)
+        {
+            var offlineData = ((string? id, string? uuid))data;
+            this.ignBox.Text = offlineData.id;
+            this.uuidBox.Text = offlineData.uuid;
+        }
     }
     public override (Type? type, object? data) NextStep()
     {
@@ -25,10 +35,21 @@ public partial class OfflineStep : AddAccountStep
             _buttonStateChanged?.Invoke((true, false));
             return (null, null);
         }
-        var isLegalId = Regex.IsMatch(ignBox.Text ?? "-", @"^[a-zA-Z0-9_]+$");
+        var isLegalId = IsLegal(ignBox.Text);
         if (!isLegalId)
         {
             return (typeof(GameIdWarnStep), (ignBox.Text, uuidBox.Text));
+        }
+        else
+        {
+            var name = string.IsNullOrWhiteSpace(ignBox.Text) ? throw new Exception("Game id is null") : ignBox.Text;
+            var uuid = string.IsNullOrWhiteSpace(uuidBox.Text) ? AccountManager.GenerateOfflineUuid(name) : uuidBox.Text;
+            var account = new OfflineAccount{
+                Name = name,
+                Uuid = uuid,
+                Type = AccountType.Offline
+            };
+            _account = account;
         }
         return (null, null);
     }
@@ -40,15 +61,15 @@ public partial class OfflineStep : AddAccountStep
 
     private bool CheckValidate()
     {
-        bool isValid = true;
+        bool isValid;
         if (string.IsNullOrWhiteSpace(ignBox.Text))
         {
-            validate.Text = "请输入游戏 ID！";
+            validate.Text = I18nManager.Instance.GetString("Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.ValidationMessages.EmptyGameId");
             validate.IsVisible = true;
             isValid = false;
         }else if (!string.IsNullOrEmpty(uuidBox.Text) && !Guid.TryParse(uuidBox.Text, out _))
         {
-            validate.Text = "无效的 UUID！";
+            validate.Text = I18nManager.Instance.GetString("Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.ValidationMessages.InvalidUUID");
             validate.IsVisible = true;
             isValid = false;
         }
@@ -57,7 +78,34 @@ public partial class OfflineStep : AddAccountStep
             validate.IsVisible = false;
             isValid = true;
         }
-        _buttonStateChanged?.Invoke((true, isValid));
+        if (isValid)
+        {
+            var isLegalId = IsLegal(ignBox.Text);
+            if (isLegalId)
+            {
+                _isFinal = true;
+                _buttonStateChanged?.Invoke((true, true));
+            }
+            else
+            {
+                _isFinal = false;
+                _buttonStateChanged?.Invoke((true, true));
+            }
+        }
+        else
+        {
+            _buttonStateChanged?.Invoke((true, false));
+        }
         return isValid;
     }
+
+    private bool IsLegal(string? input)
+    {
+        return Regex.IsMatch(input ?? "-", @"^[a-zA-Z0-9_]+$") && input is{Length: < 16};
+    }
+    public override bool IsFinalStep()
+    {
+        return _isFinal;
+    }
+    public override Account? GetFinalAccount() => _account;
 }

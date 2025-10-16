@@ -40,6 +40,8 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Remove="Assets\test.png" />
+      <None Remove="Assets\steve.png" />
+      <AvaloniaResource Include="Assets\steve.png" />
     </ItemGroup>
 
     <ItemGroup>

@@ -4,16 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:add="clr-namespace:LMCUI.Pages.AccountPage.AddAccount"
              xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             xmlns:i18n="clr-namespace:LMCUI.I18n"
              mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="300"
              x:Class="LMCUI.Pages.AccountPage.AddAccount.Offline.GameIdWarnStep">
     <StackPanel Orientation="Vertical" Spacing="3">
-        <TextBlock Text="添加离线账户" FontSize="20" FontWeight="Bold"/>
+        <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.GameIdWarnStep.Title}" FontSize="20" FontWeight="Bold"/>
         <TextBlock Text=""/>
         <StackPanel Orientation="Horizontal" Spacing="5">
             <ui:SymbolIcon Symbol="Important" FontSize="30"/>
-            <TextBlock Text="您的 Minecraft 用户名应当仅包含数字、字母、下划线，并且小于16个字符。否则有可能导致无法进入单人存档、服务器。" TextWrapping="WrapWithOverflow" MaxWidth="360"/>
+            <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.GameIdWarnStep.WarningMessage}" TextWrapping="WrapWithOverflow" MaxWidth="360"/>
         </StackPanel>
         <TextBlock Text=""/>
-        <TextBlock Text="是否继续？"/>
+        <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.GameIdWarnStep.Confirmation}"/>
     </StackPanel>
 </add:AddAccountStep>

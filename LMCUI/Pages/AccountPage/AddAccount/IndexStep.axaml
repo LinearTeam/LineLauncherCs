@@ -4,30 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:add="clr-namespace:LMCUI.Pages.AccountPage.AddAccount"
              xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             xmlns:i18n="clr-namespace:LMCUI.I18n"
              mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="300"
              x:Class="LMCUI.Pages.AccountPage.AddAccount.IndexStep">
     <StackPanel Orientation="Vertical">
-        <TextBlock Text="选择账户类型" FontSize="20" FontWeight="Bold"/>
+        <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.Title}" FontSize="20" FontWeight="Bold"/>
         <ListBox Name="accTypeList" SelectionMode="Single">
             <StackPanel Orientation="Horizontal" Spacing="5" Height="50" MinWidth="200" Margin="-7,0,0,0">
                 <ui:SymbolIcon Symbol="ViewAll" VerticalAlignment="Center" FontSize="25"/>
                 <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                    <TextBlock Text="微软账户" HorizontalAlignment="Left" FontSize="14" FontWeight="Bold"/>
-                    <TextBlock Text="可以进入启用了正版验证的服务器。" Foreground="Gray" HorizontalAlignment="Left" FontSize="13"/>
+                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Microsoft.Name}" HorizontalAlignment="Left" FontSize="14" FontWeight="Bold"/>
+                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Microsoft.Description}" Foreground="Gray" HorizontalAlignment="Left" FontSize="13"/>
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="5" Height="50" MinWidth="200" Margin="-7,0,0,0">
                 <ui:SymbolIcon Symbol="CloudOffline" VerticalAlignment="Center" FontSize="25"/>
                 <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                    <TextBlock Text="离线账户" HorizontalAlignment="Left" FontSize="14" FontWeight="Bold"/>
-                    <TextBlock Text="仅能进入未开启正版验证的服务器。" Foreground="Gray" HorizontalAlignment="Left" FontSize="13"/>
+                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Offline.Name}" HorizontalAlignment="Left" FontSize="14" FontWeight="Bold"/>
+                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Offline.Description}" Foreground="Gray" HorizontalAlignment="Left" FontSize="13"/>
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="5" Height="50" MinWidth="200" Margin="-7,0,0,0">
                 <ui:SymbolIcon Symbol="PhoneBook" VerticalAlignment="Center" FontSize="25"/>
                 <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                    <TextBlock Text="第三方账户" HorizontalAlignment="Left" FontSize="14" FontWeight="Bold"/>
-                    <TextBlock Text="可以加入使用第三方 Yggdrasil 验证的服务器。" Foreground="Gray" HorizontalAlignment="Left" FontSize="13" FontWeight="Regular"/>
+                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Authlib.Name}" HorizontalAlignment="Left" FontSize="14" FontWeight="Bold"/>
+                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Authlib.Description}" Foreground="Gray" HorizontalAlignment="Left" FontSize="13" FontWeight="Regular"/>
                 </StackPanel>
             </StackPanel>
         </ListBox>

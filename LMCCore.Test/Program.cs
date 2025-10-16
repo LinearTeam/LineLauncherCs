@@ -1,24 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿// xUnit测试框架入口点
+// 此文件保留以确保项目能够编译通过，实际测试由xUnit发现并执行
 
-using System.Text.Json;
-using LMC;
-using LMC.LifeCycle;
-using LMCCore.Account.OAuth;
-using LMCCore.Java;
-using LMCCore.Utils;
+namespace LMCCore.Test;
 
-await Startup.Initialize();
-bool done = false;
-var acc = await MicrosoftOAuth.StartOAuth(rpt =>
+public class Program
 {
-    Console.WriteLine(rpt.Step + " / " + rpt.TotalStep + " : " + rpt.Message);
-    if(rpt.Step == rpt.TotalStep) done = true;
-});
-while (true)
-{
-    if (done)
-    {
-        Console.WriteLine(JsonSerializer.Serialize(acc, JsonUtils.DefaultSerializeOptions));
-    }
-    await Task.Delay(200);
+    // 空类，仅用于确保项目能够编译
 }

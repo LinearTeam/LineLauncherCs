@@ -3,13 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:add="clr-namespace:LMCUI.Pages.AccountPage.AddAccount"
+             xmlns:i18n="clr-namespace:LMCUI.I18n"
              mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="300"
              x:Class="LMCUI.Pages.AccountPage.AddAccount.Offline.OfflineStep">
     <StackPanel Orientation="Vertical" Spacing="3">
-        <TextBlock Text="添加离线账户" FontSize="20" FontWeight="Bold"/>
+        <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.Title}" FontSize="20" FontWeight="Bold"/>
         <TextBlock Text=""/>
-        <TextBox Watermark="游戏ID..." Name="ignBox" TextChanged="TextBox_TextChanged"/>
-        <TextBox Watermark="UUID (可选，为空将由启动器自动生成)" TextChanged="TextBox_TextChanged" Name="uuidBox"/>
+        <TextBox Watermark="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.Watermarks.GameId}" Name="ignBox" TextChanged="TextBox_TextChanged"/>
+        <TextBox Watermark="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.Watermarks.UUID}" TextChanged="TextBox_TextChanged" Name="uuidBox"/>
         <TextBlock Name="validate" Foreground="Red" IsVisible="False"/>
     </StackPanel>
 </add:AddAccountStep>
