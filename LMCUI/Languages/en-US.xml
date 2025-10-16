@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Localization>
     <MainWindow>
         <NavItems>
@@ -11,7 +11,70 @@
             <SettingsPage>Settings</SettingsPage>
         </NavItems>
     </MainWindow>
+
     <Pages>
+        <AccountPage>
+            <Title>Account Management</Title>
+            <AccountListExpander>
+                <Header>Account List</Header>
+                <Description>Accounts already stored in the launcher</Description>
+                <NoAccountsDescription>There are currently no accounts. You can add a new account below</NoAccountsDescription>
+                <AccountTypeSuffix>
+                    <Microsoft>  (Microsoft Account)</Microsoft>
+                    <Offline>  (Offline Account)</Offline>
+                    <Authlib>  (Authlib Account)</Authlib>
+                </AccountTypeSuffix>
+                <CopyUuidText>  Copy UUID</CopyUuidText>
+                <CopyUsernameText>  Copy Username</CopyUsernameText>
+            </AccountListExpander>
+            <AddAccountExpander>
+                <Header>Add Account</Header>
+                <Description>Add a new Microsoft, offline, or third-party Yggdrasil authentication server account</Description>
+                <AddButtonText>  Add</AddButtonText>
+            </AddAccountExpander>
+            <AddAccountWizard>
+                <Title>Add Account Wizard</Title>
+                <CloseButton>Close</CloseButton>
+                <PreviousButton>Previous</PreviousButton>
+                <NextButton>Next</NextButton>
+                <FinishButton>Finish</FinishButton>
+                <Steps>
+                    <IndexStep>
+                        <Title>Select Account Type</Title>
+                        <AccountTypes>
+                            <Microsoft>
+                                <Name>Microsoft Account</Name>
+                                <Description>Can access servers with online-mode enabled</Description>
+                            </Microsoft>
+                            <Offline>
+                                <Name>Offline Account</Name>
+                                <Description>Can only access servers without online-mode enabled.</Description>
+                            </Offline>
+                            <Authlib>
+                                <Name>Authlib Account</Name>
+                                <Description>Can join servers using third-party Yggdrasil authentication.</Description>
+                            </Authlib>
+                        </AccountTypes>
+                    </IndexStep>
+                    <OfflineStep>
+                        <Title>Add Offline Account</Title>
+                        <Watermarks>
+                            <GameId>Game ID...</GameId>
+                            <UUID>UUID (optional, will be auto-generated if empty)</UUID>
+                        </Watermarks>
+                        <ValidationMessages>
+                            <EmptyGameId>Please enter a Game ID!</EmptyGameId>
+                            <InvalidUUID>Invalid UUID!</InvalidUUID>
+                        </ValidationMessages>
+                        <GameIdWarnStep>
+                            <Title>Add Offline Account</Title>
+                            <WarningMessage>Your Minecraft username should only contain numbers, letters, underscores, and be less than 16 characters. Otherwise, you may not be able to access single-player worlds or servers.</WarningMessage>
+                            <Confirmation>Do you want to continue?</Confirmation>
+                        </GameIdWarnStep>
+                    </OfflineStep>
+                </Steps>
+            </AddAccountWizard>
+        </AccountPage>
         <SettingsPage>
             <Title>Settings</Title>
             <GameSettingsPageNav>
@@ -60,10 +123,13 @@
                     </AutoSelectExpander>
                 </JavaRuntime>
             </GameSettingsPage>
+
         </SettingsPage>
+
         <LaunchPage>
             <Title>Launch</Title>
         </LaunchPage>
+
         <VersionManagePage>
             <Title>Version Management</Title>
         </VersionManagePage>
@@ -80,5 +146,10 @@
                 </Progress>
             </SearchJava>
         </JavaManager>
+        <AccountManager>
+            <AddAccount>
+                <Duplicate>This account already exists and cannot be added again</Duplicate>
+            </AddAccount>
+        </AccountManager>
     </Messages>
 </Localization>

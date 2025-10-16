@@ -37,6 +37,7 @@ public partial class MainWindow : AppWindow
     public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new ObservableCollection<BreadCrumbBarItem>();
     public MainWindow()
     {
+        I18nManager.Instance.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
         Instance = this;
         InitializeComponent();
         SplashScreen = new LineSplashScreen();

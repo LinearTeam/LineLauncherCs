@@ -14,6 +14,7 @@
     
     <Pages>
         <AccountPage>
+            <Title>账户管理</Title>
             <AccountListExpander>
                 <Header>账户列表</Header>
                 <Description>启动器中已经存储的账户</Description>
