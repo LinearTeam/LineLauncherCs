@@ -1,6 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+﻿using Avalonia.Controls;
 
 namespace LMCUI.Pages.SettingsPage.GameSettings;
 
@@ -26,7 +24,7 @@ using Utils;
 
 public partial class GameSettingsPage : PageBase {
     private ObservableCollection<JavaItem> _javaItems = new();
-    private Logger s_logger = new Logger("GameSettingsPage");
+    private readonly Logger _logger = new Logger("GameSettingsPage");
     
     public GameSettingsPage() : base(I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.Title"), "GameSettingsPage") {
         InitializeComponent();
@@ -66,7 +64,7 @@ public partial class GameSettingsPage : PageBase {
             {
                 jle.Header = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.Header");
             } 
-            list.ForEach(ji => ji.Foreground = ji.IsSelected ? Brushes.LawnGreen : Foreground);
+            list.ForEach(ji => ji.Foreground = (ji.IsSelected ? Brushes.LawnGreen : Foreground)!);
             _javaItems = new ObservableCollection<JavaItem>(list);
             return jle.ItemsSource = _javaItems;
         });
@@ -74,32 +72,32 @@ public partial class GameSettingsPage : PageBase {
     void SelectJava_Click(object? sender, RoutedEventArgs e) {
         var button = (Button)sender;
         var java = button.Tag.ToString();
-        s_logger.Info($"用户选择Java: {java}");
+        _logger.Info($"用户选择Java: {java}");
         
         if (Current.Config.JavaPaths.Contains(java))
         {
             Current.Config.SelectedJavaPath = java;
             ConfigManager.Save("app", Current.Config);
-            s_logger.Info("选择成功");
+            _logger.Info("选择成功");
             _ = Task.Run(async () => await RefreshJavaItems());
             return;
         }
-        s_logger.Warn("选择失败 (1)");
+        _logger.Warn("选择失败 (1)");
         _ = Task.Run(async () => await RefreshJavaItems());
     }
     void RemoveJava_Click(object? sender, RoutedEventArgs e) {
         var button = (Button)sender;
         var java = button.Tag.ToString();
-        s_logger.Info($"用户移除Java: {java}");
+        _logger.Info($"用户移除Java: {java}");
         
         if (Current.Config.JavaPaths.Contains(java))
         {
             JavaManager.RemoveJava(java);
-            s_logger.Info("移除成功");
+            _logger.Info("移除成功");
             _ = Task.Run(async () => await RefreshJavaItems());
             return;
         }
-        s_logger.Warn("移除失败 (1)");
+        _logger.Warn("移除失败 (1)");
         _ = Task.Run(async () => await RefreshJavaItems());
         
     }
@@ -123,7 +121,7 @@ public partial class GameSettingsPage : PageBase {
             SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchSuccess");
         }
         catch (Exception ex) {
-            s_logger.Error(ex, "Searching Java");
+            _logger.Error(ex, "Searching Java");
             SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchFailed", ex.Message);
         }
         finally {
@@ -161,7 +159,7 @@ public partial class GameSettingsPage : PageBase {
             catch (Exception ex)
             {
                 Dispatcher.UIThread.Invoke(() => SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.AddFailed", ex.Message));
-                s_logger.Error(ex, "添加 Java");
+                _logger.Error(ex, "添加 Java");
             }
             await RefreshJavaItems();
         });

@@ -1,10 +1,12 @@
 ﻿using System;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
+using FluentAvalonia.UI.Controls;
 using FluentAvalonia.UI.Media.Animation;
 using LMCCore.Account;
 using LMCCore.Account.Model;
 using LMC.Basic.Logging;
+using LMCUI.Controls;
+using LMCUI.I18n;
 
 namespace LMCUI.Pages.AccountPage.AddAccount;
 
@@ -48,11 +50,14 @@ public partial class AddAccountWizard : UserControl
                         s_logger.Info($"添加账户: {account.Name} (类型: {account.Type})");
                         AccountManager.Add(account);
                         s_logger.Info($"成功添加: {account.Name} (类型: {account.Type})");
+                        var typeMsg = I18nManager.Instance.GetString("Enums.AccountType." + account.Type);
+                        MessageQueueControl.Instance.AddInfoBar(I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Success.Title"), I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Success.Content", typeMsg, account.Name), InfoBarSeverity.Success);
                     }
                     catch (Exception ex)
                     {
                         s_logger.Error(ex, $"添加账户{account.Name} (类型: {account.Type})");
-                        throw;
+                        var translatedException = I18nManager.Instance.GetString(ex.Message);
+                        MessageQueueControl.Instance.AddInfoBar(I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Failed.Title"), I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Failed.Content", translatedException), InfoBarSeverity.Error);
                     }
                 }
                 return;
@@ -75,6 +80,7 @@ public partial class AddAccountWizard : UserControl
             var prev = step.PreviousStep();
             if (prev.type != null)
             {
+                step.BackToPrevious();
                 contentFrm.Navigate(prev.type, null, new SlideNavigationTransitionInfo
                     { Effect = SlideNavigationTransitionEffect.FromLeft });
                 step = contentFrm.Content as AddAccountStep ?? throw new InvalidOperationException();
@@ -101,4 +107,5 @@ public abstract class AddAccountStep : UserControl
     public virtual bool IsFinalStep() => false;
     public virtual void Closed() { }
     public virtual Account? GetFinalAccount() => null;
+    public virtual void BackToPrevious(){ }
 }

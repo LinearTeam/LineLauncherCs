@@ -1,4 +1,6 @@
-﻿namespace LMCUI.Utils;
+﻿using Avalonia.Controls;
+
+namespace LMCUI.Utils;
 
 using System;
 using System.Collections.Generic;
@@ -11,44 +13,37 @@ using LMC.Basic.Logging;
 
 public static class CrossPlatformUtils {
     static readonly Logger s_logger = new("XPlatformUtils");
-
+    public static void OpenUrl(string url) => OpenUrl(new Uri(url));
+    public static void OpenUrl(Uri url)
+    {
+        try
+        {
+            var launcher = TopLevel.GetTopLevel(MainWindow.Instance)?.Launcher;
+            if (launcher != null)
+            {
+                launcher.LaunchUriAsync(url);
+            }
+            else
+            {
+                throw new PlatformNotSupportedException();
+            }
+        }
+        catch (Exception ex)
+        {
+            s_logger.Error(ex, $"打开链接 {url}");
+            throw;
+        }
+    }
     public static void OpenFolderInExplorer(string folderPath) {
         if (!Directory.Exists(folderPath))
             throw new DirectoryNotFoundException($"Directory not found: {folderPath}");
 
         try
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            var launcher = TopLevel.GetTopLevel(MainWindow.Instance)?.Launcher;
+            if (launcher != null)
             {
-                Process.Start("explorer.exe", $"\"{folderPath}\"");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", $"\"{folderPath}\"");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                try
-                {
-                    Process.Start("xdg-open", $"\"{folderPath}\"");
-                }
-                catch
-                {
-                    var managers = new[]
-                    {
-                        "dolphin", "nemo"
-                    };
-                    foreach (var manager in managers)
-                    {
-                        try
-                        {
-                            Process.Start(manager, $"\"{folderPath}\"");
-                            return;
-                        }
-                        catch {}
-                    }
-                    throw;
-                }
+                launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(folderPath));
             }
             else
             {
@@ -58,6 +53,29 @@ public static class CrossPlatformUtils {
         catch (Exception ex)
         {
             s_logger.Error(ex, $"打开文件夹 {folderPath}");
+            throw;
+        }
+    }
+
+    public static void OpenFileInExplorer(string filePath) {
+        if (!Directory.Exists(filePath))
+            throw new FileNotFoundException($"File not found: {filePath}");
+
+        try
+        {
+            var launcher = TopLevel.GetTopLevel(MainWindow.Instance)?.Launcher;
+            if (launcher != null)
+            {
+                launcher.LaunchFileInfoAsync(new FileInfo(filePath));
+            }
+            else
+            {
+                throw new PlatformNotSupportedException();
+            }
+        }
+        catch (Exception ex)
+        {
+            s_logger.Error(ex, $"打开文件夹 {filePath}");
             throw;
         }
     }

@@ -1,5 +1,4 @@
 ﻿using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.MarkupExtensions;
 using System;
 
 namespace LMCUI.I18n;

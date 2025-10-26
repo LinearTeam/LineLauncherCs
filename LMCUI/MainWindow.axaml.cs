@@ -1,15 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using FluentAvalonia.UI.Controls;
 using FluentAvalonia.UI.Windowing;
-using LMC.Basic;
-using LMCUI;
 using LMCUI.Controls;
 using LMCUI.Pages;
 using LMCUI.Pages.AccountPage;
@@ -24,7 +18,7 @@ using I18n;
 
 public partial class MainWindow : AppWindow
 {
-    private static bool s_isCodeChangeSelection = false;
+    private static bool s_isCodeChangeSelection;
 
     private static Type[] s_directNavigationPages = new[]
     {
@@ -37,7 +31,7 @@ public partial class MainWindow : AppWindow
     public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new ObservableCollection<BreadCrumbBarItem>();
     public MainWindow()
     {
-        I18nManager.Instance.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+        // I18nManager.Instance.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
         Instance = this;
         InitializeComponent();
         SplashScreen = new LineSplashScreen();

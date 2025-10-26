@@ -14,7 +14,7 @@ public static class HoverFooterBehavior
             "FooterContentTemplate", 
             typeof(HoverFooterBehavior));
 
-    public static ControlTemplate GetFooterContentTemplate(Control obj) =>
+    public static ControlTemplate? GetFooterContentTemplate(Control obj) =>
         obj.GetValue(FooterContentTemplateProperty);
 
     public static void SetFooterContentTemplate(Control obj, ControlTemplate value) =>
@@ -54,14 +54,16 @@ public static class HoverFooterBehavior
     }
 
     // 修复模板加载问题
-    private static Control CreateFooterContent(Control owner)
+    private static Control? CreateFooterContent(Control owner)
     {
         var template = GetFooterContentTemplate(owner);
         if (template == null) return null;
 
         // 正确加载模板
-        var contentControl = new ContentControl();
-        contentControl.Template = template;
+        var contentControl = new ContentControl
+        {
+            Template = template
+        };
         return contentControl;
     }
 

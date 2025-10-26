@@ -1,7 +1,4 @@
 ﻿using System;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using LMCCore.Account;
 using LMCCore.Account.Model;
 

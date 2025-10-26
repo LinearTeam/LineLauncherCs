@@ -4,6 +4,22 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i18n="clr-namespace:LMCUI.I18n"
              xmlns:pages="clr-namespace:LMCUI.Pages"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LMCUI.Pages.LaunchPage.LaunchPage">
+
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+            <TextBlock Text="{i18n:I18nBinding Key=Pages.LaunchPage.WelcomeMessage}" 
+                       FontSize="24" 
+                       HorizontalAlignment="Center" 
+                       Margin="0,0,0,20" />
+
+            <Button Name="ShowInfoButton" Content="显示信息提示" Click="ShowInfoButton_Click" />
+            <Button Name="ShowSuccessButton" Content="显示成功提示" Click="ShowSuccessButton_Click" />
+            <Button Name="ShowWarningButton" Content="显示警告提示" Click="ShowWarningButton_Click" />
+            <Button Name="ShowErrorButton" Content="显示错误提示" Click="ShowErrorButton_Click" />
+            <Button Name="ShowTeachingTipButton" Content="显示教学提示" Click="ShowTeachingTipButton_Click" />
+        </StackPanel>
+    </Grid>
 </pages:PageBase>

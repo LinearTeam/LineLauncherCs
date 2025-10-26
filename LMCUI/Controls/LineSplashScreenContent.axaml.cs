@@ -4,10 +4,6 @@ using Avalonia.Controls;
 
 namespace LMCUI.Controls;
 
-using System;
-using I18n;
-using LMC.LifeCycle;
-
 public partial class LineSplashScreenContent : UserControl
 {
     public LineSplashScreenContent()

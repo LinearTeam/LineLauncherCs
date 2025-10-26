@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json.Serialization;
 using LMC;
 using LMCCore.Account.Model;
@@ -103,7 +101,7 @@ public static class AccountManager
         
         if (isDuplicate)
         {
-            throw new ArgumentException("Messages.AccountManager.Duplicate");
+            throw new ArgumentException("Messages.AccountManager.AddAccount.Duplicate");
         }
         
         s_accounts.Add(account);

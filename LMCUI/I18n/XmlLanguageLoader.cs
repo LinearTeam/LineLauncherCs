@@ -15,9 +15,9 @@ public static class XmlLanguageLoader
 
         var doc = new XmlDocument();
         doc.Load(filePath);
-        
-        TraverseNodes(doc.DocumentElement, "", result);
-            
+
+        if (doc.DocumentElement != null) TraverseNodes(doc.DocumentElement, "", result);
+
         return result;
     }
 

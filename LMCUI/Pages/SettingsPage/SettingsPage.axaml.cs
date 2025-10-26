@@ -1,8 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-
-namespace LMCUI.Pages.SettingsPage;
+﻿namespace LMCUI.Pages.SettingsPage;
 
 using Avalonia.Interactivity;
 using GameSettings;

@@ -10,7 +10,7 @@ public static class Current
 
     public const string VersionType = "alpha";
     
-    public static string LMCPath =  Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LMC");
+    public static readonly string LMCPath =  Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LMC");
     public static AppConfig? Config { get; set; }
 
     public static void SaveConfig() {

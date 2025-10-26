@@ -4,20 +4,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using Avalonia.Data;
 
 namespace LMCUI.I18n;
 
 using LMC;
-using LMC.Basic.Configs;
 
 public sealed class I18nManager
 {
-    private static readonly Lazy<I18nManager> _instance = 
+    private static readonly Lazy<I18nManager> s_instance = 
         new Lazy<I18nManager>(() => new I18nManager());
         
-    public static I18nManager Instance => _instance.Value;
+    public static I18nManager Instance => s_instance.Value;
 
     private ConcurrentDictionary<string, string> _strings = 
         new ConcurrentDictionary<string, string>();
@@ -30,7 +27,7 @@ public sealed class I18nManager
     public IReadOnlyList<CultureInfo> AvailableCultures { get; private set; } = 
         Array.Empty<CultureInfo>();
 
-    public event Action CultureChanged;
+    public event Action? CultureChanged;
 
     private I18nManager()
     {
@@ -79,7 +76,10 @@ public sealed class I18nManager
                 var dict = XmlLanguageLoader.LoadLanguageFile(file);
                 allDict[cultureName] = dict;
             }
-            catch {}
+            catch
+            {
+                // ignored
+            }
         }
 
         _allLanguages = allDict;
@@ -162,7 +162,7 @@ public sealed class I18nManager
 
     private sealed class Unsubscriber : IDisposable
     {
-        private Action _unsubscribeAction;
+        private Action? _unsubscribeAction;
         public Unsubscriber(Action unsubscribeAction) => _unsubscribeAction = unsubscribeAction;
         public void Dispose() => _unsubscribeAction?.Invoke();
     }

@@ -1,6 +1,5 @@
 ﻿namespace LMC.Basic.Configs;
 
-using System.Collections.Concurrent;
 using Logging;
 
 [ConfigVersion(1)]

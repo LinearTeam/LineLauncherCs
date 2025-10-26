@@ -4,7 +4,6 @@ namespace LMC.Basic.Logging;
 
 using System;
 using System.IO;
-using Configs;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -17,7 +16,7 @@ public class Logger
     public static bool DebugMode = false;
     public static readonly ConcurrentDictionary<string, string> SensitiveData = new();
 
-    public Logger(string module, string filePath = "not")
+    public Logger(string module)
     {
         EnsureConfigured();
         _nlogLogger = LogManager.GetLogger(module);
@@ -82,7 +81,7 @@ public class Logger
             _ => NLog.LogLevel.Info
         };
     }
-    private static string ReplaceSensitivtyData(string msg)
+    private static string ReplaceSensitiveData(string msg)
     {
         foreach (var kv in SensitiveData)
         {
@@ -90,9 +89,9 @@ public class Logger
         }
         return msg;
     }
-    public void Info(string msg) => _nlogLogger.Info(ReplaceSensitivtyData(msg));
-    public void Error(string msg) => _nlogLogger.Error(ReplaceSensitivtyData(msg));
-    public void Warn(string msg) => _nlogLogger.Warn(ReplaceSensitivtyData(msg));
+    public void Info(string msg) => _nlogLogger.Info(ReplaceSensitiveData(msg));
+    public void Error(string msg) => _nlogLogger.Error(ReplaceSensitiveData(msg));
+    public void Warn(string msg) => _nlogLogger.Warn(ReplaceSensitiveData(msg));
         
     public void Error(Exception e, string func)
     {
@@ -103,7 +102,7 @@ public class Logger
     {
         if (DebugMode)
         {
-            _nlogLogger.Debug(ReplaceSensitivtyData(msg));
+            _nlogLogger.Debug(ReplaceSensitiveData(msg));
         }
     }
 

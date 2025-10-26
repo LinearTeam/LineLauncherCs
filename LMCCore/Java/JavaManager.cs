@@ -10,10 +10,10 @@ using Microsoft.Win32;
 public static class JavaManager {
     static readonly Logger s_logger = new("JavaManager");
 
-    private static readonly object _configLock = new object();
+    private static readonly object s_configLock = new object();
 
     public async static Task AddJava(string javaPath, Action<TaskCallbackInfo>? callback = null, bool force = false) {
-        callback ??= cbi => {};
+        callback ??= _ => {};
 
         int prcId = new Random().Next(100, 999);
         
@@ -33,7 +33,7 @@ public static class JavaManager {
             throw new Exception("Invalid Java");
         }
         
-        lock (_configLock) {
+        lock (s_configLock) {
             if(!Current.Config.JavaPaths.Contains(javaPath)) 
                 Current.Config.JavaPaths.Add(javaPath);
             ConfigManager.Save("app", Current.Config);
@@ -46,7 +46,7 @@ public static class JavaManager {
         javaPath = Path.GetFullPath(javaPath);
         s_logger.Info($"禁用Java : {javaPath}");
 
-        lock (_configLock) {
+        lock (s_configLock) {
             if (Current.Config.JavaPaths.Contains(javaPath)) {
                 Current.Config.JavaPaths.Remove(javaPath);
             }
@@ -61,9 +61,10 @@ public static class JavaManager {
         var release = Path.Combine(path, "release");
         s_logger.Debug($"release 文件路径: {release}");
         var lines = await File.ReadAllLinesAsync(release);
-        var ve = from l in lines
+        var ve = 
+            (from l in lines
             where l.Replace("=", ":").StartsWith("JAVA_VERSION:", StringComparison.OrdinalIgnoreCase)
-            select l;
+            select l).ToArray();
         s_logger.Debug($"过滤的版本字符串: {string.Join(", ", ve)}");
         LocalJava java = new();
         java.Path = path;
@@ -73,9 +74,10 @@ public static class JavaManager {
             .Replace("_",".")  //1.8.0_51
             .Replace("\"", ""));
         
-        var impl = from l in lines
+        var impl = 
+            (from l in lines
             where l.Replace("=", ":").StartsWith("IMPLEMENTOR:", StringComparison.OrdinalIgnoreCase)
-            select l;
+            select l).ToArray();
         
         s_logger.Debug($"过滤的发行商字符串: {string.Join(", ", impl)}");
 
@@ -132,7 +134,7 @@ public static class JavaManager {
     // Variables
     async static Task FindViaEnvironmentVariables(HashSet<string> paths) {
         // JAVA_HOME
-        string javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+        string? javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
         if (!string.IsNullOrEmpty(javaHome) && await IsValidJavaRoot(javaHome))
         {
             s_logger.Info($"[Java 搜索] JAVA_HOME: {javaHome}");
@@ -150,7 +152,7 @@ public static class JavaManager {
             if (File.Exists(javaBin))
             {
                 string fullPath = Path.GetFullPath(javaBin);
-                string parentDir = Directory.GetParent(fullPath)?.Parent?.FullName;
+                string? parentDir = Directory.GetParent(fullPath)?.Parent?.FullName;
                 if (parentDir != null && await IsValidJavaRoot(parentDir))
                 {
                     s_logger.Info($"[Java 搜索] PATH: {parentDir}");

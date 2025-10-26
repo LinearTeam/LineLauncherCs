@@ -73,20 +73,32 @@ public sealed class HttpUtils
             return this;
         }
 
-        public HttpRequestBuilder WithJsonContent(object data, JsonSerializerOptions? options = null)
+        public HttpRequestBuilder WithJsonContent(object data, bool setContentType = true, JsonSerializerOptions? options = null)
         {
+            if (setContentType)
+            {
+                 WithHeader("Content-Type", "application/json");
+            }
             return WithContent(ContentBuilder.Json(data, options ?? JsonUtils.DefaultSerializeOptions));
         }
 
-        public HttpRequestBuilder WithFormContent(Action<FormContentBuilder> configure)
+        public HttpRequestBuilder WithFormContent(Action<FormContentBuilder> configure, bool setContentType = true)
         {
+            if (setContentType)
+            {
+                WithHeader("Content-Type", "application/x-www-form-urlencoded");
+            }
             var builder = new FormContentBuilder();
             configure(builder);
             return WithContent(builder.Build());
         }
 
-        public HttpRequestBuilder WithTextContent(string text, string mediaType = "text/plain")
+        public HttpRequestBuilder WithTextContent(string text, string mediaType = "text/plain", bool setContentType = true)
         {
+            if (setContentType)
+            {
+                WithHeader("Content-Type", mediaType);
+            }
             return WithContent(ContentBuilder.Text(text, mediaType));
         }
 

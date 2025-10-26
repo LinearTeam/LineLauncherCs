@@ -72,6 +72,26 @@
                             <Confirmation>Do you want to continue?</Confirmation>
                         </GameIdWarnStep>
                     </OfflineStep>
+                    <MicrosoftStep>
+                        <Title>Add Microsoft Account</Title>
+                    </MicrosoftStep>
+                    <MicrosoftOAuthStep>
+                        <LinkMessage>
+                            Please click the button below to jump to the login page, then sign in using Microsoft account and authorize LMC to access your account.You must complete this step on the device where the launcher is running.
+                        </LinkMessage>
+                        <StepMessage>
+                            ({0} / {1}) {2}
+                        </StepMessage>
+                        <ErrorMessage>
+                            Login Error: {0}
+                        </ErrorMessage>
+                        <NoMinecraftProfileMessage>
+                            Your Microsoft account is logged in and does not have Minecraft profile. Make sure you purchased the game and set your username at Minecraft.net.
+                        </NoMinecraftProfileMessage>
+                        <CopyLinkButton>Copy Link</CopyLinkButton>
+                        <OpenLinkButton>Open Login Page</OpenLinkButton>
+                        <CompleteMessage>You have successfully logged in!Now click "Finish" to add your account to LMC.</CompleteMessage>
+                    </MicrosoftOAuthStep>
                 </Steps>
             </AddAccountWizard>
         </AccountPage>
@@ -128,6 +148,7 @@
 
         <LaunchPage>
             <Title>Launch</Title>
+            <WelcomeMessage>Welcome to Line Launcher</WelcomeMessage>
         </LaunchPage>
 
         <VersionManagePage>
@@ -149,7 +170,22 @@
         <AccountManager>
             <AddAccount>
                 <Duplicate>This account already exists and cannot be added again</Duplicate>
+                <Success>
+                    <Title>Added successfully!</Title>
+                    <Content>You have successfully added an {0} account, welcome back, {1}!</Content>
+                </Success>
+                <Failed>
+                    <Title>Add Failed</Title>
+                    <Content>Failed to add account: {0}</Content>
+                </Failed>
             </AddAccount>
         </AccountManager>
     </Messages>
+    <Enums>
+        <AccountType>
+            <Offline>Offline</Offline>
+            <Microsoft>Microsoft</Microsoft>
+            <Authlib>Authlib</Authlib>
+        </AccountType>
+    </Enums>
 </Localization>

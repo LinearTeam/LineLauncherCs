@@ -72,6 +72,19 @@
                             <Confirmation>是否继续？</Confirmation>
                         </GameIdWarnStep>
                     </OfflineStep>
+                    <MicrosoftStep>
+                        <Title>添加微软账户</Title>
+                        <Content>接下来你将进行微软登录，点击“下一步”后，你将跳转到登录链接，并在浏览器内完成微软登录，随后启动器会读取登录后返回的授权码，并进行身份验证。</Content>
+                    </MicrosoftStep>
+                    <MicrosoftOAuthStep>
+                        <LinkMessage>请点击下方按钮跳转到登录页面，随后使用 Microsoft 账号登录，并授权 LMC 访问您的账户信息。您必须在启动器运行的设备上完成这一步。</LinkMessage>
+                        <StepMessage>({0} / {1}) {2}</StepMessage>
+                        <ErrorMessage>登录发生错误，请检查网络或使用代理：{0}</ErrorMessage>
+                        <NoMinecraftProfileMessage>您登录的微软账户并没有 Minecraft 档案信息，请确保您购买了游戏，并已于 Minecraft.net 新建档案。</NoMinecraftProfileMessage>
+                        <CopyLinkButton>复制链接</CopyLinkButton>
+                        <OpenLinkButton>打开网页</OpenLinkButton>
+                        <CompleteMessage>您已完成登录！现在点击“完成”，即可将账户添加到 LMC 。</CompleteMessage>
+                    </MicrosoftOAuthStep>
                 </Steps>
             </AddAccountWizard>
         </AccountPage>
@@ -128,6 +141,7 @@
 
         <LaunchPage>
             <Title>启动</Title>
+            <WelcomeMessage>欢迎使用 Line Launcher</WelcomeMessage>
         </LaunchPage>
 
         <VersionManagePage>
@@ -149,7 +163,44 @@
         <AccountManager>
             <AddAccount>
                 <Duplicate>该账户已存在，不能重复添加</Duplicate>
+                <Success>
+                    <Title>添加成功</Title>
+                    <Content>您已成功添加{0}账户，欢迎回来 {1}！</Content>
+                </Success>
+                <Failed>
+                    <Title>添加失败</Title>
+                    <Content>添加账户失败：{0}</Content>
+                </Failed>
             </AddAccount>
+            <OAuth>
+                <Steps>
+                    <WaitForCode>
+                        <Message>等待用户登录</Message>
+                    </WaitForCode>
+                    <GetAccessToken>
+                        <Message>获取访问令牌</Message>
+                    </GetAccessToken>
+                    <XBLAuthorize>
+                        <Message>Xbox Live 身份验证</Message>
+                    </XBLAuthorize>
+                    <XSTSAuthorize>
+                        <Message>XSTS 身份验证</Message>
+                    </XSTSAuthorize>
+                    <MinecraftAuthorize>
+                        <Message>Minecraft 身份验证</Message>
+                    </MinecraftAuthorize>
+                    <ValidateMinecraft>
+                        <Message>验证 Minecraft 账户</Message>
+                    </ValidateMinecraft>
+                </Steps>
+            </OAuth>
         </AccountManager>
     </Messages>
+    <Enums>
+        <AccountType>
+            <Offline>离线</Offline>
+            <Microsoft>微软</Microsoft>
+            <Authlib>第三方</Authlib>
+        </AccountType>
+    </Enums>
 </Localization>

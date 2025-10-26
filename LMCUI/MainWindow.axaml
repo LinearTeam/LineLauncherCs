@@ -7,6 +7,7 @@
         xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
         xmlns:i18n="clr-namespace:LMCUI.I18n"
         xmlns:lmcui="clr-namespace:LMCUI"
+        xmlns:controls="clr-namespace:LMCUI.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LMCUI.MainWindow"
         Title="Line Launcher"
@@ -19,6 +20,12 @@
         <!-- <Grid.Background> -->
         <!--     <ImageBrush Source="/Assets/LMC.png"/> -->
         <!-- </Grid.Background> -->
+        <!-- 消息队列，显示在屏幕顶部 -->
+        <controls:MessageQueueControl Name="MessageQueue" 
+                                  ZIndex="9999" 
+                                  HorizontalAlignment="Stretch" 
+                                  VerticalAlignment="Top" />
+
         <ui:NavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged" IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.LaunchPage}" Tag="LaunchPage" IconSource="Play" />
@@ -48,5 +55,6 @@
             </ui:NavigationView.Header>
             <ui:Frame Name="mainFrm" />
         </ui:NavigationView>
+        
     </Grid>
 </Window>

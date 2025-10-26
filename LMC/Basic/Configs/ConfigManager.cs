@@ -30,7 +30,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using NLog;
 using Logger=Logging.Logger;
 
 #region 注解
@@ -62,8 +61,8 @@ public class ConfigRemovedAttribute(int sinceVersion) : Attribute {
 #endregion
 
 public static class ConfigManager {
-    const string _versionProperty = "$version";
-    private static readonly ConcurrentDictionary<string, object> _configLocks = new();
+    private const string VersionProperty = "$version";
+    private static readonly ConcurrentDictionary<string, object> s_configLocks = new();
     private static Logger s_logger = new Logger("ConfigManager");
     
     static readonly JsonSerializerOptions s_serializerOptions = new()
@@ -76,7 +75,7 @@ public static class ConfigManager {
 
     public static T Load<T>(string configName) where T : new() {
         string filePath = GetConfigPath(configName);
-        object configLock = _configLocks.GetOrAdd(configName, _ => new object());
+        object configLock = s_configLocks.GetOrAdd(configName, _ => new object());
 
         lock (configLock) {
             if (!File.Exists(filePath)) {
@@ -91,7 +90,7 @@ public static class ConfigManager {
 
                 if (jsonObject == null) return new T();
 
-                int configVersion = jsonObject.TryGetPropertyValue(_versionProperty, out var versionNode)
+                int configVersion = jsonObject.TryGetPropertyValue(VersionProperty, out var versionNode)
                     ? versionNode?.GetValue<int>() ?? 1
                     : 1;
 
@@ -100,7 +99,7 @@ public static class ConfigManager {
                     MigrateConfiguration(jsonObject, configVersion, targetVersion);
                 }
 
-                jsonObject.Remove(_versionProperty);
+                jsonObject.Remove(VersionProperty);
                 return jsonObject.Deserialize<T>(s_serializerOptions) ?? new T();
             } catch {
                 return new T();
@@ -110,7 +109,7 @@ public static class ConfigManager {
 
     public static void Save<T>(string configName, T config) {
         string filePath = GetConfigPath(configName);
-        object configLock = _configLocks.GetOrAdd(configName, _ => new object());
+        object configLock = s_configLocks.GetOrAdd(configName, _ => new object());
         
         lock (configLock) {
             SaveInternal(configName, config, filePath);
@@ -124,7 +123,7 @@ public static class ConfigManager {
         var jsonObject = JsonObject.Create(JsonSerializer.SerializeToElement(config, s_serializerOptions));
         if (jsonObject == null) return;
 
-        jsonObject[_versionProperty] = GetConfigVersion(typeof(T));
+        jsonObject[VersionProperty] = GetConfigVersion(typeof(T));
         File.WriteAllText(filePath, jsonObject.ToJsonString(s_serializerOptions));
     }
 
@@ -150,7 +149,7 @@ public static class ConfigManager {
             currentVersion = nextVersion;
         }
 
-        config[_versionProperty] = targetVersion;
+        config[VersionProperty] = targetVersion;
     }
 
     static void MigrateToNextVersion(JsonObject config, int fromVersion, int toVersion) {

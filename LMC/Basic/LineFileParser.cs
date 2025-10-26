@@ -9,14 +9,14 @@ using System.Text.RegularExpressions;
 public class LineFileParser
 {
     //|Key|:|Value|
-    private const string _pattern = @"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|";
+    private const string Pattern = @"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|";
 
     public List<string> GetKeySet(string path, string section)
     {
         var res = new List<string>();
         if (!File.Exists(path))
         {
-            Directory.CreateDirectory(Directory.GetParent(path).FullName);
+            Directory.CreateDirectory(Directory.GetParent(path)?.FullName ?? throw new InvalidOperationException("Invalid path"));
             File.Create(path).Close();
             return res;
         }
@@ -43,7 +43,7 @@ public class LineFileParser
 
             if (inSection)
             {
-                var match = Regex.Match(line, _pattern);
+                var match = Regex.Match(line, Pattern);
                 if (match.Success && !string.IsNullOrEmpty(match.Groups["key"].Value))
                 {
                     res.Add(match.Groups["key"].Value);
@@ -54,11 +54,11 @@ public class LineFileParser
         return res;
     }
 
-    public List<string> GetSections(string path)
+    public List<string?> GetSections(string path)
     {
         var lines = File.ReadAllLines(path);
-        List<string> res = new List<string>();
-        string section = null;
+        List<string?> res = new List<string?>();
+        string? section = null;
         foreach (string line in lines)
         {
             if (line.StartsWith("|") && line.EndsWith("|_start"))
@@ -143,19 +143,19 @@ public class LineFileParser
     }
 
     // ReadFile
-    public string Read(string path, string key, string section)
+    public string? Read(string path, string key, string section)
     {
         if (!File.Exists(path))
         {
-            Directory.CreateDirectory(Directory.GetParent(path).FullName);
+            Directory.CreateDirectory(Directory.GetParent(path)?.FullName ?? throw new InvalidOperationException("Invalid path"));
             File.Create(path).Close();
             return null;
         }
 
         string startTag = $"|{section}|_start";
         string endTag = $"|{section}|_end";
-        bool insection = false;
-        string keyValue = null;
+        bool inSection = false;
+        string? keyValue = null;
 
         var lines = File.ReadAllLines(path);
 
@@ -163,19 +163,19 @@ public class LineFileParser
         {
             if (line.Trim() == startTag)
             {
-                insection = true;
+                inSection = true;
                 continue;
             }
 
             if (line.Trim() == endTag)
             {
-                insection = false;
+                inSection = false;
                 continue;
             }
 
-            if (insection)
+            if (inSection)
             {
-                var match = Regex.Match(line, _pattern);
+                var match = Regex.Match(line, Pattern);
                 if (match.Success && match.Groups["key"].Value == key)
                 {
                     keyValue = match.Groups["value"].Value;
@@ -198,13 +198,13 @@ public class LineFileParser
 
         if (!File.Exists(path))
         {
-            Directory.CreateDirectory(Directory.GetParent(path).FullName);
+            Directory.CreateDirectory(Directory.GetParent(path)?.FullName ?? throw new InvalidOperationException("Invalid path"));
             File.Create(path).Close();
         }
 
         string startTag = $"|{section}|_start";
         string endTag = $"|{section}|_end";
-        bool insection = false;
+        bool inSection = false;
         bool sectionFound = false;
         bool keyFound = false;
         var lines = File.ReadAllLines(path).ToList();
@@ -213,14 +213,14 @@ public class LineFileParser
         {
             if (lines[i].Trim() == startTag)
             {
-                insection = true;
+                inSection = true;
                 sectionFound = true;
                 continue;
             }
 
             if (lines[i].Trim() == endTag)
             {
-                insection = false;
+                inSection = false;
                 if (!keyFound) //If didn't find key, then create.
                 {
                     lines.Insert(i, $"|{key}|:|{value}|");
@@ -230,9 +230,8 @@ public class LineFileParser
                 continue;
             }
 
-            if (insection)
+            if (inSection)
             {
-                var match = Regex.Match(lines[i], _pattern);
                 if (lines[i].StartsWith($"|{key}|:|") && lines[i].EndsWith($"|"))
                 {
                     //If found key, then update.    
@@ -261,26 +260,26 @@ public class LineFileParser
 
         string startTag = $"|{section}|_start";
         string endTag = $"|{section}|_end";
-        bool insection = false;
+        bool inSection = false;
         var lines = File.ReadAllLines(path).ToList();
 
         for (int i = 0; i < lines.Count; i++)
         {
             if (lines[i].Trim() == startTag)
             {
-                insection = true;
+                inSection = true;
                 continue;
             }
 
             if (lines[i].Trim() == endTag)
             {
-                insection = false;
+                inSection = false;
                 continue;
             }
 
-            if (insection)
+            if (inSection)
             {
-                var match = Regex.Match(lines[i], _pattern);
+                var match = Regex.Match(lines[i], Pattern);
                 if (match.Success && match.Groups["key"].Value == key)
                 {
                     lines.RemoveAt(i);

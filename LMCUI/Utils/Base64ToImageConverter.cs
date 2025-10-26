@@ -7,7 +7,7 @@ using System.IO;
 
 public class Base64ToImageConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is string base64String && !string.IsNullOrEmpty(base64String))
         {
@@ -30,7 +30,7 @@ public class Base64ToImageConverter : IValueConverter
     }
 
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotSupportedException();
     }

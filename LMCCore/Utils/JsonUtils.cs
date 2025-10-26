@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization.Metadata;
-using NLog.Targets;
 
 namespace LMCCore.Utils;
 
@@ -123,7 +122,7 @@ public class JsonUtils
                 var fullPath = string.IsNullOrEmpty(currentPath) 
                     ? property.Key 
                     : $"{currentPath}.{property.Key}";
-
+                
                 if (ignorePaths.Any(p => fullPath.StartsWith(p))) continue;
 
                 if (currentObj.TryGetPropertyValue(property.Key, out var existing))

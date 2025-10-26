@@ -1,23 +1,18 @@
-﻿using NLog.Targets;
-
-namespace LMC.LifeCycle;
+﻿namespace LMC.LifeCycle;
 
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using Basic;
 using Basic.Configs;
 using Basic.Logging;
 
 public class Startup {
 
-    static Logger s_logger;
+    static Logger s_logger = null!;
     
     //DO NOT TRANSLATE
-    public async static Task Initialize() {
-        int total = 2;
-        int i = 1;
-        
+    public static Task Initialize() {
+
         CreateDirectory();
 
         s_logger = new Logger("Startup");
@@ -33,6 +28,7 @@ public class Startup {
         s_logger.Info($".NET 运行环境： {RuntimeInformation.FrameworkDescription}");
         s_logger.Info("=============LMC 运行信息=============");
         LoadConfiguration();
+        return Task.CompletedTask;
     }
 
     private static void CreateDirectory() {
