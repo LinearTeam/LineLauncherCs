@@ -57,5 +57,9 @@
         <DependentUpon>IndexStep.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Pages\SettingsPage\LauncherSettings\LauncherSettingsPage.axaml.cs">
+        <DependentUpon>GameSettingsPage.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>

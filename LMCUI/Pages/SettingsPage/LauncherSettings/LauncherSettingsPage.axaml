@@ -1,0 +1,35 @@
+﻿<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:sty="using:FluentAvalonia.Styling"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="LMCUI.Pages.SettingsPage.LauncherSettings.LauncherSettingsPage">
+    
+    <Grid Margin="60, 20, 40, 30">
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical" Spacing="1">
+                <Label Content="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.Title}" Margin="0, 20"/>
+                <ui:SettingsExpander Header="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Header}"
+                                     Description="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Description}" IconSource="Globe">
+                    <ui:SettingsExpander.Footer>
+                        <StackPanel Orientation="Horizontal" Spacing="3">
+                            <ComboBox Name="LanguageComboBox" SelectionChanged="LanguageComboBox_OnSelectionChanged"/>
+                            <Button Click="OpenTranslatePage">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Open" />
+                                    <TextBlock />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ui:SettingsExpander.Footer>
+                </ui:SettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</pages:PageBase>

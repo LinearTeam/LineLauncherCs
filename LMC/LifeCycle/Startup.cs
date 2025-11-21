@@ -1,4 +1,7 @@
-﻿namespace LMC.LifeCycle;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
+
+namespace LMC.LifeCycle;
 
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -27,10 +30,51 @@ public class Startup {
         s_logger.Info($"RuntimeID： {RuntimeInformation.RuntimeIdentifier}");
         s_logger.Info($".NET 运行环境： {RuntimeInformation.FrameworkDescription}");
         s_logger.Info("=============LMC 运行信息=============");
+        HandleArguments();
+        PreInit();
         LoadConfiguration();
         return Task.CompletedTask;
     }
 
+    private static void PreInit()
+    {
+        if (Current.Arguments.TryGetValue("restart", out string? pidStr))
+        {
+            if (int.TryParse(pidStr, out var pid))
+            {
+                try
+                {
+                    var process = Process.GetProcessById(pid);
+                    s_logger.Info($"正在终止进程 {pid}...");
+                    process.Kill();
+                    s_logger.Info($"进程 {pid} 已终止，继续启动LMC");
+                }
+                catch (Exception ex)
+                {
+                    s_logger.Error(ex, "终止上一个进程");
+                }
+            }else
+            {
+                s_logger.Warn($"无法解析上一进程ID: {pidStr}");
+            }
+        }
+    }
+
+    private static void HandleArguments()
+    { 
+        var dict = new Dictionary<string, string>();
+        var args = Environment.GetCommandLineArgs();
+        foreach (var arg in args) {
+            if (arg.StartsWith("--")) {
+                var split = arg.Substring(2).Split('=', 2);
+                var key = split[0];
+                var value = split.Length > 1 ? split[1] : "true";
+                dict[key] = value;
+            }
+        }
+        Current.Arguments = new ReadOnlyDictionary<string, string>(dict);
+    }
+    
     private static void CreateDirectory() {
         Directory.CreateDirectory(Current.LMCPath);
         File.Delete(Path.Combine(Current.LMCPath, "logs", "latest.log"));

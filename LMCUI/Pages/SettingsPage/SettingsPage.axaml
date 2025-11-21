@@ -16,7 +16,11 @@
                                      Header="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPageNav.Header}"
                                      Description="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPageNav.Description}" 
                                      IconSource="Games" ActionIconSource="ChevronRight" Click="GameSettingsExpander_OnClick" />
-            
+                <ui:SettingsExpander IsClickEnabled="True" 
+                                     Header="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPageNav.Header}"
+                                     Description="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPageNav.Description}" 
+                                     IconSource="CalendarEmpty" ActionIconSource="ChevronRight" Click="LauncherSettingsExpander_OnClick" />
+                
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -1,4 +1,6 @@
-﻿namespace LMCUI.Pages.SettingsPage;
+﻿using LMCUI.Pages.SettingsPage.LauncherSettings;
+
+namespace LMCUI.Pages.SettingsPage;
 
 using Avalonia.Interactivity;
 using GameSettings;
@@ -11,6 +13,11 @@ public partial class SettingsPage : PageBase
     }
     void GameSettingsExpander_OnClick(object? sender, RoutedEventArgs e) {
         MainWindow.NavigatePage(new PageNavigateWay(typeof(GameSettingsPage), 
+            MainWindow.Instance.mnv.SettingsItem), NavigateType.Append);
+    }
+    private void LauncherSettingsExpander_OnClick(object? sender, RoutedEventArgs e)
+    {
+        MainWindow.NavigatePage(new PageNavigateWay(typeof(LauncherSettingsPage), 
             MainWindow.Instance.mnv.SettingsItem), NavigateType.Append);
     }
 }

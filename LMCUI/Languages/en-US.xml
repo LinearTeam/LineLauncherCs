@@ -74,20 +74,13 @@
                     </OfflineStep>
                     <MicrosoftStep>
                         <Title>Add Microsoft Account</Title>
+                        <Content>Next, you will log in to Microsoft. After clicking "Next", you will be redirected to the login link and complete the Microsoft login in your browser. The launcher will then read the authorization code returned after login and perform identity verification.</Content>
                     </MicrosoftStep>
                     <MicrosoftOAuthStep>
-                        <LinkMessage>
-                            Please click the button below to jump to the login page, then sign in using Microsoft account and authorize LMC to access your account.You must complete this step on the device where the launcher is running.
-                        </LinkMessage>
-                        <StepMessage>
-                            ({0} / {1}) {2}
-                        </StepMessage>
-                        <ErrorMessage>
-                            Login Error: {0}
-                        </ErrorMessage>
-                        <NoMinecraftProfileMessage>
-                            Your Microsoft account is logged in and does not have Minecraft profile. Make sure you purchased the game and set your username at Minecraft.net.
-                        </NoMinecraftProfileMessage>
+                        <LinkMessage>Please click the button below to jump to the login page, then sign in using Microsoft account and authorize LMC to access your account.You must complete this step on the device where the launcher is running.</LinkMessage>
+                        <StepMessage>({0} / {1}) {2}</StepMessage>
+                        <ErrorMessage>Failed to log in, please check network or try proxy: {0}</ErrorMessage>
+                        <NoMinecraftProfileMessage>Your Microsoft account is logged in and does not have Minecraft profile. Make sure you purchased the game and set your username at Minecraft.net.</NoMinecraftProfileMessage>
                         <CopyLinkButton>Copy Link</CopyLinkButton>
                         <OpenLinkButton>Open Login Page</OpenLinkButton>
                         <CompleteMessage>You have successfully logged in!Now click "Finish" to add your account to LMC.</CompleteMessage>
@@ -101,6 +94,10 @@
                 <Header>Game Settings</Header>
                 <Description>Settings related to game downloading, ​​launching, and more</Description>
             </GameSettingsPageNav>
+            <LauncherSettingsPageNav>
+                <Header>Launcher Settings</Header>
+                <Description>Manage the behavior of the launcher, such as launcher themes, update policies, etc.</Description>
+            </LauncherSettingsPageNav>
             <GameSettingsPage>
                 <Title>Game Settings</Title>
                 <JavaRuntime>
@@ -143,7 +140,22 @@
                     </AutoSelectExpander>
                 </JavaRuntime>
             </GameSettingsPage>
-
+            <LauncherSettingsPage>
+                <Title>Launcher Settings</Title>
+                <AppearanceSettings>
+                    <Title>Appearance Settings</Title>
+                    <LanguageExpander>
+                        <Header>Language Settings</Header>
+                        <Description>Adjust the language used in the launcher interface. Restart the launcher is required.</Description>
+                        <RestartTeachingTip>
+                            <Title>Restart Confirmation</Title>
+                            <Subtitle>Changing the language requires restarting the launcher to apply. Restart now?</Subtitle>
+                            <CloseButtonText>Restart later</CloseButtonText>
+                            <RestartButtonText>Restart now</RestartButtonText>
+                        </RestartTeachingTip>
+                    </LanguageExpander>
+                </AppearanceSettings>
+            </LauncherSettingsPage>
         </SettingsPage>
 
         <LaunchPage>
@@ -179,6 +191,28 @@
                     <Content>Failed to add account: {0}</Content>
                 </Failed>
             </AddAccount>
+            <OAuth>
+                <Steps>
+                    <WaitForCode>
+                        <Message>Waiting for user login</Message>
+                    </WaitForCode>
+                    <GetAccessToken>
+                        <Message>Fetching access token</Message>
+                    </GetAccessToken>
+                    <XBLAuthorize>
+                        <Message>Xbox Live Authentication</Message>
+                    </XBLAuthorize>
+                    <XSTSAuthorize>
+                        <Message>XSTS Authentication</Message>
+                    </XSTSAuthorize>
+                    <MinecraftAuthorize>
+                        <Message>Minecraft Authentication</Message>
+                    </MinecraftAuthorize>
+                    <ValidateMinecraft>
+                        <Message>Validate Minecraft account</Message>
+                    </ValidateMinecraft>
+                </Steps>
+            </OAuth>
         </AccountManager>
     </Messages>
     <Enums>

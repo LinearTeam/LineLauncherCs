@@ -94,6 +94,10 @@
                 <Header>游戏设置</Header>
                 <Description>与游戏的下载、启动等相关的设置</Description>
             </GameSettingsPageNav>
+            <LauncherSettingsPageNav>
+                <Header>启动器设置</Header>
+                <Description>管理启动器的行为，如启动器主题、更新策略等。</Description>
+            </LauncherSettingsPageNav>
             <GameSettingsPage>
                 <Title>游戏设置</Title>
                 <JavaRuntime>
@@ -136,7 +140,22 @@
                     </AutoSelectExpander>
                 </JavaRuntime>
             </GameSettingsPage>
-            
+            <LauncherSettingsPage>
+                <Title>启动器设置</Title>
+                <AppearanceSettings>
+                    <Title>外观设置</Title>
+                    <LanguageExpander>
+                        <Header>语言设置</Header>
+                        <Description>调整启动器界面使用的语言，重启生效。</Description>
+                        <RestartTeachingTip>
+                            <Title>重启确认</Title>
+                            <Subtitle>更改语言需要重启启动器以应用，是否立即重启？</Subtitle>
+                            <CloseButtonText>稍后重启</CloseButtonText>
+                            <RestartButtonText>立即重启</RestartButtonText>
+                        </RestartTeachingTip>
+                    </LanguageExpander>
+                </AppearanceSettings>
+            </LauncherSettingsPage>
         </SettingsPage>
 
         <LaunchPage>

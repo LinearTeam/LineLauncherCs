@@ -1,4 +1,6 @@
-﻿namespace LMC;
+﻿using System.Collections.ObjectModel;
+
+namespace LMC;
 
 using Basic.Configs;
 
@@ -13,6 +15,7 @@ public static class Current
     public static readonly string LMCPath =  Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LMC");
     public static AppConfig? Config { get; set; }
 
+    public static ReadOnlyDictionary<string, string> Arguments = null!;
     public static void SaveConfig() {
         ConfigManager.Save("app", Config);
     }
