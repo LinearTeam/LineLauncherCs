@@ -1,4 +1,4 @@
-*For English version, please refer to [CONTRIBUTING-EN.md](./CONTRIBUTING-EN.md).*
+*For English version, please refer to [CONTRIBUTING-EN.md](https://github.com/LinearTeam/LineLauncherCs/blob/main/.github/CONTRIBUTING-EN.md).*
 # 贡献指南
 
 其实这篇指南更是给我自己看的，同时欢迎任何形式的贡献，哪怕你不会写代码，遇到问题时开个issue、pr，都是对本项目的支持。  
