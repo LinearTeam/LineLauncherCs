@@ -4,13 +4,14 @@ using LMC;
 using LMCCore.Account.Model;
 using System.Text.Json;
 using System.Security.Cryptography;
+using LMC.Basic.Configs;
+using LMCCore.Utils;
 
 namespace LMCCore.Account;
 
 
 public static class AccountManager
 {
-    private static readonly string s_accountsPath = Path.Combine(Current.LMCPath, "accounts.json");
     private static List<Model.Account> s_accounts = new List<Model.Account>();
 
     public static IReadOnlyList<Model.Account> Accounts = s_accounts.AsReadOnly();
@@ -38,35 +39,23 @@ public static class AccountManager
         reordered[5] = hashBytes[4];
         reordered[6] = hashBytes[7];
         reordered[7] = hashBytes[6];
-        Array.Copy(hashBytes, 8, reordered, 8, 8); // 最后8字节直接复制
+        Array.Copy(hashBytes, 8, reordered, 8, 8); // 最后8个字节直接复制
 
         return new Guid(reordered).ToString();
     }
 
     public static void Load()
     {
-        if (!File.Exists(s_accountsPath))
-        {
-            s_accounts = new List<Model.Account>();
-            Accounts = s_accounts.AsReadOnly();
-            return;
-        }
-        var json = File.ReadAllText(s_accountsPath);
-        s_accounts = JsonSerializer.Deserialize<List<Model.Account>>(json, new JsonSerializerOptions
-        {
-            Converters = { new AccountJsonConverter() }
-        }) ?? new List<Model.Account>();
+        var accStr = SecretsManager.Instance.Extra.GetValueOrDefault("Accounts", "[]");
+        var accounts = JsonUtils.Parse(accStr).GetArray<Model.Account>();
+        s_accounts = (accounts ?? []).ToList();
         Accounts = s_accounts.AsReadOnly();
     }
 
     public static void Save()
     {
-        var json = JsonSerializer.Serialize(s_accounts, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Converters = { new AccountJsonConverter() }
-        });
-        File.WriteAllText(s_accountsPath, json);
+        SecretsManager.Instance.Extra["Accounts"] = JsonSerializer.Serialize(s_accounts, JsonUtils.DefaultSerializeOptions);
+        SecretsManager.Save();
     }
 
     public static void Add(Model.Account account)

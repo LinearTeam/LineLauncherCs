@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization.Metadata;
+using LMCCore.Account;
 
 namespace LMCCore.Utils;
 
@@ -15,7 +16,8 @@ public class JsonUtils
     {
         WriteIndented = true,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-        TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+        Converters = { new AccountJsonConverter() }
     };
     private JsonUtils(JsonNode? node, bool isValid = true)
     {
@@ -35,7 +37,7 @@ public class JsonUtils
             return new JsonUtils(null, false);
         }
     }
-
+    
     public static string? GetValueFromJson(string json, string path)
     {
         try
@@ -48,7 +50,7 @@ public class JsonUtils
             return "";
         }
     }
-    
+
     public JsonUtils GetObject(string path)
     {
         var result = GetNode(path);
@@ -69,6 +71,28 @@ public class JsonUtils
         return value ?? defaultValue;
     }
 
+    public List<T>? GetArray<T>()
+    {
+        var node = this._node;
+        if (node is not JsonArray array) return null;
+
+        try
+        {
+            return array.Deserialize<List<T>>(DefaultSerializeOptions);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public List<T>? GetArrayOrDefault<T>(List<T>? defaultValue = null)
+    {
+        var result = GetArray<T>();
+        return result ?? defaultValue;
+    }
+
+    
     public List<T>? GetArray<T>(string path)
     {
         var node = GetNode(path)._node;

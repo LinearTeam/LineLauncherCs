@@ -44,11 +44,6 @@ LineLauncherCs/
 │   ├── Java/               # Java管理
 │   ├── Utils/              # 工具类
 │   └── LMCCore.csproj      # 项目文件
-├── LMCCore.Test/           # 测试模块（由AI生成）
-│   ├── Account/            # 账号测试
-│   ├── Java/               # Java测试
-│   ├── Utils/              # 工具测试
-│   └── LMCCore.Test.csproj # 测试项目文件
 └── LMCUI/                  # UI模块
     ├── Assets/             # 资源文件
     ├── Behaviors/          # 行为

@@ -28,8 +28,7 @@
             <DataTemplate DataType="model:MicrosoftAccount">
                 <ui:SettingsExpanderItem
                     Description="{Binding Uuid}"
-                    ActionIconSource="ChevronRight"
-                    IsClickEnabled="True">
+                    IsClickEnabled="False">
                     <ui:SettingsExpanderItem.IconSource>
                         <ui:ImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
                     </ui:SettingsExpanderItem.IconSource>
@@ -68,8 +67,7 @@
             <DataTemplate DataType="model:OfflineAccount">
                 <ui:SettingsExpanderItem
                     Description="{Binding Uuid}"
-                    ActionIconSource="ChevronRight"
-                    IsClickEnabled="True">
+                    IsClickEnabled="False">
                     <ui:SettingsExpanderItem.IconSource>
                         <ui:ImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
                     </ui:SettingsExpanderItem.IconSource>
@@ -101,8 +99,7 @@
             <!-- AuthlibAccount -->
             <DataTemplate DataType="model:AuthlibAccount">
                 <ui:SettingsExpanderItem
-                    ActionIconSource="ChevronRight"
-                    IsClickEnabled="True">
+                    IsClickEnabled="False">
                     <ui:SettingsExpanderItem.IconSource>
                         <ui:ImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
                     </ui:SettingsExpanderItem.IconSource>

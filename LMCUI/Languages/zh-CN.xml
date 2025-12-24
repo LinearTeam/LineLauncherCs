@@ -214,6 +214,14 @@
                 </Steps>
             </OAuth>
         </AccountManager>
+        <AccountPage>
+            <Errors>
+                <FailedToRefreshAccountList>
+                    <Title>错误</Title>
+                    <Content>无法刷新账户列表：{0}</Content>
+                </FailedToRefreshAccountList>
+            </Errors>
+        </AccountPage>
     </Messages>
     <Enums>
         <AccountType>

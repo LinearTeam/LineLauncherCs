@@ -1,9 +1,0 @@
-{
-  "shadowCopy": false,
-  "appDomain": "ifAvailable",
-  "diagnosticMessages": true,
-  "parallelizeTestCollections": false,
-  "preEnumerateTheories": true,
-  "maxParallelThreads": 1,
-  "methodDisplay": "method"
-}

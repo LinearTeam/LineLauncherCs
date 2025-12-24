@@ -44,11 +44,6 @@ LineLauncherCs/
 │   ├── Java/               # Java management
 │   ├── Utils/              # Utility classes
 │   └── LMCCore.csproj      # Project file
-├── LMCCore.Test/           # Test module (AI generated)
-│   ├── Account/            # Account tests
-│   ├── Java/               # Java tests
-│   ├── Utils/              # Utility tests
-│   └── LMCCore.Test.csproj # Test project file
 └── LMCUI/                  # UI module
     ├── Assets/             # Resource files
     ├── Behaviors/          # Behaviors
