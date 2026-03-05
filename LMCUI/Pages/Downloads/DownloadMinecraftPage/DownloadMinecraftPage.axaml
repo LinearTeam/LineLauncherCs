@@ -1,0 +1,24 @@
+﻿<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+                xmlns:downloadMinecraftPage="clr-namespace:LMCUI.Pages.Downloads.DownloadMinecraftPage"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="LMCUI.Pages.Downloads.DownloadMinecraftPage.DownloadMinecraftPage">
+
+    <Grid Margin="60, 30">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible">
+            <AutoCompleteBox Name="SearchBox" VerticalAlignment="Top" Margin="30, 0"
+                             MinimumPrefixLength="1">
+                <AutoCompleteBox.Watermark>
+                    搜索版本...
+                </AutoCompleteBox.Watermark>
+                <AutoCompleteBox.InnerRightContent>
+                    <controls:SymbolIcon Symbol="Zoom" FontSize="18" Margin="0,0,10,0"/>
+                </AutoCompleteBox.InnerRightContent>
+            </AutoCompleteBox>
+        </ScrollViewer>
+    </Grid>
+</pages:PageBase>

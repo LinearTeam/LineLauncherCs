@@ -15,6 +15,7 @@ namespace LMCUI;
 
 using System.Globalization;
 using I18n;
+using Pages.Downloads.DownloadMinecraftPage;
 
 public partial class MainWindow : AppWindow
 {
@@ -25,7 +26,8 @@ public partial class MainWindow : AppWindow
         typeof(LaunchPage), 
         typeof(VersionManagePage), 
         typeof(SettingsPage),
-        typeof(AccountPage)
+        typeof(AccountPage),
+        typeof(DownloadMinecraftPage)
     };
     public static MainWindow Instance { get; private set; } = null!;
     public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new ObservableCollection<BreadCrumbBarItem>();
@@ -52,7 +54,7 @@ public partial class MainWindow : AppWindow
     {
         if(type == NavigateType.Backward && tag == null) throw new ArgumentNullException(nameof(tag), "Argument 'tag' cannot be null when 'type' is 'Backward'.");
         Instance.mainFrm.Navigate(page, param);
-            ((PageBase)Instance.mainFrm.Content).Title = I18nManager.Instance.GetString(((PageBase)Instance.mainFrm.Content).Title);
+            ((PageBase)Instance.mainFrm.Content!).Title = I18nManager.Instance.GetString(((PageBase)Instance.mainFrm.Content).Title);
         s_isCodeChangeSelection = true;
         Instance.mnv.SelectedItem = item;
         s_isCodeChangeSelection = false;
@@ -86,8 +88,8 @@ public partial class MainWindow : AppWindow
             {
                 var bcbitem = Instance.BreadCrumbItemSource.ToList().Find(bcbi => bcbi.Tag == tag);
                 if(bcbitem == null) throw new InvalidOperationException("BreadCrumbItem was not found.");
-                int index = Instance.BreadCrumbItemSource.IndexOf(bcbitem);
-                for (int i = Instance.BreadCrumbItemSource.Count - 1; i > index; i--)
+                var index = Instance.BreadCrumbItemSource.IndexOf(bcbitem);
+                for (var i = Instance.BreadCrumbItemSource.Count - 1; i > index; i--)
                 {
                     Instance.BreadCrumbItemSource.RemoveAt(i);
                 }

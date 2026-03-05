@@ -61,5 +61,9 @@
         <DependentUpon>GameSettingsPage.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Pages\Downloads\VersionDownloadPage\VersionDownloadPage.axaml.cs">
+        <DependentUpon>LaunchPage.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>
