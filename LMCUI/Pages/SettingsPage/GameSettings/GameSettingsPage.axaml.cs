@@ -111,23 +111,28 @@ public partial class GameSettingsPage : PageBase {
         var button = ((Button)sender);
         button.IsEnabled = false;
         
-        var searchTask = Task.Run(() => JavaManager.SearchJava(progress));
-      
-        try {
-            var javas = await searchTask;
-            foreach (var java in javas) {
-                await JavaManager.AddJava(java);
-            }
-            SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchSuccess");
-        }
-        catch (Exception ex) {
-            _logger.Error(ex, "Searching Java");
-            SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchFailed", ex.Message);
-        }
-        finally {
-            await RefreshJavaItems();
-            button.IsEnabled = true;
-        }
+        var searchTask = Task.Run(() => JavaManager.SearchJava(progress))
+            .ContinueWith(async task => {
+                string text = "";
+                try {
+                    var javas = await task;
+                    foreach (var java in javas) {
+                        await JavaManager.AddJava(java);
+                    }
+                    text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchSuccess");
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Searching Java");
+                    text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchFailed", ex.Message);
+                }
+                finally {
+                    await RefreshJavaItems();
+                    Dispatcher.UIThread.Invoke(() => {
+                        button.IsEnabled = true;
+                        SearchStatus.Text = text;
+                    });
+                }
+            });
     }
     void JavaItemExpander_Click(object? sender, RoutedEventArgs e) {
         var path = ((SettingsExpanderItem)sender).Tag.ToString();
