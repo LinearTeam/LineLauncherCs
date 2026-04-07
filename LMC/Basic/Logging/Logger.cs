@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using LMC.Basic.Configs;
 
 namespace LMC.Basic.Logging;
 
@@ -14,7 +15,6 @@ public class Logger
     private readonly NLog.Logger _nlogLogger;
     public static string LoggerVersion = "L2A6";
     public static bool DebugMode = false;
-    public static readonly ConcurrentDictionary<string, string> SensitiveData = new();
 
     public Logger(string module)
     {
@@ -83,7 +83,7 @@ public class Logger
     }
     private static string ReplaceSensitiveData(string msg)
     {
-        foreach (var kv in SensitiveData)
+        foreach (var kv in SecretsManager.SensitiveData)
         {
             if(!string.IsNullOrWhiteSpace(kv.Key)) msg = msg.Replace(kv.Key, kv.Value);
         }
