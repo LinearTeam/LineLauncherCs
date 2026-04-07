@@ -94,7 +94,7 @@ public partial class MessageQueueControl : UserControl
             IsVisible = false,
             IsEnabled = false,
             Tag = messageId,
-            Opacity = 0 // 初始设置为透明
+            Opacity = 0, // 初始设置为透明
             // PreferredPlacement = placement
         };
 

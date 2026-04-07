@@ -11,7 +11,7 @@ using LMC;
 
 public sealed class I18nManager
 {
-    private static readonly Lazy<I18nManager> s_instance = 
+    private readonly static Lazy<I18nManager> s_instance = 
         new Lazy<I18nManager>(() => new I18nManager());
         
     public static I18nManager Instance => s_instance.Value;

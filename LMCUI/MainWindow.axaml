@@ -53,6 +53,9 @@
                     </ui:BreadcrumbBar.ItemTemplate>
                 </ui:BreadcrumbBar>
             </ui:NavigationView.Header>
+            <ui:NavigationView.FooterMenuItems>
+                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.HelpPage}" Tag="HelpPage" IconSource="Help"/>
+            </ui:NavigationView.FooterMenuItems>
             <ui:Frame Name="mainFrm" />
         </ui:NavigationView>
         

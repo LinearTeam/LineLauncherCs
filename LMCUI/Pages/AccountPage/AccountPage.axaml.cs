@@ -37,7 +37,7 @@ public partial class AccountPage : PageBase
         }
     }
 
-    private async Task RefreshAccountListInternal()
+    async private Task RefreshAccountListInternal()
     {
         // Why
         await Task.Delay(200);

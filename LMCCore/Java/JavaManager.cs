@@ -8,9 +8,9 @@ using LMC.Basic.Logging;
 using Microsoft.Win32;
 
 public static class JavaManager {
-    static readonly Logger s_logger = new("JavaManager");
+    readonly static Logger s_logger = new("JavaManager");
 
-    private static readonly object s_configLock = new object();
+    private readonly static object s_configLock = new object();
 
     public async static Task AddJava(string javaPath, Action<TaskCallbackInfo>? callback = null, bool force = false) {
         callback ??= _ => {};
@@ -66,14 +66,16 @@ public static class JavaManager {
             where l.Replace("=", ":").StartsWith("JAVA_VERSION:", StringComparison.OrdinalIgnoreCase)
             select l).ToArray();
         s_logger.Debug($"过滤的版本字符串: {string.Join(", ", ve)}");
-        LocalJava java = new();
-        java.Path = path;
-        java.Version = Version.Parse(ve.First()
-            .Replace("=",":")
-            .Replace("JAVA_VERSION:", "", StringComparison.OrdinalIgnoreCase)
-            .Replace("_",".")  //1.8.0_51
-            .Replace("\"", ""));
-        
+        LocalJava java = new()
+        {
+            Path = path,
+            Version = Version.Parse(ve.First()
+                .Replace("=",":")
+                .Replace("JAVA_VERSION:", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("_",".")  //1.8.0_51
+                .Replace("\"", ""))
+        };
+
         var impl = 
             (from l in lines
             where l.Replace("=", ":").StartsWith("IMPLEMENTOR:", StringComparison.OrdinalIgnoreCase)

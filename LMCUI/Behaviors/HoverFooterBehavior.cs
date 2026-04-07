@@ -9,7 +9,7 @@ using Avalonia.Markup.Xaml.Templates;
 
 public static class HoverFooterBehavior
 {
-    public static readonly AttachedProperty<ControlTemplate> FooterContentTemplateProperty =
+    public readonly static AttachedProperty<ControlTemplate> FooterContentTemplateProperty =
         AvaloniaProperty.RegisterAttached<Control, ControlTemplate>(
             "FooterContentTemplate", 
             typeof(HoverFooterBehavior));

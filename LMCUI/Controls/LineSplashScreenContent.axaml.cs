@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using LMCCore.Utils;
 
 namespace LMCUI.Controls;
 
@@ -15,6 +16,8 @@ public partial class LineSplashScreenContent : UserControl
     {
         pb.Value = 0;
         await Task.Delay(800, ct);
+       
         pb.Value = 100;
+        
     }
 }

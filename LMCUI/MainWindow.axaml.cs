@@ -4,9 +4,11 @@ using System.Linq;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
 using FluentAvalonia.UI.Windowing;
+using LMC.Basic.Logging;
 using LMCUI.Controls;
 using LMCUI.Pages;
 using LMCUI.Pages.AccountPage;
+using LMCUI.Pages.Help;
 using LMCUI.Pages.LaunchPage;
 using LMCUI.Pages.SettingsPage;
 using LMCUI.Pages.VersionManagePage;
@@ -19,13 +21,14 @@ using I18n;
 public partial class MainWindow : AppWindow
 {
     private static bool s_isCodeChangeSelection;
-
-    private static Type[] s_directNavigationPages = new[]
+    private static Logger s_logger = new Logger("MainWindow");
+    private readonly static Type[] s_directNavigationPages = new[]
     {
         typeof(LaunchPage), 
-        typeof(VersionManagePage), 
+        typeof(VersionManagePage),
+        typeof(AccountPage),
+        typeof(HelpPage), 
         typeof(SettingsPage),
-        typeof(AccountPage)
     };
     public static MainWindow Instance { get; private set; } = null!;
     public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new ObservableCollection<BreadCrumbBarItem>();
@@ -43,16 +46,36 @@ public partial class MainWindow : AppWindow
         mnv.SettingsItem.Content = I18nManager.Instance.GetString("MainWindow.NavItems.SettingsPage");
     }
 
-    public static void NavigatePage(PageNavigateWay way, NavigateType type, string? tag = null)
+    public static void NavigatePage(PageNavigateWay way, NavigateType type, string? tag = null, bool thrown = false)
     {
-        NavigatePage(way.PageType, type, way.Item, way.Param, tag);
+        NavigatePage(way.PageType, type, way.Item, way.Param, tag, thrown, way.DirectlySet);
     }
     
-    private static void NavigatePage(Type page, NavigateType type, NavigationViewItem item, object? param = null, string? tag = null)
+    private static void NavigatePage(Type page, NavigateType type, NavigationViewItem item, object? param = null, string? tag = null, bool thrown = false, bool directlySet = false)
     {
         if(type == NavigateType.Backward && tag == null) throw new ArgumentNullException(nameof(tag), "Argument 'tag' cannot be null when 'type' is 'Backward'.");
-        Instance.mainFrm.Navigate(page, param);
-            ((PageBase)Instance.mainFrm.Content).Title = I18nManager.Instance.GetString(((PageBase)Instance.mainFrm.Content).Title);
+        if (!directlySet)
+        {
+            if (!Instance.mainFrm.Navigate(page))
+            {
+                s_logger.Error($"""
+                                导航页面失败:
+                                {type} : {page}
+                                TAG: {tag ?? "Null"}
+                                """);
+                if (thrown)
+                {
+                    throw new Exception("Navigate failed");
+                }
+            }
+        }
+        else
+        {
+            var pageInstance = (PageBase) Activator.CreateInstance(page)!;
+            Instance.mainFrm.Content = pageInstance;
+        }
+        ((PageBase)Instance.mainFrm.Content).ProcessParameter(param); 
+        ((PageBase)Instance.mainFrm.Content).Title = I18nManager.Instance.GetString(((PageBase)Instance.mainFrm.Content).Title);
         s_isCodeChangeSelection = true;
         Instance.mnv.SelectedItem = item;
         s_isCodeChangeSelection = false;
@@ -125,7 +148,7 @@ public partial class MainWindow : AppWindow
     }
 }
 
-public class PageNavigateWay(Type pageType, object? param, NavigationViewItem item)
+public class PageNavigateWay(Type pageType, object? param, NavigationViewItem item, bool directlySet = false)
 {
     public PageNavigateWay(Type pageType, NavigationViewItem item) : this(pageType, null, item)
     {}
@@ -133,6 +156,7 @@ public class PageNavigateWay(Type pageType, object? param, NavigationViewItem it
     public Type PageType { get; set; } = pageType;
     public object? Param { get; set; } = param;
     public NavigationViewItem Item { get; set; } = item;
+    public bool DirectlySet { get; set; } = directlySet;
 }
 
 public class BreadCrumbBarItem(PageNavigateWay pageNavigateWay, string title, string tag)

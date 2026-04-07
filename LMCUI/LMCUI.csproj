@@ -20,6 +20,7 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="FluentAvaloniaUI" Version="2.4.0" />
+        <PackageReference Include="Markdown.Avalonia" Version="11.0.3-a1" />
         <PackageReference Include="NLog" Version="6.0.5" />
     </ItemGroup>
 
@@ -42,6 +43,9 @@
       <None Remove="Assets\test.png" />
       <None Remove="Assets\steve.png" />
       <AvaloniaResource Include="Assets\steve.png" />
+      <None Update="Assets\help.yaml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -59,6 +63,10 @@
       </Compile>
       <Compile Update="Pages\SettingsPage\LauncherSettings\LauncherSettingsPage.axaml.cs">
         <DependentUpon>GameSettingsPage.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Pages\Help\HelpPage.axaml.cs">
+        <DependentUpon>VersionManagePage.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
     </ItemGroup>
