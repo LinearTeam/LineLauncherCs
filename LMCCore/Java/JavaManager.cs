@@ -18,6 +18,10 @@ public static class JavaManager {
         int prcId = new Random().Next(100, 999);
         
         javaPath = Path.GetFullPath(javaPath);
+        if (javaPath.EndsWith(Path.DirectorySeparatorChar))
+        {
+            javaPath = javaPath[..^1];
+        }
         s_logger.Debug($"[添加 Java/{prcId}] : {javaPath}");
 
         
