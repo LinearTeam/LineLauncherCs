@@ -81,6 +81,7 @@ public class HelpContentPage : PageBase
         {
             Orientation = Orientation.Vertical,
             HorizontalAlignment = HorizontalAlignment.Stretch,
+            Spacing = 0
         };
         scrollViewer.Content = stackPanel;
         foreach (var helpItem in HelpItems)

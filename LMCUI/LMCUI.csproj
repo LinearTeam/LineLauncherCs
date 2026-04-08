@@ -46,6 +46,13 @@
       <None Update="Assets\help.yaml">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Remove="Assets\GitHub_Lockup_Black.png" />
+      <None Remove="Assets\GitHub_Invertocat_Black.png" />
+      <AvaloniaResource Include="Assets\GitHub_Invertocat_Black.png" />
+      <None Remove="Assets\GitHub_Invertocat_White.png" />
+      <AvaloniaResource Include="Assets\GitHub_Invertocat_White.png" />
+      <None Remove="Assets\huangyublog.ico" />
+      <AvaloniaResource Include="Assets\huangyublog.ico" />
     </ItemGroup>
 
     <ItemGroup>

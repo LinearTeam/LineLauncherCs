@@ -20,5 +20,10 @@ public partial class SettingsPage : PageBase
         MainWindow.NavigatePage(new PageNavigateWay(typeof(LauncherSettingsPage), 
             MainWindow.Instance.mnv.SettingsItem), NavigateType.Append);
     }
+    private void AboutExpander_OnClick(object? sender, RoutedEventArgs e)
+    {
+        MainWindow.NavigatePage(new PageNavigateWay(typeof(AboutPage), 
+            MainWindow.Instance.mnv.SettingsItem), NavigateType.Append);
+    }
 }
 
