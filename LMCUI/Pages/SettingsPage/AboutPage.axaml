@@ -1,0 +1,57 @@
+﻿<pages:PageBase xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:LMCUI.Pages"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
+             xmlns:i18n="clr-namespace:LMCUI.I18n"
+             xmlns:lmc="clr-namespace:LMC;assembly=LMC"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LMCUI.Pages.SettingsPage.AboutPage">
+    
+    <Grid Margin="60, 20, 40, 30">
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical">
+                <ui:SettingsExpander Header="Line (Minecraft) Launcher" IsExpanded="True">
+                    <ui:SettingsExpander.IconSource>
+                        <ui:ImageIconSource Source="/Assets/ico.png"/>
+                    </ui:SettingsExpander.IconSource>
+                    <ui:SettingsExpander.Description>
+                        <MultiBinding StringFormat="版本 {0}-{1} Build-{2}">
+                            <Binding Source="{x:Static lmc:Current.VersionType}"/>
+                            <Binding Source="{x:Static lmc:Current.Version}"/>
+                            <Binding Source="{x:Static lmc:Current.BuildNumber}"/>
+                        </MultiBinding>
+                    </ui:SettingsExpander.Description>
+                    <ui:SettingsExpander.Items>
+                        <ui:SettingsExpanderItem Content="Huangyu (皇鱼)"
+                                             Description="LMC C#版的主要作者与维护者。">
+                            <ui:SettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/tmdakm">
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <Image MaxHeight="20" Source="/Assets/GitHub_Invertocat_White.png"/>
+                                            <!-- TODO: 根据主题切换使用的图标 -->
+                                            <TextBlock Text="GitHub" TextAlignment="Center" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://blog.huangyu.win">
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <Image MaxHeight="20" Source="/Assets/huangyublog.ico"/>
+                                            <TextBlock Text="Huangyu's Blog" TextAlignment="Center" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:SettingsExpanderItem.Footer>
+                        </ui:SettingsExpanderItem>
+                    </ui:SettingsExpander.Items>
+                </ui:SettingsExpander>
+                <Grid Height="5"/>
+                <ui:SettingsExpander></ui:SettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+    
+</pages:PageBase>

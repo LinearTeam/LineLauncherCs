@@ -37,7 +37,7 @@ public partial class AccountPage : PageBase
         }
     }
 
-    private async Task RefreshAccountListInternal()
+    async private Task RefreshAccountListInternal()
     {
         // Why
         await Task.Delay(200);
@@ -132,7 +132,11 @@ public partial class AccountPage : PageBase
             }
             AccountManager.Remove(account);
             AccountManager.Load();
-            _ = Task.Run(RefreshAccountList);
+            _ = Task.Delay(250)
+                .ContinueWith(async _ =>
+                {
+                    await RefreshAccountList();
+                });
         }
     }
 }

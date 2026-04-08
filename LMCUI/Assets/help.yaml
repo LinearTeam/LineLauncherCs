@@ -1,0 +1,81 @@
+﻿helps:
+  - helper-home:
+      title: LMC 帮助介绍
+      description: 这是LMC帮助的主页。
+      type: markdown  # 只有markdown和section
+      repo: 0         # 0 - 通用，1 - Csharp版，2 - Vb版
+      button: 1       # 按钮的数量，0 代表没有可供交互的按钮。
+      icon:
+        type: 0 #0 - 使用内置IconSource, 1 - 使用Url, 2 - 使用Avalonia AssetsUrl
+        content: "Help"
+      text: |-
+        ## LMC帮助
+        **LMC帮助**是一款由123驱动的帮助页面。
+      
+      buttons:
+        - type: 0      # 0 - openurl, 1 - openfile, 3 - 检查更新
+          content: "打开LMC主仓库"
+          action: "https://github.com/LinearTeam/LineLauncher"
+          isDefault: true #指示按钮是否高亮，默认为 false
+          
+      #替换变量:
+          #%VERSION% -> 当前启动器版本
+          #%BRANCH% -> 当前启动器分支
+          #%BUILD% -> 构建号
+          #%CSREPO% -> C#版仓库Url
+          #%VBREPO% -> VB版仓库Url
+          #%REPOURL% -> 主仓库URL
+          #%REPO% -> 当前版本（C#/Visual Basic）
+          #%LATEST_VERSION% -> 最新版LMC字符串（格式%VERSION%-%BRANCH%.%BUILDNUMBER%）
+
+  - helper-section: #Section代表使用Clickable SettingsCard进入下一页面。
+      title: 启动器帮助
+      description: 这是启动器帮助。
+      icon:
+        type: 0 #0 - 使用内置IconSource, 1 - 使用Url, 2 - 使用Avalonia AssetsUrl
+        content: "Help"
+      type: section
+      helps:
+        - helper-home:
+            title: LMC 帮助介绍
+            description: 这是LMC帮助的主页。
+            type: markdown
+            icon:
+              type: 0
+              content: "Help"
+            repo: 0
+            button: 1
+            text: |-
+              ## LMC帮助
+              **LMC帮助**是一款由123驱动的帮助页面。
+            
+            buttons:
+              - type: 0
+                content: "打开LMC主仓库"
+                action: "https://github.com/LinearTeam/LineLauncher"
+                
+        - helper-section: #Section代表使用Clickable SettingsCard进入下一页面。
+            title: 信息
+            description: 这是信息帮助。
+            icon:
+              type: 0 #0 - 使用内置IconSource, 1 - 使用Url, 2 - 使用Avalonia AssetsUrl
+              content: "Help"
+            type: section
+            helps:
+              - helper-info:
+                  title: LMC 信息介绍
+                  description: 这是LMC信息的主页。
+                  type: markdown
+                  icon:
+                    type: 0
+                    content: "Help"
+                  repo: 0
+                  button: 1
+                  text: |-
+                    ## LMC帮助
+                    **LMC帮助**是一款由123驱动的帮助页面。
+
+                  buttons:
+                    - type: 0
+                      content: "打开LMC主仓库"
+                      action: "https://github.com/LinearTeam/LineLauncher"

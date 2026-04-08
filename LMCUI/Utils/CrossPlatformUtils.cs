@@ -12,7 +12,7 @@ using Avalonia.Platform.Storage;
 using LMC.Basic.Logging;
 
 public static class CrossPlatformUtils {
-    static readonly Logger s_logger = new("XPlatformUtils");
+    readonly static Logger s_logger = new("XPlatformUtils");
     public static void OpenUrl(string url) => OpenUrl(new Uri(url));
     public static void OpenUrl(Uri url)
     {

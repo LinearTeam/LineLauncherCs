@@ -1,4 +1,6 @@
-﻿namespace LMC.Basic.Configs;
+﻿using System.Collections.Concurrent;
+
+namespace LMC.Basic.Configs;
 
 using System;
 using System.IO;
@@ -8,12 +10,13 @@ using System.Text.Json;
 
 public static class SecretsManager
 {
-    private static readonly string s_secretsPath = Path.Combine(Current.LMCPath, "secrets.json.enc");
-    private static readonly string s_keyPath = Path.Combine(Current.LMCPath, "secrets.key");
-    private static readonly object s_ioLock = new();
+    private readonly static string s_secretsPath = Path.Combine(Current.LMCPath, "secrets.json.enc");
+    private readonly static string s_keyPath = Path.Combine(Current.LMCPath, "secrets.key");
+    private readonly static object s_ioLock = new();
     private static Secrets s_instance = null!;
-    private static readonly object s_instanceLock = new();
-
+    private readonly static object s_instanceLock = new();
+    public readonly static ConcurrentDictionary<string, string> SensitiveData = new();
+    
     public static Secrets Instance
     {
         get

@@ -16,7 +16,7 @@
         MinHeight="600"
         MinWidth="600">
     <Grid>
-        <!-- 这会导致控件透明，在修复此问题前不使用背景图像 -->
+        <!-- TODO: 这会导致控件透明，在修复此问题前不使用背景图像 -->
         <!-- <Grid.Background> -->
         <!--     <ImageBrush Source="/Assets/LMC.png"/> -->
         <!-- </Grid.Background> -->
@@ -53,6 +53,9 @@
                     </ui:BreadcrumbBar.ItemTemplate>
                 </ui:BreadcrumbBar>
             </ui:NavigationView.Header>
+            <ui:NavigationView.FooterMenuItems>
+                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.HelpPage}" Tag="HelpPage" IconSource="Help"/>
+            </ui:NavigationView.FooterMenuItems>
             <ui:Frame Name="mainFrm" />
         </ui:NavigationView>
         

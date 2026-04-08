@@ -12,7 +12,7 @@ namespace LMCUI.Pages.AccountPage.AddAccount;
 
 public partial class AddAccountWizard : UserControl
 {
-    private static readonly Logger s_logger = new("AddAccountWizard");
+    private readonly static Logger s_logger = new("AddAccountWizard");
     private readonly Action<(bool hasPrev, bool hasNext, bool isFinal)> _buttonStateChanged;
     private readonly Action<(bool hasPrev, bool hasNext)> _stepButtonStateChanged;
     private void StepButtonStateChanged((bool hasPrev, bool hasNext) state)

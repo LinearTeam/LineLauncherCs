@@ -7,6 +7,7 @@
              xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
              xmlns:i18n="clr-namespace:LMCUI.I18n"
              xmlns:pages="clr-namespace:LMCUI.Pages"
+             xmlns:lmc="clr-namespace:LMC;assembly=LMC"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LMCUI.Pages.SettingsPage.SettingsPage">
     <Grid Margin="60, 20, 40, 30">
@@ -20,7 +21,21 @@
                                      Header="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPageNav.Header}"
                                      Description="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPageNav.Description}" 
                                      IconSource="CalendarEmpty" ActionIconSource="ChevronRight" Click="LauncherSettingsExpander_OnClick" />
-                
+                <Grid Height="5"/>
+                <ui:SettingsExpander IsClickEnabled="True" 
+                                     Header="关于 Line (Minecraft) Launcher"
+                                     ActionIconSource="ChevronRight" Click="AboutExpander_OnClick">
+                    <ui:SettingsExpander.IconSource>
+                        <ui:ImageIconSource Source="/Assets/ico.png"/>
+                    </ui:SettingsExpander.IconSource>
+                    <ui:SettingsExpander.Description>
+                        <MultiBinding StringFormat="版本 {0}-{1} Build-{2}">
+                            <Binding Source="{x:Static lmc:Current.VersionType}"/>
+                            <Binding Source="{x:Static lmc:Current.Version}"/>
+                            <Binding Source="{x:Static lmc:Current.BuildNumber}"/>
+                        </MultiBinding>
+                    </ui:SettingsExpander.Description>
+                </ui:SettingsExpander>
             </StackPanel>
         </ScrollViewer>
     </Grid>

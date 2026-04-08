@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using LMC.Basic.Configs;
 using LMC.Basic.Logging;
 using LMCCore.Account.Model;
 using LMCCore.Utils;
@@ -44,7 +45,7 @@ public class MicrosoftOAuth
             return null;
         }
         var code = codeResult.code;
-        Logger.SensitiveData[code!] = "{OACode}";
+        SecretsManager.SensitiveData[code!] = "{OACode}";
         reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.GetAccessToken.Message"));
         s_logger.Info($"进度：{i}/{total}");
         var tokenResult = await GetTokenByAuthCode(code!, s_cancellationTokenSource.Token);
@@ -63,7 +64,7 @@ public class MicrosoftOAuth
             s_logger.Error(xblResult.exception, $"获取XBL令牌");
             return null;
         }
-        Logger.SensitiveData[xblResult.xblToken!] = "{XBLToken}";
+        SecretsManager.SensitiveData[xblResult.xblToken!] = "{XBLToken}";
         reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.XSTSAuthorize.Message"));
         var xstsResult = await GetXstsToken(xblResult.xblToken!, s_cancellationTokenSource.Token);
         if (xstsResult.exception != null)
@@ -72,8 +73,8 @@ public class MicrosoftOAuth
             s_logger.Error(xstsResult.exception, $"获取XSTS令牌");
             return null;
         }
-        Logger.SensitiveData[xstsResult.xstsToken!] = "{XSTSToken}";
-        Logger.SensitiveData[xstsResult.userHash!] = "{UserHash}";
+        SecretsManager.SensitiveData[xstsResult.xstsToken!] = "{XSTSToken}";
+        SecretsManager.SensitiveData[xstsResult.userHash!] = "{UserHash}";
         s_logger.Info($"进度：{i}/{total}");
         reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.MinecraftAuthorize.Message"));
         var mcResult = await GetMinecraftAccessToken(xstsResult.userHash!, xstsResult.xstsToken!, s_cancellationTokenSource.Token);
@@ -83,7 +84,7 @@ public class MicrosoftOAuth
             s_logger.Error(mcResult.exception, $"获取Minecraft令牌");
             return null;
         }
-        Logger.SensitiveData[mcResult.accessToken!] = "{MCAccessToken}";
+        SecretsManager.SensitiveData[mcResult.accessToken!] = "{MCAccessToken}";
         s_logger.Info($"进度：{i}/{total}");
         reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.ValidateMinecraft.Message"));
         var ownershipResult = await CheckMinecraftOwnership(mcResult.accessToken!);

@@ -62,10 +62,10 @@ public class ConfigRemovedAttribute(int sinceVersion) : Attribute {
 
 public static class ConfigManager {
     private const string VersionProperty = "$version";
-    private static readonly ConcurrentDictionary<string, object> s_configLocks = new();
+    private readonly static ConcurrentDictionary<string, object> s_configLocks = new();
     private static Logger s_logger = new Logger("ConfigManager");
     
-    static readonly JsonSerializerOptions s_serializerOptions = new()
+    readonly static JsonSerializerOptions s_serializerOptions = new()
     {
         WriteIndented = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
