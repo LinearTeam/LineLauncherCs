@@ -55,6 +55,9 @@ LineLauncherCs/
     └── LMCUI.csproj        # Project file
 ```
 
+### Copyright
+This project is under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), for more information please visit [LICENSE.txt](https://github.com/LinearTeam/LineLauncherCs/blob/main/LICENSE.txt)
+
 ### Dependency Library Copyright Notice
 #### System packages
 And the .NET Framework, .NET, .NET Desktop, and some (or all) content under the System namespace developed by Microsoft,

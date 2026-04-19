@@ -54,6 +54,8 @@ LineLauncherCs/
     ├── Utils/              # UI工具
     └── LMCUI.csproj        # 项目文件
 ```
+### 版权
+本项目使用[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)许可协议，如需更多信息，请访问[LICENSE.txt](https://github.com/LinearTeam/LineLauncherCs/blob/main/LICENSE.txt)
 
 ### 依赖库版权声明
 #### System包
