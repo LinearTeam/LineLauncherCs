@@ -1,4 +1,18 @@
-﻿/* *确保我以后能看懂这玩意怎么用
+﻿// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+/* *确保我以后能看懂这玩意怎么用
  *
  *  关于注解的用法：
  *    在类上使用[ConfigVersion({配置文件版本})]以指示当前配置文件的版本
@@ -7,7 +21,7 @@
  *                          untilVersion: {该属性名不再使用的版本, 可选})]以声明某个属性的属性名曾修改过
  *
  *    在属性上使用[ConfigRemoved(sinceVersion: {该属性自某个版本起删除})]以指示在迁移时直接删除该属性
- * 
+ *
  *    若配置文件中有无法匹配任何注解或属性名的键，则该键将被保留在配置文件中并忽略
  *
  *    如果需要兼容更复杂的配置文件变动，可以新建一个方法，并使用[ConfigUpgradeProcessor({原版本, 新版本})]
@@ -15,7 +29,7 @@
  *
  *    配置文件版本号始终为整数，在迁移时会对每个版本号尝试迁移，如果你希望声明一个自定义处理器，确保两个版本是相邻的版本，
  * 尽量不要为跨越多个版本的配置文件编写处理器。如果你真的要这么做，将其拆分为多个相邻的版本，直至某（些）属性没有变动的版本
- * 
+ *
  */
 
 namespace LMC.Basic.Configs;
