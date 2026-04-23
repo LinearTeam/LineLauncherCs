@@ -14,4 +14,8 @@
       <ProjectReference Include="..\LMC\LMC.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Game\Download\" />
+    </ItemGroup>
+
 </Project>
