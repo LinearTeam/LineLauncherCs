@@ -29,7 +29,6 @@ using LMCUI.Pages.VersionManagePage;
 
 namespace LMCUI;
 
-using System.Globalization;
 using I18n;
 
 public partial class MainWindow : AppWindow

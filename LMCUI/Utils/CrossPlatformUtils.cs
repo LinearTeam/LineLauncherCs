@@ -18,15 +18,13 @@ namespace LMCUI.Utils;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using LMC.Basic.Logging;
 
 public static class CrossPlatformUtils {
-    readonly static Logger s_logger = new("XPlatformUtils");
+    private readonly static Logger s_logger = new("XPlatformUtils");
     public static void OpenUrl(string url) => OpenUrl(new Uri(url));
     public static void OpenUrl(Uri url)
     {

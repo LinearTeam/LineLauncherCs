@@ -22,7 +22,7 @@ namespace LMCCore.Utils;
 
 public sealed class HttpUtils
 {
-    private static readonly HttpClient s_httpClient = new HttpClient();
+    private readonly static HttpClient s_httpClient = new HttpClient();
 
     static HttpUtils()
     {

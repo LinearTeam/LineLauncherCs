@@ -22,9 +22,9 @@ namespace LMCCore.Account.OAuth;
 
 public class MicrosoftOAuth
 {
-    public const string LoginUrl = "https://blog.huangyu.win/line/loginRedirect.html?url=https%3a%2f%2flogin.microsoftonline.com%2fconsumers%2foauth2%2fv2.0%2fauthorize%3fclient_id%3d1cbfda79-fc84-47f9-8110-f924da9841ec%26response_type%3dcode%26redirect_uri%3dhttps%3a%2f%2fblog.huangyu.win%2fline%2floginSuccess.html%3f%26response_mode%3dquery%26scope%3dXboxLive.offline_access";
+    public const string LoginUrl = "https://blog.huangyu.win/line/loginRedirect.html?url=https%3a%2f%2flogin.microsoftonline.com%2fconsumers%2foauth2%2fv2.0%2fauthorize%3fclient_id%3d1cbfda79-fc84-47f9-8110-f924da9841ec%26response_type%3dcode%26redirect_uri%3dhttps%3a%2f%2fblog.huangyu.win%2fline%2floginSuccess.html%3f%26response_mode%3dquery%26scope%3dXboxLive.signin%20offline_access";
     
-    private static readonly Logger s_logger = new Logger("MSOAuth");
+    private readonly static Logger s_logger = new Logger("MSOAuth");
     private static HttpListener? s_listener;
     private static CancellationTokenSource? s_cancellationTokenSource;
     
@@ -54,6 +54,11 @@ public class MicrosoftOAuth
         var codeResult = await GetAuthCode(s_cancellationTokenSource.Token);
         if(codeResult.exception != null)
         {
+            if (s_cancellationTokenSource.IsCancellationRequested)
+            {
+                reportAction(new OAuthReport(-10, total, $"CANCEL: {codeResult.exception.Message}"));
+                return null;
+            }
             reportAction(new OAuthReport(-1, total, $"WAIT_FOR_CODE: {codeResult.exception.Message}"));
             s_logger.Error(codeResult.exception, $"获取授权码");
             return null;
@@ -165,7 +170,7 @@ public class MicrosoftOAuth
                     identityToken = $"XBL3.0 x={userHash};{xstsToken}"
                 })
                 .PostAsync();
-            var responseString = await response.Content.ReadAsStringAsync();
+            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             response.EnsureSuccessStatusCode();
             var json = JsonUtils.Parse(responseString);
             var token = json.GetString("access_token");
@@ -256,7 +261,18 @@ public class MicrosoftOAuth
                     .Add("scope", "XboxLive.signin offline_access"))
                 .PostAsync();
             var responseString = await response.Content.ReadAsStringAsync();
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch
+            {
+                if (response.StatusCode >= HttpStatusCode.BadRequest && response.StatusCode <= HttpStatusCode.InternalServerError)
+                {
+                    s_logger.Error("Failed to get Access Token, response: \n" + responseString);
+                }
+                throw;
+            }
             var json = JsonUtils.Parse(responseString);
             var accessToken = json.GetString("access_token");
             var refreshToken = json.GetString("refresh_token");

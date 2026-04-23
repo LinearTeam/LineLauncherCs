@@ -12,20 +12,26 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using System;
+namespace LMCCore.Tasks.Model;
 
-namespace LMCUI.Pages.AccountPage.AddAccount.Microsoft;
+using System.Collections.Generic;
+using System.Linq;
 
-public partial class MicrosoftStep : AddAccountStep
+public class ParentTask(string name) : TaskBase(name)
 {
-    public MicrosoftStep()
+    public List<SubTaskBase> SubTasks { get; } = new();
+
+    public override Task ExecuteAsync() => Task.CompletedTask;
+
+    protected override void OnCancel()
     {
-        InitializeComponent();
+        foreach (var sub in SubTasks.Where(s => !s.IsFinished))
+            sub.Cancel();
     }
-    public override void Enter(object? data, Action<(bool hasPrev, bool hasNext)> buttonStateChanged)
+
+    internal void OnSubTaskFaulted(SubTaskBase faulted)
     {
-        buttonStateChanged((true, true));
+        State = TaskState.Faulted;
+        Cancel(); // 级联取消
     }
-    public override (Type? type, object? data) NextStep() => (typeof(MicrosoftOAuthStep), null);
-    public override (Type? type, object? data) PreviousStep() => (typeof(IndexStep), 0);
 }

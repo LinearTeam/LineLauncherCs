@@ -44,12 +44,12 @@ public partial class GameSettingsPage : PageBase {
         InitializeComponent();
         Loaded += OnLoaded;
     }
-    async void OnLoaded(object? sender, RoutedEventArgs e) {
+    async private void OnLoaded(object? sender, RoutedEventArgs e) {
         await LoadConfigs();
         SearchStatus.Text = "";
     }
 
-    async Task LoadConfigs() {
+    async private Task LoadConfigs() {
         await Dispatcher.UIThread.InvokeAsync(async () =>
         {
             await RefreshJavaItems();
@@ -57,11 +57,11 @@ public partial class GameSettingsPage : PageBase {
         });
     }
 
-    async Task RefreshJavaItems()
+    async private Task RefreshJavaItems()
     {
         await Dispatcher.UIThread.InvokeAsync(RefreshJavaItemsInternal);
     }
-    async Task RefreshJavaItemsInternal()
+    async private Task RefreshJavaItemsInternal()
     {
         try
         {
@@ -89,7 +89,7 @@ public partial class GameSettingsPage : PageBase {
             _logger.Error(ex, "Refreshing Java Items");
         }
     }
-    void SelectJava_Click(object? sender, RoutedEventArgs e) {
+    private void SelectJava_Click(object? sender, RoutedEventArgs e) {
         var button = (Button)sender;
         var java = button.Tag.ToString();
         _logger.Info($"用户选择Java: {java}");
@@ -105,7 +105,7 @@ public partial class GameSettingsPage : PageBase {
         _logger.Warn("选择失败 (1)");
         Task.Run(RefreshJavaItems);
     }
-    void RemoveJava_Click(object? sender, RoutedEventArgs e) {
+    private void RemoveJava_Click(object? sender, RoutedEventArgs e) {
         var button = (Button)sender;
         var java = button.Tag.ToString();
         _logger.Info($"用户移除Java: {java}");
@@ -121,7 +121,7 @@ public partial class GameSettingsPage : PageBase {
         _ = Task.Run(async () => await RefreshJavaItems());
         
     }
-    async void SearchJava_Click(object? sender, RoutedEventArgs e) {
+    async private void SearchJava_Click(object? sender, RoutedEventArgs e) {
         var progress = new Action<TaskCallbackInfo>(info => {
             SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchProgress",
                 info.Progress, info.Total, I18nManager.Instance.GetString(info.Message));
@@ -146,12 +146,12 @@ public partial class GameSettingsPage : PageBase {
             button.IsEnabled = true;
         }
     }
-    void JavaItemExpander_Click(object? sender, RoutedEventArgs e) {
+    private void JavaItemExpander_Click(object? sender, RoutedEventArgs e) {
         var path = ((SettingsExpanderItem)sender!).Tag!.ToString();
         path = Path.GetFullPath(path);
         CrossPlatformUtils.OpenFolderInExplorer(path);
     }
-    async void AddJava_Click(object? sender, RoutedEventArgs e)
+    async private void AddJava_Click(object? sender, RoutedEventArgs e)
     {
         try
         {
@@ -182,7 +182,7 @@ public partial class GameSettingsPage : PageBase {
         }
         await RefreshJavaItems();
     }
-    async void AutoSelectJava_Changed(object? sender, RoutedEventArgs e)
+    async private void AutoSelectJava_Changed(object? sender, RoutedEventArgs e)
     {
         var isChecked = AutoSelectJavaToggleSwitch.IsChecked ?? true;
 

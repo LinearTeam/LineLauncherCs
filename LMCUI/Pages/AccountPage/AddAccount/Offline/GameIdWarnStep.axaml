@@ -11,7 +11,7 @@
         <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.GameIdWarnStep.Title}" FontSize="20" FontWeight="Bold"/>
         <TextBlock Text=""/>
         <StackPanel Orientation="Horizontal" Spacing="5">
-            <ui:SymbolIcon Symbol="Important" FontSize="30"/>
+            <ui:SymbolIcon Symbol="Important" FontSize="30" Foreground="Red"/>
             <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.GameIdWarnStep.WarningMessage}" TextWrapping="WrapWithOverflow" MaxWidth="360"/>
         </StackPanel>
         <TextBlock Text=""/>

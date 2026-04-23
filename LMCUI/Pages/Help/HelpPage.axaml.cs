@@ -13,7 +13,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -24,7 +23,6 @@ using Avalonia.Layout;
 using FluentAvalonia.UI.Controls;
 using LMC.Basic.Logging;
 using LMC.Help.Models;
-using LMCCore.Utils;
 using LMCUI.Utils;
 using Markdown.Avalonia;
 

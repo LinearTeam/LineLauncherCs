@@ -12,10 +12,6 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-
 namespace LMCUI.Pages.SettingsPage;
 
 public partial class AboutPage : PageBase

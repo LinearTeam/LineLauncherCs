@@ -25,7 +25,7 @@ using Basic.Logging;
 
 public class Startup {
 
-    static Logger s_logger = null!;
+    private static Logger s_logger = null!;
     
     //DO NOT TRANSLATE
     public static Task Initialize() {

@@ -25,7 +25,7 @@ public partial class SettingsPage : PageBase
     {
         InitializeComponent();
     }
-    void GameSettingsExpander_OnClick(object? sender, RoutedEventArgs e) {
+    private void GameSettingsExpander_OnClick(object? sender, RoutedEventArgs e) {
         MainWindow.NavigatePage(new PageNavigateWay(typeof(GameSettingsPage), 
             MainWindow.Instance.mnv.SettingsItem), NavigateType.Append);
     }

@@ -78,8 +78,8 @@ public static class ConfigManager {
     private const string VersionProperty = "$version";
     private readonly static ConcurrentDictionary<string, object> s_configLocks = new();
     private static Logger s_logger = new Logger("ConfigManager");
-    
-    readonly static JsonSerializerOptions s_serializerOptions = new()
+
+    private readonly static JsonSerializerOptions s_serializerOptions = new()
     {
         WriteIndented = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -141,16 +141,16 @@ public static class ConfigManager {
         File.WriteAllText(filePath, jsonObject.ToJsonString(s_serializerOptions));
     }
 
-    static string GetConfigPath(string configName) {
+    private static string GetConfigPath(string configName) {
         return Path.Combine(Current.LMCPath, $"{configName}.config.json");
     }
 
-    static int GetConfigVersion(Type configType) {
+    private static int GetConfigVersion(Type configType) {
         var versionAttr = configType.GetCustomAttribute<ConfigVersionAttribute>();
         return versionAttr?.Version ?? 1;
     }
 
-    static void MigrateConfiguration(JsonObject config, int currentVersion, int targetVersion) {
+    private static void MigrateConfiguration(JsonObject config, int currentVersion, int targetVersion) {
         if (currentVersion > targetVersion)
         {
             return;
@@ -166,7 +166,7 @@ public static class ConfigManager {
         config[VersionProperty] = targetVersion;
     }
 
-    static void MigrateToNextVersion(JsonObject config, int fromVersion, int toVersion) {
+    private static void MigrateToNextVersion(JsonObject config, int fromVersion, int toVersion) {
         ApplyAliasMapping(config, fromVersion, toVersion);
 
         ApplyCustomMigration(config, fromVersion, toVersion);
@@ -174,7 +174,7 @@ public static class ConfigManager {
         CleanupRemovedFields(config, toVersion);
     }
 
-    static void ApplyAliasMapping(JsonObject config, int fromVersion, int toVersion) {
+    private static void ApplyAliasMapping(JsonObject config, int fromVersion, int toVersion) {
         var aliasMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var type in AppDomain.CurrentDomain.GetAssemblies()
@@ -204,7 +204,7 @@ public static class ConfigManager {
         }
     }
 
-    static void ApplyCustomMigration(JsonObject config, int fromVersion, int toVersion) {
+    private static void ApplyCustomMigration(JsonObject config, int fromVersion, int toVersion) {
         var processors = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(a => a.GetTypes())
             .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
@@ -227,8 +227,8 @@ public static class ConfigManager {
             }
         }
     }
-    
-    static void CleanupRemovedFields(JsonObject config, int currentVersion) {
+
+    private static void CleanupRemovedFields(JsonObject config, int currentVersion) {
         var removedFields = new List<string>();
 
         foreach (var type in AppDomain.CurrentDomain.GetAssemblies()

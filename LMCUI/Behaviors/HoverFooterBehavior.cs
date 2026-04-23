@@ -28,7 +28,7 @@ public static class HoverFooterBehavior
             "FooterContentTemplate", 
             typeof(HoverFooterBehavior));
 
-    public static ControlTemplate? GetFooterContentTemplate(Control obj) =>
+    public static ControlTemplate GetFooterContentTemplate(Control obj) =>
         obj.GetValue(FooterContentTemplateProperty);
 
     public static void SetFooterContentTemplate(Control obj, ControlTemplate value) =>
@@ -59,7 +59,7 @@ public static class HoverFooterBehavior
         FooterContentTemplateProperty.Changed.Subscribe(new BehaviorObserver());
     }
 
-    private static void OnPointerEntered(object sender, RoutedEventArgs e)
+    private static void OnPointerEntered(object? sender, RoutedEventArgs e)
     {
         if (sender is SettingsExpander expander)
             expander.Footer = CreateFooterContent(expander);
@@ -68,10 +68,9 @@ public static class HoverFooterBehavior
     }
 
     // 修复模板加载问题
-    private static Control? CreateFooterContent(Control owner)
+    private static Control CreateFooterContent(Control owner)
     {
         var template = GetFooterContentTemplate(owner);
-        if (template == null) return null;
 
         // 正确加载模板
         var contentControl = new ContentControl
@@ -81,7 +80,7 @@ public static class HoverFooterBehavior
         return contentControl;
     }
 
-    private static void OnPointerExited(object sender, RoutedEventArgs e)
+    private static void OnPointerExited(object? sender, RoutedEventArgs e)
     {
         if (sender is SettingsExpander expander)
             expander.Footer = null;

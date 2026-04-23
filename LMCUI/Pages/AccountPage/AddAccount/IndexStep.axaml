@@ -24,13 +24,13 @@
                     <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Offline.Description}" Foreground="Gray" HorizontalAlignment="Left" FontSize="13"/>
                 </StackPanel>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="5" Height="50" MinWidth="200" Margin="-7,0,0,0">
-                <ui:SymbolIcon Symbol="PhoneBook" VerticalAlignment="Center" FontSize="25"/>
-                <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Authlib.Name}" HorizontalAlignment="Left" FontSize="14" FontWeight="Bold"/>
-                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Authlib.Description}" Foreground="Gray" HorizontalAlignment="Left" FontSize="13" FontWeight="Regular"/>
-                </StackPanel>
-            </StackPanel>
+            <!-- <StackPanel Orientation="Horizontal" Spacing="5" Height="50" MinWidth="200" Margin="-7,0,0,0"> -->
+            <!--     <ui:SymbolIcon Symbol="PhoneBook" VerticalAlignment="Center" FontSize="25"/> -->
+            <!--     <StackPanel Orientation="Vertical" VerticalAlignment="Center"> -->
+            <!--         <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Authlib.Name}" HorizontalAlignment="Left" FontSize="14" FontWeight="Bold"/> -->
+            <!--         <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.IndexStep.AccountTypes.Authlib.Description}" Foreground="Gray" HorizontalAlignment="Left" FontSize="13" FontWeight="Regular"/> -->
+            <!--     </StackPanel> -->
+            <!-- </StackPanel> -->
         </ListBox>
     </StackPanel>
 </add:AddAccountStep>

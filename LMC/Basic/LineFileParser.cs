@@ -23,7 +23,7 @@ using System.Text.RegularExpressions;
 public class LineFileParser
 {
     //|Key|:|Value|
-    private const string Pattern = @"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|";
+    private const string PATTERN = @"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|";
 
     public List<string> GetKeySet(string path, string section)
     {
@@ -57,7 +57,7 @@ public class LineFileParser
 
             if (inSection)
             {
-                var match = Regex.Match(line, Pattern);
+                var match = Regex.Match(line, PATTERN);
                 if (match.Success && !string.IsNullOrEmpty(match.Groups["key"].Value))
                 {
                     res.Add(match.Groups["key"].Value);
@@ -189,7 +189,7 @@ public class LineFileParser
 
             if (inSection)
             {
-                var match = Regex.Match(line, Pattern);
+                var match = Regex.Match(line, PATTERN);
                 if (match.Success && match.Groups["key"].Value == key)
                 {
                     keyValue = match.Groups["value"].Value;
@@ -293,7 +293,7 @@ public class LineFileParser
 
             if (inSection)
             {
-                var match = Regex.Match(lines[i], Pattern);
+                var match = Regex.Match(lines[i], PATTERN);
                 if (match.Success && match.Groups["key"].Value == key)
                 {
                     lines.RemoveAt(i);

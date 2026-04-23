@@ -50,6 +50,12 @@ public partial class MicrosoftOAuthStep : AddAccountStep
             {
                 Dispatcher.UIThread.Invoke(() =>
                 {
+                    if (report.Step == -10)
+                    {
+                        s_logger.Warn("已取消。");
+                        buttonStateChanged((true, true));
+                        return;
+                    }
                     buttonStateChanged((true, false));
                     if (report.Step == 1)
                     {
@@ -70,6 +76,7 @@ public partial class MicrosoftOAuthStep : AddAccountStep
                         s_logger.Error($"步骤 {report.Step} / {report.TotalStep}: {report.Message}");
                         StatusProgRing.IsActive = false;
                         StatusProgRing.IsIndeterminate = false;
+                        
                         buttonStateChanged((true, false));
                         if (report.Step == -2)
                         {
