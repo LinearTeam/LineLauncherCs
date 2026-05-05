@@ -4,12 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:pages="clr-namespace:LMCUI.Pages"
              xmlns:help="clr-namespace:LMCUI.Pages.Help"
+             xmlns:i18n="clr-namespace:LMCUI.I18n"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LMCUI.Pages.Help.HelpPage">
     <Grid Margin="60, 30">
         <ScrollViewer>
             <StackPanel Orientation="Vertical">
-                <TextBlock>帮助页面加载失败或正在加载，请稍后。</TextBlock>
+                <TextBlock Text="{i18n:I18nBinding Key=Pages.HelpPage.LoadingFailedTip.Title}"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -222,7 +222,8 @@ public static class JavaManager {
             await CheckCommonPaths(paths,
             [
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Java"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Java"),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jdks")
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jdks"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jre")
             ]);
         }
         else if (IsMacOS())
@@ -231,7 +232,8 @@ public static class JavaManager {
             [
                 "/Library/Java/JavaVirtualMachines",
                 "/usr/libexec/java_home",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jdks")
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jdks"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jre")
             ]);
         }
         else if (IsLinux())
@@ -240,7 +242,8 @@ public static class JavaManager {
             [
                 "/usr/lib/jvm",
                 "/usr/java",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jdks")
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jdks"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".jre")
             ]);
         }
     }
@@ -290,7 +293,7 @@ public static class JavaManager {
 
             foreach (string subdir in Directory.GetDirectories(directory))
             {
-                await ScanDirectoryRecursively(subdir, paths, depth++);
+                await ScanDirectoryRecursively(subdir, paths, depth+1);
             }
         }
         catch(Exception ex) { s_logger.Error(ex, "Scan directory for Java"); }

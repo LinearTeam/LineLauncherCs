@@ -12,22 +12,25 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace LMCUI.Pages.SettingsPage;
+namespace LMCCore.Game.Download.Model;
 
-using LMC;
-using LMCUI.I18n;
-
-public partial class AboutPage : PageBase
+public class DownloadableGameVersion
 {
-    public AboutPage() : base("Pages.AboutPage.Title", "AboutPage")
-    {
-        InitializeComponent();
-        Loaded += OnLoaded;
-    }
+    public required string VersionId { get; set; }
+    public required string VersionName { get; set; }
+    public required ModLoader[] Loaders { get; set; }
+    public bool OptiFine { get; set; } = false;
+}
 
-    private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        var versionFormat = I18nManager.Instance.GetString("Pages.AboutPage.AboutLauncherExpander.VersionDescription");
-        AboutLauncherExpander.Description = string.Format(versionFormat, Current.VersionType, Current.Version, Current.BuildNumber);
-    }
+public enum ModLoaderType
+{
+    Forge,
+    Fabric,
+    NeoForge
+}
+
+public class ModLoader
+{
+    public required ModLoaderType Type { get; set; }
+    public required string VersionId { get; set; }
 }

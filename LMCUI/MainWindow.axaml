@@ -10,7 +10,7 @@
         xmlns:controls="clr-namespace:LMCUI.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LMCUI.MainWindow"
-        Title="Line Launcher"
+        Title="{i18n:I18nBinding Key=MainWindow.Title}"
         Height="468"
         Width="900"
         MinHeight="600"
@@ -37,6 +37,7 @@
                     </ui:NavigationViewItem.MenuItems>
                 </ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.AccountPage}" Tag="AccountPage" IconSource="People" />
+                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.TaskPage}" Tag="TaskPage" IconSource="TaskListAdd" />
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.Header>
                 <ui:BreadcrumbBar Name="mainBcb" ItemClicked="MainBcb_OnItemClicked">

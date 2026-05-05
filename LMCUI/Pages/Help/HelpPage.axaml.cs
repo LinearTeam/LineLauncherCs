@@ -23,6 +23,7 @@ using Avalonia.Layout;
 using FluentAvalonia.UI.Controls;
 using LMC.Basic.Logging;
 using LMC.Help.Models;
+using LMCUI.I18n;
 using LMCUI.Utils;
 using Markdown.Avalonia;
 
@@ -33,7 +34,7 @@ public partial class HelpPage : HelpContentPage
     private HelpFile? _helpFile;
     private readonly static Logger s_logger = new("HelpPage");
 
-    public HelpPage() : base(new HelpContentPageParam("帮助中心", "HelpPage", []))
+    public HelpPage() : base(new HelpContentPageParam(I18nManager.Instance.GetString("Pages.HelpPage.Title"), "HelpPage", []))
     {
         this.Loaded += OnLoaded;
         InitializeComponent();
@@ -54,7 +55,7 @@ public partial class HelpPage : HelpContentPage
         catch (Exception ex)
         {
             s_logger.Error(ex, "Loading help file");
-            _ = MessageQueueHelper.ShowTeachingTip("帮助文件加载失败，若持续出现请于 设置 - 关于 中的反馈渠道反馈问题。", "错误信息：" + ex.Message, 15000);
+            _ = MessageQueueHelper.ShowTeachingTip(I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Title"), I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Content") + I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.ErrorPrefix") + ex.Message, 15000);
         }
     }
 
@@ -68,7 +69,7 @@ public partial class HelpPage : HelpContentPage
         catch(Exception ex)
         {
             s_logger.Error(ex, "Loading help UI");
-            _ = MessageQueueHelper.ShowTeachingTip("帮助文件加载失败，若持续出现请于 设置 - 关于 中的反馈渠道反馈问题。", "错误信息：" + ex.Message, 15000);
+            _ = MessageQueueHelper.ShowTeachingTip(I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Title"), I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Content") + I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.ErrorPrefix") + ex.Message, 15000);
         }
     }
 

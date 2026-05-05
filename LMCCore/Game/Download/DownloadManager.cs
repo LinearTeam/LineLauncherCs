@@ -12,22 +12,11 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace LMCUI.Pages.SettingsPage;
+using LMCCore.Tasks.Model;
 
-using LMC;
-using LMCUI.I18n;
+namespace LMCCore.Game.Download;
 
-public partial class AboutPage : PageBase
+public class DownloadManager
 {
-    public AboutPage() : base("Pages.AboutPage.Title", "AboutPage")
-    {
-        InitializeComponent();
-        Loaded += OnLoaded;
-    }
-
-    private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        var versionFormat = I18nManager.Instance.GetString("Pages.AboutPage.AboutLauncherExpander.VersionDescription");
-        AboutLauncherExpander.Description = string.Format(versionFormat, Current.VersionType, Current.Version, Current.BuildNumber);
-    }
+    private DownloadSourceManager _downloadSourceManager = DownloadSourceManager.CreateDefault();
 }

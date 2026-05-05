@@ -1,4 +1,4 @@
-﻿// Copyright 2025-2026 LinearTeam
+// Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,12 +14,29 @@
 
 namespace LMCCore.Tasks.Model;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 public class ParentTask(string name) : TaskBase(name)
 {
     public List<SubTaskBase> SubTasks { get; } = new();
+
+    public int CompletedCount => SubTasks.Count(s => s.State == TaskState.Completed);
+    public int TotalCount => SubTasks.Count;
+    public string ProgressText => $"{CompletedCount}/{TotalCount}";
+
+    public SubTask<T> CreateSubTask<T>(
+        string name,
+        int priority,
+        Func<CancellationToken, Dictionary<SubTaskBase, object>, IProgress<int>, Task<T>> execute,
+        IEnumerable<SubTaskBase>? dependencies = null)
+    {
+        var subTask = new SubTask<T>(name, priority, this, dependencies, execute);
+        SubTasks.Add(subTask);
+        return subTask;
+    }
 
     public override Task ExecuteAsync() => Task.CompletedTask;
 
@@ -33,5 +50,8 @@ public class ParentTask(string name) : TaskBase(name)
     {
         State = TaskState.Faulted;
         Cancel(); // 级联取消
+        
+        // 通知 TaskManager 注册此父任务为失败
+        TaskManager.Instance.RegisterFaultedParent(this);
     }
 }

@@ -19,6 +19,7 @@ using Avalonia.Markup.Xaml;
 namespace LMCUI;
 
 using I18n;
+using LMCCore.Tasks;
 using LMC.LifeCycle;
 
 public partial class App : Application
@@ -37,6 +38,7 @@ public partial class App : Application
             desktop.MainWindow = new MainWindow();
         }
         
+        TaskManager.Instance.Start();
         base.OnFrameworkInitializationCompleted();
     }
     

@@ -12,7 +12,12 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System;
+using System.Threading.Tasks;
 using Avalonia.Interactivity;
+using FluentAvalonia.UI.Controls;
+using LMCCore.Tasks;
+using LMCCore.Tasks.Model;
 using LMCUI.Utils;
 
 namespace LMCUI.Pages.LaunchPage;
@@ -47,5 +52,58 @@ public partial class LaunchPage : PageBase
     private void ShowTeachingTipButton_Click(object? sender, RoutedEventArgs e)
     {
         MessageQueueHelper.ShowTeachingTip("使用提示", "这是一个教学提示，用于引导用户完成特定操作。");
+    }
+
+    private void CreateSampleTaskButton_Click(object? sender, RoutedEventArgs e)
+    {
+        var parent = TaskManager.Instance.CreateParent("示例任务");
+
+        parent.CreateSubTask<int>("步骤1: 准备", 0, async (ct, deps, progress) =>
+        {
+            for (int i = 0; i <= 100; i += 10)
+            {
+                progress.Report(i);
+                await Task.Delay(200, ct);
+            }
+            return 100;
+        });
+
+        var step2 = parent.CreateSubTask<int>("步骤2: 处理", 1, async (ct, deps, progress) =>
+        {
+            for (int i = 0; i <= 100; i += 5)
+            {
+                progress.Report(i);
+                await Task.Delay(100, ct);
+            }
+            return 200;
+        });
+
+        parent.CreateSubTask<int>("步骤3: 等待 (会失败)", 2, async (ct, deps, progress) =>
+        {
+            progress.Report(0);
+            await Task.Delay(500, ct);
+            progress.Report(50);
+            throw new InvalidOperationException("这是一个模拟的错误！");
+        }, new[] { step2 });
+
+        parent.CreateSubTask<int>("步骤4: 清理", 3, async (ct, deps, progress) =>
+        {
+            for (int i = 0; i <= 100; i += 20)
+            {
+                progress.Report(i);
+                await Task.Delay(100, ct);
+            }
+            return 400;
+        });
+
+        MessageQueueHelper.ShowInfo("任务已创建", "示例任务已创建，请前往任务页面查看。");
+    }
+
+    private void NavigateToTaskPageButton_Click(object? sender, RoutedEventArgs e)
+    {
+        MainWindow.NavigatePage(new PageNavigateWay(
+            typeof(TaskPage.TaskPage),
+            (NavigationViewItem)MainWindow.Instance.mnv.SelectedItem
+        ), NavigateType.New);
     }
 }

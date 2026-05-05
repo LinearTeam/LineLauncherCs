@@ -1,14 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Localization>
     <MainWindow>
+        <Title>Line Launcher</Title>
         <NavItems>
             <LaunchPage>启动</LaunchPage>
             <VersionManagePage>版本管理</VersionManagePage>
+            <TaskPage>任务管理</TaskPage>
             <DownloadPage>下载</DownloadPage>
             <DownloadMinecraftPage>下载游戏</DownloadMinecraftPage>
             <DownloadModPage>下载模组</DownloadModPage>
             <AccountPage>账号管理</AccountPage>
             <SettingsPage>设置</SettingsPage>
+            <HelpPage>帮助</HelpPage>
         </NavItems>
     </MainWindow>
     
@@ -79,6 +82,7 @@
                     <MicrosoftOAuthStep>
                         <LinkMessage>请点击下方按钮跳转到登录页面，随后使用 Microsoft 账号登录，并授权 LMC 访问您的账户信息。您必须在启动器运行的设备上完成这一步。</LinkMessage>
                         <StepMessage>({0} / {1}) {2}</StepMessage>
+                        <WaitingForLoginMessage>(1 / 6) 等待用户登录</WaitingForLoginMessage>
                         <ErrorMessage>登录发生错误，请检查网络或使用代理：{0}</ErrorMessage>
                         <NoMinecraftProfileMessage>您登录的微软账户并没有 Minecraft 档案信息，请确保您购买了游戏，并已于 Minecraft.net 新建档案。</NoMinecraftProfileMessage>
                         <CopyLinkButton>复制链接</CopyLinkButton>
@@ -163,9 +167,45 @@
             <WelcomeMessage>欢迎使用 Line Launcher</WelcomeMessage>
         </LaunchPage>
 
+        <TaskPage>
+            <Title>任务管理</Title>
+            <CancelButton>取消</CancelButton>
+            <ConfirmButton>确定</ConfirmButton>
+        </TaskPage>
+
         <VersionManagePage>
             <Title>版本管理</Title>
         </VersionManagePage>
+
+        <HelpPage>
+            <Title>帮助中心</Title>
+            <LoadingFailedTip>
+                <Title>帮助文件加载失败</Title>
+                <Content>帮助文件加载失败，若持续出现请于 设置 - 关于 中的反馈渠道反馈问题。</Content>
+                <ErrorPrefix>错误信息：</ErrorPrefix>
+            </LoadingFailedTip>
+        </HelpPage>
+
+        <AboutPage>
+            <Title>关于</Title>
+            <AboutLauncherExpander>
+                <Header>关于 Line (Minecraft) Launcher</Header>
+                <VersionDescription>版本 {0}-{1} Build-{2}</VersionDescription>
+            </AboutLauncherExpander>
+            <Author>
+                <Name>Huangyu (皇鱼)</Name>
+                <Description>LMC C#版的主要作者与维护者。</Description>
+                <GitHub>GitHub</GitHub>
+                <Blog>Huangyu's Blog</Blog>
+            </Author>
+        </AboutPage>
+
+        <SettingsPage>
+            <AboutPageNav>
+                <Header>关于</Header>
+                <Description>关于 Line (Minecraft) Launcher</Description>
+            </AboutPageNav>
+        </SettingsPage>
     </Pages>
     <Messages>
         <JavaManager>

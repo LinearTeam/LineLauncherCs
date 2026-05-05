@@ -25,6 +25,7 @@ using LMCUI.Pages.AccountPage;
 using LMCUI.Pages.Help;
 using LMCUI.Pages.LaunchPage;
 using LMCUI.Pages.SettingsPage;
+using LMCUI.Pages.TaskPage;
 using LMCUI.Pages.VersionManagePage;
 
 namespace LMCUI;
@@ -42,6 +43,7 @@ public partial class MainWindow : AppWindow
         typeof(AccountPage),
         typeof(HelpPage), 
         typeof(SettingsPage),
+        typeof(TaskPage),
     };
     public static MainWindow Instance { get; private set; } = null!;
     public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new ObservableCollection<BreadCrumbBarItem>();

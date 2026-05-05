@@ -76,5 +76,8 @@
         <DependentUpon>VersionManagePage.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Pages\TaskPage\TaskPage.axaml.cs">
+        <DependentUpon>TaskPage.axaml</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>

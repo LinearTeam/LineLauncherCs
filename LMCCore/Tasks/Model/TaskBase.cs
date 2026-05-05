@@ -15,17 +15,37 @@
 namespace LMCCore.Tasks.Model;
 
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using LMC.Basic.Logging;
 
-public abstract class TaskBase(string name) : IDisposable
+public abstract class TaskBase(string name) : INotifyPropertyChanged, IDisposable
 {
+    private static readonly Logger s_logger = new("TaskSystem");
+    public event PropertyChangedEventHandler? PropertyChanged;
+    
     public Guid Id { get; } = Guid.NewGuid();
     public string Name { get; } = name;
 
-    public TaskState State { get; protected set; } = TaskState.Waiting;
+    private TaskState _state = TaskState.Waiting;
+    public TaskState State 
+    { 
+        get => _state;
+        protected set
+        {
+            if (_state != value)
+            {
+                var oldState = _state;
+                _state = value;
+                s_logger.Info($"[{Name}] 任务状态: {oldState} -> {value}");
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(State)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFinished)));
+            }
+        }
+    }
     public bool IsFinished => State is TaskState.Completed or TaskState.Faulted or TaskState.Canceled;
-
+    
     protected readonly CancellationTokenSource Cts = new();
 
     public void Cancel()

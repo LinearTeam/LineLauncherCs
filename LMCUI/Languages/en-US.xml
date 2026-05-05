@@ -1,14 +1,17 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Localization>
     <MainWindow>
+        <Title>Line Launcher</Title>
         <NavItems>
             <LaunchPage>Launch</LaunchPage>
             <VersionManagePage>Version Management</VersionManagePage>
+            <TaskPage>Task Management</TaskPage>
             <DownloadPage>Download</DownloadPage>
             <DownloadMinecraftPage>Download Game</DownloadMinecraftPage>
             <DownloadModPage>Download Mods</DownloadModPage>
             <AccountPage>Account Management</AccountPage>
             <SettingsPage>Settings</SettingsPage>
+            <HelpPage>Help</HelpPage>
         </NavItems>
     </MainWindow>
 
@@ -79,6 +82,7 @@
                     <MicrosoftOAuthStep>
                         <LinkMessage>Please click the button below to jump to the login page, then sign in using Microsoft account and authorize LMC to access your account.You must complete this step on the device where the launcher is running.</LinkMessage>
                         <StepMessage>({0} / {1}) {2}</StepMessage>
+                        <WaitingForLoginMessage>(1 / 6) Waiting for user login</WaitingForLoginMessage>
                         <ErrorMessage>Failed to log in, please check network or try proxy: {0}</ErrorMessage>
                         <NoMinecraftProfileMessage>Your Microsoft account is logged in and does not have Minecraft profile. Make sure you purchased the game and set your username at Minecraft.net.</NoMinecraftProfileMessage>
                         <CopyLinkButton>Copy Link</CopyLinkButton>
@@ -163,9 +167,45 @@
             <WelcomeMessage>Welcome to Line Launcher</WelcomeMessage>
         </LaunchPage>
 
+        <TaskPage>
+            <Title>Task Management</Title>
+            <CancelButton>Cancel</CancelButton>
+            <ConfirmButton>Confirm</ConfirmButton>
+        </TaskPage>
+
         <VersionManagePage>
             <Title>Version Management</Title>
         </VersionManagePage>
+
+        <HelpPage>
+            <Title>Help Center</Title>
+            <LoadingFailedTip>
+                <Title>Help File Loading Failed</Title>
+                <Content>Help file loading failed. If this persists, please report the issue through the feedback channel in Settings - About.</Content>
+                <ErrorPrefix>Error message: </ErrorPrefix>
+            </LoadingFailedTip>
+        </HelpPage>
+
+        <AboutPage>
+            <Title>About</Title>
+            <AboutLauncherExpander>
+                <Header>About Line (Minecraft) Launcher</Header>
+                <VersionDescription>Version {0}-{1} Build-{2}</VersionDescription>
+            </AboutLauncherExpander>
+            <Author>
+                <Name>Huangyu (皇鱼)</Name>
+                <Description>Main author and maintainer of LMC C# version.</Description>
+                <GitHub>GitHub</GitHub>
+                <Blog>Huangyu's Blog</Blog>
+            </Author>
+        </AboutPage>
+
+        <SettingsPage>
+            <AboutPageNav>
+                <Header>About</Header>
+                <Description>About Line (Minecraft) Launcher</Description>
+            </AboutPageNav>
+        </SettingsPage>
     </Pages>
     <Messages>
         <JavaManager>

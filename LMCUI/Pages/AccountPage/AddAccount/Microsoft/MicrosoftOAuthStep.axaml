@@ -12,7 +12,7 @@
         <!-- <TextBlock Text=""/> -->
         <StackPanel HorizontalAlignment="Center" Orientation="Vertical" Name="LoginStatusPanel" Spacing="3" IsVisible="False">
             <ui:ProgressRing Name="StatusProgRing" HorizontalAlignment="Center" Width="60" Height="60"/>
-            <TextBlock Text="(1 / 6) 等待用户登录" Name="StepMessage"/>
+            <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.MicrosoftOAuthStep.WaitingForLoginMessage}" Name="StepMessage"/>
         </StackPanel>
         <StackPanel Orientation="Vertical" Name="LinkPanel" Spacing="3" IsVisible="True">
             <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.MicrosoftOAuthStep.LinkMessage}"/>
