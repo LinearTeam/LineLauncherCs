@@ -31,7 +31,6 @@ public class Startup {
     public static Task Initialize() {
 
         CreateDirectory();
-
         s_logger = new Logger("Startup");
         
         s_logger.Info("正在初始化LMC");
@@ -52,7 +51,14 @@ public class Startup {
 
     private static void PreInit()
     {
-        if (Current.Arguments.TryGetValue("restart", out string? pidStr))
+        if (Current.Arguments.TryGetValue("debug", out var debug))
+        {
+            if (debug == "true")
+            {
+                Logger.DebugMode = true;
+            }
+        }
+        if (Current.Arguments.TryGetValue("restart", out var pidStr))
         {
             if (int.TryParse(pidStr, out var pid))
             {

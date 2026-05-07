@@ -23,11 +23,13 @@ using Avalonia.Controls;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
+using LMC.Basic.Logging;
 
 namespace LMCUI.Controls;
 
 public partial class MessageQueueControl : UserControl
 {
+    private readonly static Logger s_logger = new Logger("MessageQueueControl");
     private readonly Queue<IMessageItem> _messageQueue = new Queue<IMessageItem>();
     private readonly Dictionary<string, Timer> _messageTimers = new Dictionary<string, Timer>();
     private bool _isProcessing;
@@ -46,6 +48,7 @@ public partial class MessageQueueControl : UserControl
     public string AddInfoBar(string title, string content, InfoBarSeverity severity = InfoBarSeverity.Informational, 
                             int duration = 5000, bool isClosable = true)
     {
+        s_logger.Info($"显示InfoBar: {title} - {content}");
         string messageId = Guid.NewGuid().ToString();
         var infoBar = new InfoBar
         {

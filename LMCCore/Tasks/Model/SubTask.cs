@@ -21,6 +21,18 @@ using System.Threading.Tasks;
 public abstract class SubTaskBase(string name, int priority, ParentTask parent, IEnumerable<SubTaskBase>? deps)
     : TaskBase(name)
 {
+    private int _progress = -1;
+    public int Progress
+    {
+        get => _progress;
+        protected set
+        {
+            if (_progress == value)
+                return;
+            _progress = value;
+            OnPropertyChanged(nameof(Progress));
+        }
+    }
     public int Priority { get; } = priority;
     public IReadOnlyList<SubTaskBase> Dependencies { get; } = deps?.ToList() ?? new List<SubTaskBase>();
     public ParentTask Parent { get; } = parent;
@@ -38,6 +50,8 @@ public class SubTask<T>(
 
     public T? Result { get; private set; }
 
+    
+
     public async override Task ExecuteAsync()
     {
         try
@@ -52,10 +66,13 @@ public class SubTask<T>(
             }
 
             var progress = new Progress<int>(p =>
-                Console.WriteLine($"[{Name}] {p}%"));
+            {
+                Progress = p;
+            });
 
             Result = await execute(Cts.Token, deps, progress);
             State = TaskState.Completed;
+            Progress = 100;
         }
         catch (OperationCanceledException)
         {

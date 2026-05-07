@@ -42,8 +42,14 @@ public class ParentTask(string name) : TaskBase(name)
 
     protected override void OnCancel()
     {
-        foreach (var sub in SubTasks.Where(s => !s.IsFinished))
-            sub.Cancel();
+        // 异步取消子任务，避免在UI线程上同步遍历大量子任务导致冻结
+        _ = Task.Run(() =>
+        {
+            foreach (var sub in SubTasks.Where(s => !s.IsFinished))
+            {
+                sub.Cancel();
+            }
+        });
     }
 
     internal void OnSubTaskFaulted(SubTaskBase faulted)

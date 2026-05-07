@@ -14,6 +14,7 @@
 
 using System.Text.Json.Serialization.Metadata;
 using LMCCore.Account;
+using LMCCore.Game.Model.LocalVersion.Arguments;
 
 namespace LMCCore.Utils;
 
@@ -24,19 +25,19 @@ using System.Text.Json.Nodes;
 
 public class JsonUtils
 {
-    private readonly JsonNode? _node;
-    private readonly bool _isValid;
+    public JsonNode? Node { get; }
+    public bool IsValid { get; }
     public static JsonSerializerOptions DefaultSerializeOptions = new()
     {
         WriteIndented = true,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
         TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
-        Converters = { new AccountJsonConverter() }
+        Converters = { new AccountJsonConverter(), new GameArgumentConverter() }
     };
     private JsonUtils(JsonNode? node, bool isValid = true)
     {
-        _node = node;
-        _isValid = isValid;
+        Node = node;
+        IsValid = isValid;
     }
 
     public static JsonUtils Parse(string json)
@@ -52,30 +53,36 @@ public class JsonUtils
         }
     }
     
+    /// <summary>
+    /// 根据路径从JSON中获取字符串值
+    /// </summary>
+    /// <param name="json">JSON字符串</param>
+    /// <param name="path">点分路径，如 "downloads.artifact.url"</param>
+    /// <returns>获取到的字符串值，如果不存在则返回null</returns>
     public static string? GetValueFromJson(string json, string path)
     {
         try
         {
-            return Parse(json)
-                .GetStringOrDefault(path, "");
+            var node = Parse(json);
+            return node.GetString(path);
         }
         catch
         {
-            return "";
+            return null;
         }
     }
 
     public JsonUtils GetObject(string path)
     {
         var result = GetNode(path);
-        return result._node is JsonObject
+        return result.Node is JsonObject
             ? result
             : new JsonUtils(null, false);
     }
 
     public string? GetString(string path)
     {
-        var node = GetNode(path)._node;
+        var node = GetNode(path).Node;
         return node?.GetValueKind() == JsonValueKind.String ? node.ToString() : null;
     }
 
@@ -87,7 +94,7 @@ public class JsonUtils
 
     public List<T>? GetArray<T>()
     {
-        var node = this._node;
+        var node = this.Node;
         if (node is not JsonArray array) return null;
 
         try
@@ -109,7 +116,7 @@ public class JsonUtils
     
     public List<T>? GetArray<T>(string path)
     {
-        var node = GetNode(path)._node;
+        var node = GetNode(path).Node;
         if (node is not JsonArray array) return null;
 
         try
@@ -128,9 +135,13 @@ public class JsonUtils
         return result ?? defaultValue;
     }
 
+    public T? Get<T>()
+    {
+        return Node.Deserialize<T>(DefaultSerializeOptions) ?? default;
+    }
     public T? Get<T>(string path)
     {
-        var node = GetNode(path)._node;
+        var node = GetNode(path).Node;
         return node != null ? node.Deserialize<T>(DefaultSerializeOptions) : default;
     }
 
@@ -142,11 +153,11 @@ public class JsonUtils
 
     public JsonUtils Merge(JsonUtils other, IEnumerable<string>? ignorePaths = null)
     {
-        if (!_isValid || _node == null) return other;
-        if (!other._isValid || other._node == null) return this;
+        if (!IsValid || Node == null) return other;
+        if (!other.IsValid || other.Node == null) return this;
 
-        var current = _node.DeepClone();
-        var otherClone = other._node.DeepClone();
+        var current = Node.DeepClone();
+        var otherClone = other.Node.DeepClone();
         MergeNodes(current, otherClone, ignorePaths ?? Enumerable.Empty<string>(), "");
         return new JsonUtils(current);
     }
@@ -189,14 +200,14 @@ public class JsonUtils
         }
     }
 
-    public override string ToString() => _node?.ToJsonString() ?? "null";
-    public JsonElement ToJsonElement() => _node?.Deserialize<JsonElement>(DefaultSerializeOptions) ?? default;
+    public override string ToString() => Node?.ToJsonString() ?? "null";
+    public JsonElement ToJsonElement() => Node?.Deserialize<JsonElement>(DefaultSerializeOptions) ?? default;
 
     private JsonUtils GetNode(string path)
     {
-        if (!_isValid || _node == null) return new JsonUtils(null, false);
+        if (!IsValid || Node == null) return new JsonUtils(null, false);
 
-        JsonNode? currentNode = _node;
+        JsonNode? currentNode = Node;
         var segments = path.Split('.');
 
         foreach (var segment in segments)

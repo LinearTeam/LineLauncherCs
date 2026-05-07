@@ -14,11 +14,20 @@
 
 namespace LMCCore.Game.Download.Model;
 
+using System.Text.Json.Serialization;
+
 public class DownloadableGameVersion
 {
+    [JsonPropertyName("versionId")]
     public required string VersionId { get; set; }
+
+    [JsonPropertyName("versionName")]
     public required string VersionName { get; set; }
+
+    [JsonPropertyName("loaders")]
     public required ModLoader[] Loaders { get; set; }
+
+    [JsonPropertyName("optiFine")]
     public bool OptiFine { get; set; } = false;
 }
 
@@ -31,6 +40,9 @@ public enum ModLoaderType
 
 public class ModLoader
 {
+    [JsonPropertyName("type")]
     public required ModLoaderType Type { get; set; }
+
+    [JsonPropertyName("versionId")]
     public required string VersionId { get; set; }
 }

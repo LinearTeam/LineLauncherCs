@@ -22,7 +22,7 @@ using LMC.Basic.Logging;
 
 public abstract class TaskBase(string name) : INotifyPropertyChanged, IDisposable
 {
-    private static readonly Logger s_logger = new("TaskSystem");
+    private readonly static Logger s_logger = new("TaskSystem");
     public event PropertyChangedEventHandler? PropertyChanged;
     
     public Guid Id { get; } = Guid.NewGuid();
@@ -47,6 +47,11 @@ public abstract class TaskBase(string name) : INotifyPropertyChanged, IDisposabl
     public bool IsFinished => State is TaskState.Completed or TaskState.Faulted or TaskState.Canceled;
     
     protected readonly CancellationTokenSource Cts = new();
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 
     public void Cancel()
     {
