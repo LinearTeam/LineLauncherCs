@@ -56,6 +56,7 @@ public class Startup {
             if (debug == "true")
             {
                 Logger.DebugMode = true;
+                s_logger.Debug("调试模式已启用");
             }
         }
         if (Current.Arguments.TryGetValue("restart", out var pidStr))
@@ -110,6 +111,10 @@ public class Startup {
                 WriteIndented = true,
                 TypeInfoResolver = new DefaultJsonTypeInfoResolver()
             })}");
+        if (Logger.DebugMode)
+        {
+            cfg.LogLevel = LogLevel.Debug;
+        }
         Current.Config = cfg;
     }
 }

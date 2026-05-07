@@ -83,6 +83,11 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     public IReadOnlyList<ParentTask> GetParents() => _parents.AsReadOnly();
 
+    public void RemoveParent(ParentTask parent)
+    {
+        _parents.Remove(parent);
+    }
+
     async private Task RunOnceAsync()
     {
         var running = new List<Task>();

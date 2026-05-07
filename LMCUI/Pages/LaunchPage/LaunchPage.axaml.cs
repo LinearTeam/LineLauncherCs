@@ -46,7 +46,7 @@ public partial class LaunchPage : PageBase
 
             var parent = TaskManager.Instance.CreateParent($"安装 Minecraft {versionInfo.Id}");
 
-            parent.CreateSubTask<int>($"获取版本信息 ({versionInfo.Id})", 200, async (ct, deps, progress) =>
+            parent.CreateSubTask<int>($"获取版本信息 ({versionInfo.Id})", 0, async (ct, deps, progress) =>
             {
                 progress.Report(100);
                 await Task.CompletedTask;

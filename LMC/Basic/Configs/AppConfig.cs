@@ -18,9 +18,9 @@ using Logging;
 
 [ConfigVersion(1)]
 public class AppConfig {
-    public LogLevel LogLevel { get; set; } = LogLevel.Info;
+    public LogLevel LogLevel { get; set; } = LogLevel.Debug;
     
-    public List<string> JavaPaths { get; set; } = new();
+    public List<string> JavaPaths { get; set; } = [];
 
     public string SelectedJavaPath { get; set; } = string.Empty;
 

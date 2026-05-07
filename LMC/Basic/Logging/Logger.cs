@@ -48,7 +48,7 @@ public class Logger
             Directory.CreateDirectory(logDir);
 
             var appConfig = Current.Config;
-            LogLevel configLogLevel = appConfig?.LogLevel ?? LogLevel.Info;
+            LogLevel configLogLevel = appConfig?.LogLevel ?? LogLevel.Debug;
             NLog.LogLevel minLogLevel = MapToNLogLevel(configLogLevel);
             
             var datedTarget = new FileTarget("datedTarget")
