@@ -24,7 +24,7 @@
                                      Description="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Description}" 
                                      Name="acclist" IconSource="BulletList" ActionIconSource="ChevronRight">
                     <ui:FASettingsExpander.DataTemplates>
-    <!-- MicrosoftAccount -->
+            <!-- MicrosoftAccount -->
             <DataTemplate DataType="model:MicrosoftAccount">
                 <ui:FASettingsExpanderItem
                     Description="{Binding Uuid}"
