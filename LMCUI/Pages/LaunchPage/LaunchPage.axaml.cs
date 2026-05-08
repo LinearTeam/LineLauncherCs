@@ -1,4 +1,4 @@
-﻿// Copyright 2025-2026 LinearTeam
+// Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public partial class LaunchPage : PageBase
         InitializeComponent();
     }
 
-    private async void InstallVanillaButton_Click(object? sender, RoutedEventArgs e)
+    async private void InstallVanillaButton_Click(object? sender, RoutedEventArgs e)
     {
         try
         {

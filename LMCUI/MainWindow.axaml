@@ -8,6 +8,7 @@
         xmlns:i18n="clr-namespace:LMCUI.I18n"
         xmlns:lmcui="clr-namespace:LMCUI"
         xmlns:controls="clr-namespace:LMCUI.Controls"
+        xmlns:nav="clr-namespace:LMCUI.Navigation"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LMCUI.MainWindow"
         Title="{i18n:I18nBinding Key=MainWindow.Title}"
@@ -57,7 +58,7 @@
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.HelpPage}" Tag="HelpPage" IconSource="Help"/>
             </ui:NavigationView.FooterMenuItems>
-            <ui:Frame Name="mainFrm" />
+            <nav:LineFrame Name="mainFrm" />
         </ui:NavigationView>
         
     </Grid>

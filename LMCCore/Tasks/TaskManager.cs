@@ -31,7 +31,15 @@ public class TaskManager(int maxConcurrency) : IDisposable
     private readonly List<ParentTask> _parents = new();
     private readonly CancellationTokenSource _managerCts = new(); 
     private readonly HashSet<ParentTask> _faultedParents = new();
-    private Task? _schedulerTask; 
+    private Task? _schedulerTask;
+    
+    // 事件驱动机制：使用信号量替代轮询
+    private readonly SemaphoreSlim _signal = new(0, int.MaxValue);
+
+    /// <summary>
+    /// 当有新的父任务添加时触发
+    /// </summary>
+    public event Action<ParentTask>? ParentTaskAdded;
 
     public void Start()
     {
@@ -42,13 +50,32 @@ public class TaskManager(int maxConcurrency) : IDisposable
     public void Stop()
     {
         _managerCts.Cancel();
+        _signal.Release(); // 唤醒等待中的循环
         _schedulerTask?.Wait();
+    }
+    
+    /// <summary>
+    /// 当有新的父任务添加或有子任务完成时调用，唤醒调度循环
+    /// </summary>
+    internal void Signal()
+    {
+        _signal.Release();
     }
     
     async private Task SchedulerLoopAsync()
     {
         while (!_managerCts.IsCancellationRequested)
         {
+            try
+            {
+                // 等待信号触发，而不是固定间隔轮询
+                await _signal.WaitAsync(TimeSpan.FromSeconds(1), _managerCts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+
             // 移除已完成/失败/取消的父任务
             _parents.RemoveAll(p => p.IsFinished);
 
@@ -63,14 +90,13 @@ public class TaskManager(int maxConcurrency) : IDisposable
             
             if (_queue.Count > 0)
                 await RunOnceAsync();
-
-            await Task.Delay(100, _managerCts.Token);
         }
     }
     
     internal void RegisterFaultedParent(ParentTask parent)
     {
         _faultedParents.Add(parent);
+        Signal(); // 通知调度循环处理
     }
     
     
@@ -78,6 +104,8 @@ public class TaskManager(int maxConcurrency) : IDisposable
     {
         var p = new ParentTask(name);
         _parents.Add(p);
+        Signal(); // 通知调度循环有新任务
+        ParentTaskAdded?.Invoke(p); // 触发事件通知 UI
         return p;
     }
 
@@ -108,7 +136,11 @@ public class TaskManager(int maxConcurrency) : IDisposable
             {
                 try { await task.ExecuteAsync(); }
                 catch { /* 忽略异常，任务状态已由 TaskBase 设置 */ }
-                finally { _semaphore.Release(); }
+                finally 
+                { 
+                    _semaphore.Release();
+                    Signal(); // 通知调度循环有任务完成
+                }
             }, _managerCts.Token));
 
             if (_queue.Count == 0 || _queue.Peek().Priority != task.Priority)
@@ -131,5 +163,6 @@ public class TaskManager(int maxConcurrency) : IDisposable
     {
         foreach (var p in _parents) p.Cancel();
         _semaphore.Dispose();
+        _signal.Dispose();
     }
 }
