@@ -39,7 +39,7 @@ namespace LMCUI.Utils
                 throw new InvalidOperationException("MessageQueueControl is not initialized");
 
             return await Dispatcher.UIThread.InvokeAsync(() => 
-                MessageQueueControl.Instance.AddInfoBar(title, content, InfoBarSeverity.Informational, duration, isClosable));
+                MessageQueueControl.Instance.AddInfoBar(title, content, FAInfoBarSeverity.Informational, duration, isClosable));
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace LMCUI.Utils
                 throw new InvalidOperationException("MessageQueueControl is not initialized");
 
             return await Dispatcher.UIThread.InvokeAsync(() => 
-                MessageQueueControl.Instance.AddInfoBar(title, content, InfoBarSeverity.Success, duration, isClosable));
+                MessageQueueControl.Instance.AddInfoBar(title, content, FAInfoBarSeverity.Success, duration, isClosable));
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace LMCUI.Utils
                 throw new InvalidOperationException("MessageQueueControl is not initialized");
 
             return await Dispatcher.UIThread.InvokeAsync(() => 
-                MessageQueueControl.Instance.AddInfoBar(title, content, InfoBarSeverity.Warning, duration, isClosable));
+                MessageQueueControl.Instance.AddInfoBar(title, content, FAInfoBarSeverity.Warning, duration, isClosable));
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace LMCUI.Utils
                 throw new InvalidOperationException("MessageQueueControl is not initialized");
 
             return await Dispatcher.UIThread.InvokeAsync(() => 
-                MessageQueueControl.Instance.AddInfoBar(title, content, InfoBarSeverity.Error, duration, isClosable));
+                MessageQueueControl.Instance.AddInfoBar(title, content, FAInfoBarSeverity.Error, duration, isClosable));
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace LMCUI.Utils
         /// <param name="placement">放置位置</param>
         /// <returns>消息ID</returns>
         public async static Task<string> ShowTeachingTip(string title, string content, int duration = 5000, 
-                                            TeachingTipPlacementMode placement = TeachingTipPlacementMode.Top)
+                                            FATeachingTipPlacementMode placement = FATeachingTipPlacementMode.Top)
         {
             if (MessageQueueControl.Instance == null)
                 throw new InvalidOperationException("MessageQueueControl is not initialized");
@@ -139,7 +139,7 @@ namespace LMCUI.Utils
                 throw new InvalidOperationException("MessageQueueControl is not initialized");
 
             return Dispatcher.UIThread.Invoke(() => 
-                MessageQueueControl.Instance.AddInfoBar(title, content, InfoBarSeverity.Informational, duration, isClosable));
+                MessageQueueControl.Instance.AddInfoBar(title, content, FAInfoBarSeverity.Informational, duration, isClosable));
         }
 
         /// <summary>

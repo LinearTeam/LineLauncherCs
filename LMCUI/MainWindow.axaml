@@ -26,39 +26,39 @@
                                   HorizontalAlignment="Stretch" 
                                   VerticalAlignment="Top" />
 
-        <ui:NavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged" IsSettingsVisible="True">
-            <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.LaunchPage}" Tag="LaunchPage" IconSource="Play" />
-                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.VersionManagePage}" Tag="VersionManagePage" IconSource="Games" />
-                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadPage}" Tag="DownloadPage" IconSource="Download">
-                    <ui:NavigationViewItem.MenuItems>
-                        <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadMinecraftPage}" IconSource="New" Tag="DownloadMinecraftPage" />
-                        <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadModPage}" IconSource="Upload" Tag="DownloadModPage" />
-                    </ui:NavigationViewItem.MenuItems>
-                </ui:NavigationViewItem>
-                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.AccountPage}" Tag="AccountPage" IconSource="People" />
-                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.TaskPage}" Tag="TaskPage" IconSource="TaskListAdd" />
-            </ui:NavigationView.MenuItems>
-            <ui:NavigationView.Header>
-                <ui:BreadcrumbBar Name="mainBcb" ItemClicked="MainBcb_OnItemClicked">
-                    <ui:BreadcrumbBar.ItemTemplate>
+        <ui:FANavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged" IsSettingsVisible="True">
+            <ui:FANavigationView.MenuItems>
+                <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.LaunchPage}" Tag="LaunchPage" IconSource="Play" />
+                <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.VersionManagePage}" Tag="VersionManagePage" IconSource="Games" />
+                <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadPage}" Tag="DownloadPage" IconSource="Download">
+                    <ui:FANavigationViewItem.MenuItems>
+                        <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadMinecraftPage}" IconSource="New" Tag="DownloadMinecraftPage" />
+                        <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.DownloadModPage}" IconSource="Upload" Tag="DownloadModPage" />
+                    </ui:FANavigationViewItem.MenuItems>
+                </ui:FANavigationViewItem>
+                <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.AccountPage}" Tag="AccountPage" IconSource="People" />
+                <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.TaskPage}" Tag="TaskPage" IconSource="TaskListAdd" />
+            </ui:FANavigationView.MenuItems>
+            <ui:FANavigationView.Header>
+                <ui:FABreadcrumbBar Name="mainBcb" ItemClicked="MainBcb_OnItemClicked">
+                    <ui:FABreadcrumbBar.ItemTemplate>
                         <DataTemplate DataType="nav:BreadCrumbBarItem">
-                            <ui:BreadcrumbBarItem Content="{Binding}" AutomationProperties.Name="{Binding Title}">
-                                <ui:BreadcrumbBarItem.ContentTemplate>
+                            <ui:FABreadcrumbBarItem Content="{Binding}" AutomationProperties.Name="{Binding Title}">
+                                <ui:FABreadcrumbBarItem.ContentTemplate>
                                     <DataTemplate DataType="nav:BreadCrumbBarItem">
                                         <TextBlock FontSize="20" Text="{Binding Title}" LineHeight="30"/>
                                     </DataTemplate>
-                                </ui:BreadcrumbBarItem.ContentTemplate>
-                            </ui:BreadcrumbBarItem>
+                                </ui:FABreadcrumbBarItem.ContentTemplate>
+                            </ui:FABreadcrumbBarItem>
                         </DataTemplate>
-                    </ui:BreadcrumbBar.ItemTemplate>
-                </ui:BreadcrumbBar>
-            </ui:NavigationView.Header>
-            <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.HelpPage}" Tag="HelpPage" IconSource="Help"/>
-            </ui:NavigationView.FooterMenuItems>
+                    </ui:FABreadcrumbBar.ItemTemplate>
+                </ui:FABreadcrumbBar>
+            </ui:FANavigationView.Header>
+            <ui:FANavigationView.FooterMenuItems>
+                <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.HelpPage}" Tag="HelpPage" IconSource="Help"/>
+            </ui:FANavigationView.FooterMenuItems>
             <nav:LineFrame Name="mainFrm" />
-        </ui:NavigationView>
+        </ui:FANavigationView>
         
     </Grid>
 </Window>

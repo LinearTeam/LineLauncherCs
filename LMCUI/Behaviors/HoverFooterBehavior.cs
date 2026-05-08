@@ -61,9 +61,9 @@ public static class HoverFooterBehavior
 
     private static void OnPointerEntered(object? sender, RoutedEventArgs e)
     {
-        if (sender is SettingsExpander expander)
+        if (sender is FASettingsExpander expander)
             expander.Footer = CreateFooterContent(expander);
-        else if (sender is SettingsExpanderItem item)
+        else if (sender is FASettingsExpanderItem item)
             item.Footer = CreateFooterContent(item);
     }
 
@@ -82,9 +82,9 @@ public static class HoverFooterBehavior
 
     private static void OnPointerExited(object? sender, RoutedEventArgs e)
     {
-        if (sender is SettingsExpander expander)
+        if (sender is FASettingsExpander expander)
             expander.Footer = null;
-        else if (sender is SettingsExpanderItem item)
+        else if (sender is FASettingsExpanderItem item)
             item.Footer = null;
     }
 }

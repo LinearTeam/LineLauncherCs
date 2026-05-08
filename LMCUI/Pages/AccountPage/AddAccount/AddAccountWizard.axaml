@@ -11,7 +11,7 @@
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Orientation="Vertical" Spacing="5">
-                <ui:Frame Name="contentFrm" IsVisible="False"/>
+                <ui:FAFrame Name="contentFrm" IsVisible="False"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -14,14 +14,14 @@
     <Grid Margin="60, 20, 40, 30">
         <ScrollViewer>
             <StackPanel Orientation="Vertical">
-                <ui:SettingsExpander Name="AboutLauncherExpander" Header="{i18n:I18nBinding Key=Pages.AboutPage.AboutLauncherExpander.Header}" IsExpanded="True">
-                    <ui:SettingsExpander.IconSource>
-                        <ui:ImageIconSource Source="/Assets/ico.png"/>
-                    </ui:SettingsExpander.IconSource>
-                    <ui:SettingsExpander.Items>
-                        <ui:SettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.AboutPage.Author.Name}"
+                <ui:FASettingsExpander Name="AboutLauncherExpander" Header="{i18n:I18nBinding Key=Pages.AboutPage.AboutLauncherExpander.Header}" IsExpanded="True">
+                    <ui:FASettingsExpander.IconSource>
+                        <ui:FAImageIconSource Source="/Assets/ico.png"/>
+                    </ui:FASettingsExpander.IconSource>
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.AboutPage.Author.Name}"
                                              Description="{i18n:I18nBinding Key=Pages.AboutPage.Author.Description}">
-                            <ui:SettingsExpanderItem.Footer>
+                            <ui:FASettingsExpanderItem.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="3">
                                     <HyperlinkButton NavigateUri="https://github.com/tmdakm">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
@@ -37,12 +37,12 @@
                                         </StackPanel>
                                     </HyperlinkButton>
                                 </StackPanel>
-                            </ui:SettingsExpanderItem.Footer>
-                        </ui:SettingsExpanderItem>
-                    </ui:SettingsExpander.Items>
-                </ui:SettingsExpander>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
                 <Grid Height="5"/>
-                <ui:SettingsExpander></ui:SettingsExpander>
+                <ui:FASettingsExpander></ui:FASettingsExpander>
             </StackPanel>
         </ScrollViewer>
     </Grid>

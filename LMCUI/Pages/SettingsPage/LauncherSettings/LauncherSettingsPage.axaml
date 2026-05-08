@@ -15,20 +15,20 @@
         <ScrollViewer>
             <StackPanel Orientation="Vertical" Spacing="1">
                 <Label Content="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.Title}" Margin="0, 20"/>
-                <ui:SettingsExpander Header="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Header}"
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Header}"
                                      Description="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Description}" IconSource="Globe">
-                    <ui:SettingsExpander.Footer>
+                    <ui:FASettingsExpander.Footer>
                         <StackPanel Orientation="Horizontal" Spacing="3">
                             <ComboBox Name="LanguageComboBox" SelectionChanged="LanguageComboBox_OnSelectionChanged"/>
                             <Button Click="OpenTranslatePage">
                                 <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Open" />
+                                    <ui:FASymbolIcon Symbol="Open" />
                                     <TextBlock />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
-                    </ui:SettingsExpander.Footer>
-                </ui:SettingsExpander>
+                    </ui:FASettingsExpander.Footer>
+                </ui:FASettingsExpander>
             </StackPanel>
         </ScrollViewer>
     </Grid>

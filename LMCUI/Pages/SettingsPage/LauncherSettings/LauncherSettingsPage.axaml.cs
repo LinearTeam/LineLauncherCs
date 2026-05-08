@@ -67,7 +67,7 @@ public partial class LauncherSettingsPage : PageBase {
         Current.SaveConfig();
         if (!culture.Equals(I18nManager.Instance.CurrentCulture))
         {
-            var restartTeachingTip = new TeachingTip
+            var restartTeachingTip = new FATeachingTip
             {
                 Title = I18nManager.Instance.GetString("Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.RestartTeachingTip.Title"),
                 Subtitle = I18nManager.Instance.GetString("Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.RestartTeachingTip.Subtitle"),

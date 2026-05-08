@@ -45,12 +45,12 @@ public partial class MessageQueueControl : UserControl
         InitializeComponent();
     }
 
-    public string AddInfoBar(string title, string content, InfoBarSeverity severity = InfoBarSeverity.Informational, 
+    public string AddInfoBar(string title, string content, FAInfoBarSeverity severity = FAInfoBarSeverity.Informational, 
                             int duration = 5000, bool isClosable = true)
     {
         s_logger.Info($"显示InfoBar: {title} - {content}");
         string messageId = Guid.NewGuid().ToString();
-        var infoBar = new InfoBar
+        var infoBar = new FAInfoBar
         {
             Title = title,
             Message = content,
@@ -81,7 +81,7 @@ public partial class MessageQueueControl : UserControl
         return messageId;
     }
 
-    public string AddTeachingTip(TeachingTip teachingTip, int duration = 5000)
+    public string AddTeachingTip(FATeachingTip teachingTip, int duration = 5000)
     {
         string messageId = Guid.NewGuid().ToString();
         teachingTip.Tag = messageId;
@@ -100,10 +100,10 @@ public partial class MessageQueueControl : UserControl
     }
     
     public string AddTeachingTip(string title, string content, int duration = 5000, 
-                               TeachingTipPlacementMode placement = TeachingTipPlacementMode.Bottom)
+                               FATeachingTipPlacementMode placement = FATeachingTipPlacementMode.Bottom)
     {
         string messageId = Guid.NewGuid().ToString();
-        var teachingTip = new TeachingTip
+        var teachingTip = new FATeachingTip
         {
             Title = title,
             Content = content,
@@ -303,9 +303,9 @@ public partial class MessageQueueControl : UserControl
             
             MessagePanel.Children.Remove(control);
             
-            if (control is InfoBar)
+            if (control is FAInfoBar)
                 _currentInfoBarCount--;
-            else if (control is TeachingTip)
+            else if (control is FATeachingTip)
                 _currentTeachingTipCount--;
             
             ProcessQueue();
@@ -321,13 +321,13 @@ public partial class MessageQueueControl : UserControl
         for (int i = MessagePanel.Children.Count - 1; i >= 0; i--)
         {
             var child = MessagePanel.Children[i];
-            if (child is InfoBar infoBar && infoBar.Tag as string == messageId)
+            if (child is FAInfoBar infoBar && infoBar.Tag as string == messageId)
             {
                 infoBar.IsOpen = false;
                 CreateFadeOutAndRemoveAnimation(infoBar);
                 return;
             }
-            else if (child is TeachingTip teachingTip && teachingTip.Tag as string == messageId)
+            else if (child is FATeachingTip teachingTip && teachingTip.Tag as string == messageId)
             {
                 teachingTip.IsOpen = false;
                 CreateFadeOutAndRemoveAnimation(teachingTip);
@@ -348,11 +348,11 @@ public class InfoBarMessageItem : IMessageItem
 {
     public string Id { get; set; } = string.Empty;
     public int Duration { get; set; } = 5000;
-    public InfoBar Control { get; set; } = null!;
+    public FAInfoBar Control { get; set; } = null!;
     Control IMessageItem.Control 
     { 
         get => Control;
-        set => Control = (InfoBar)value;
+        set => Control = (FAInfoBar)value;
     }
 }
 
@@ -360,10 +360,10 @@ public class TeachingTipMessageItem : IMessageItem
 {
     public string Id { get; set; } = string.Empty;
     public int Duration { get; set; } = 5000;
-    public TeachingTip Control { get; set; } = null!;
+    public FATeachingTip Control { get; set; } = null!;
     Control IMessageItem.Control 
     { 
         get => Control;
-        set => Control = (TeachingTip)value;
+        set => Control = (FATeachingTip)value;
     }
 }

@@ -11,7 +11,7 @@
         <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.MicrosoftStep.Title}" FontSize="20" FontWeight="Bold"/>
         <!-- <TextBlock Text=""/> -->
         <StackPanel HorizontalAlignment="Center" Orientation="Vertical" Name="LoginStatusPanel" Spacing="3" IsVisible="False">
-            <ui:ProgressRing Name="StatusProgRing" HorizontalAlignment="Center" Width="60" Height="60"/>
+            <ui:FAProgressRing Name="StatusProgRing" HorizontalAlignment="Center" Width="60" Height="60"/>
             <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.MicrosoftOAuthStep.WaitingForLoginMessage}" Name="StepMessage"/>
         </StackPanel>
         <StackPanel Orientation="Vertical" Name="LinkPanel" Spacing="3" IsVisible="True">

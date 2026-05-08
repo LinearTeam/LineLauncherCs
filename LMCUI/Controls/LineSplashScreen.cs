@@ -19,7 +19,7 @@ using FluentAvalonia.UI.Windowing;
 
 namespace LMCUI.Controls;
 
-public class LineSplashScreen : IApplicationSplashScreen
+public class LineSplashScreen : IFAApplicationSplashScreen
 {
     
     public async Task RunTasks(CancellationToken cancellationToken)

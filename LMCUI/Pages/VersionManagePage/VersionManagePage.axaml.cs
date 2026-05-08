@@ -29,7 +29,7 @@ public partial class VersionManagePage : PageBase
     {
         MainWindow.NavigatePage(new PageNavigateWay(
             typeof(LaunchPage.LaunchPage),
-            (NavigationViewItem)MainWindow.Instance.mnv.SelectedItem
+            (FANavigationViewItem)MainWindow.Instance.mnv.SelectedItem
             ), NavigateType.Append);
     }
 }

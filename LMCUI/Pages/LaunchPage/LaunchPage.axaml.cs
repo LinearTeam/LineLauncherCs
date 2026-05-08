@@ -69,7 +69,7 @@ public partial class LaunchPage : PageBase
     {
         MainWindow.NavigatePage(new PageNavigateWay(
             typeof(TaskPage.TaskPage),
-            (NavigationViewItem)MainWindow.Instance.mnv.SelectedItem
+            (FANavigationViewItem)MainWindow.Instance.mnv.SelectedItem
         ), NavigateType.New);
     }
 }

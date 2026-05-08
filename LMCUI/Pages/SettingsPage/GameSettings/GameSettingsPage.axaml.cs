@@ -147,7 +147,7 @@ public partial class GameSettingsPage : PageBase {
         }
     }
     private void JavaItemExpander_Click(object? sender, RoutedEventArgs e) {
-        var path = ((SettingsExpanderItem)sender!).Tag!.ToString();
+        var path = ((FASettingsExpanderItem)sender!).Tag!.ToString();
         path = Path.GetFullPath(path);
         CrossPlatformUtils.OpenFolderInExplorer(path);
     }

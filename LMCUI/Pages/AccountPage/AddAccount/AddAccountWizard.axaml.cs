@@ -65,21 +65,21 @@ public partial class AddAccountWizard : UserControl
                         AccountManager.Add(account);
                         s_logger.Info($"成功添加: {account.Name} (类型: {account.Type})");
                         var typeMsg = I18nManager.Instance.GetString("Enums.AccountType." + account.Type);
-                        MessageQueueControl.Instance.AddInfoBar(I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Success.Title"), I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Success.Content", typeMsg, account.Name), InfoBarSeverity.Success);
+                        MessageQueueControl.Instance.AddInfoBar(I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Success.Title"), I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Success.Content", typeMsg, account.Name), FAInfoBarSeverity.Success);
                     }
                     catch (Exception ex)
                     {
                         s_logger.Error(ex, $"添加账户{account.Name} (类型: {account.Type})");
                         var translatedException = I18nManager.Instance.GetString(ex.Message);
-                        MessageQueueControl.Instance.AddInfoBar(I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Failed.Title"), I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Failed.Content", translatedException), InfoBarSeverity.Error);
+                        MessageQueueControl.Instance.AddInfoBar(I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Failed.Title"), I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Failed.Content", translatedException), FAInfoBarSeverity.Error);
                     }
                 }
                 return;
             }
             if (next.type != null)
             {
-                contentFrm.Navigate(next.type, null, new SlideNavigationTransitionInfo
-                    { Effect = SlideNavigationTransitionEffect.FromRight });
+                contentFrm.Navigate(next.type, null, new FASlideNavigationTransitionInfo
+                    { Effect = FASlideNavigationTransitionEffect.FromRight });
                 step = contentFrm.Content as AddAccountStep ?? throw new InvalidOperationException();
                 _stepButtonStateChanged((step.PreviousStep().type != null, step.NextStep().type != null));
                 step.Enter(next.data, _stepButtonStateChanged);
@@ -95,8 +95,8 @@ public partial class AddAccountWizard : UserControl
             if (prev.type != null)
             {
                 step.BackToPrevious();
-                contentFrm.Navigate(prev.type, null, new SlideNavigationTransitionInfo
-                    { Effect = SlideNavigationTransitionEffect.FromLeft });
+                contentFrm.Navigate(prev.type, null, new FASlideNavigationTransitionInfo
+                    { Effect = FASlideNavigationTransitionEffect.FromLeft });
                 step = contentFrm.Content as AddAccountStep ?? throw new InvalidOperationException();
                 _stepButtonStateChanged((step.PreviousStep().type != null, step.NextStep().type != null));
                 step.Enter(prev.data, _stepButtonStateChanged);

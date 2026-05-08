@@ -104,14 +104,14 @@ public class HelpContentPage : PageBase
             {
                 case MarkdownHelpItem mhi:
                 {
-                    var settingsExpander = new SettingsExpander
+                    var settingsExpander = new FASettingsExpander
                     {
                         Header = helpItem.Title,
                         IsExpanded = false,
                         Margin = new Thickness(0, 0, 0, 10),
                         Description = mhi.Description,
                     };
-                    settingsExpander.Items.Add(new SettingsExpanderItem
+                    settingsExpander.Items.Add(new FASettingsExpanderItem
                     {
                         Content = new MarkdownScrollViewer
                         {
@@ -121,15 +121,15 @@ public class HelpContentPage : PageBase
                     });
                     settingsExpander.IconSource = mhi.Icon.Type switch
                     {
-                        IconType.BuiltIn => new SymbolIconSource
+                        IconType.BuiltIn => new FASymbolIconSource
                         {
-                            Symbol = (Symbol)Enum.Parse(typeof(Symbol), mhi.Icon.Content ?? "Help")
+                            Symbol = (FASymbol)Enum.Parse(typeof(FASymbol), mhi.Icon.Content ?? "Help")
                         },
-                        IconType.Url => new BitmapIconSource
+                        IconType.Url => new FABitmapIconSource
                         {
                             UriSource = new Uri(mhi.Icon.Content ?? string.Empty)
                         },
-                        IconType.Assets => new BitmapIconSource
+                        IconType.Assets => new FABitmapIconSource
                         {
                             UriSource = new Uri("avares://LMCUI/" + (mhi.Icon.Content ?? string.Empty))
                         },
@@ -141,27 +141,27 @@ public class HelpContentPage : PageBase
 
                 case SectionHelpItem shi:
                 {
-                    var settingsCard = new SettingsExpander
+                    var settingsCard = new FASettingsExpander
                     {
                         IsClickEnabled = true,
-                        ActionIconSource = new SymbolIconSource
+                        ActionIconSource = new FASymbolIconSource
                         {
-                            Symbol = Symbol.ChevronRight,
+                            Symbol = FASymbol.ChevronRight,
                         },
                         Header = shi.Title,
                         Description = shi.Description,
                     };
                     settingsCard.IconSource = shi.Icon.Type switch
                     {
-                        IconType.BuiltIn => new SymbolIconSource
+                        IconType.BuiltIn => new FASymbolIconSource
                         {
-                            Symbol = (Symbol)Enum.Parse(typeof(Symbol), shi.Icon.Content ?? "Help")
+                            Symbol = (FASymbol)Enum.Parse(typeof(FASymbol), shi.Icon.Content ?? "Help")
                         },
-                        IconType.Url => new BitmapIconSource
+                        IconType.Url => new FABitmapIconSource
                         {
                             UriSource = new Uri(shi.Icon.Content ?? string.Empty)
                         },
-                        IconType.Assets => new BitmapIconSource
+                        IconType.Assets => new FABitmapIconSource
                         {
                             UriSource = new Uri("avares://LMCUI/" + (shi.Icon.Content ?? string.Empty))
                         },
@@ -174,7 +174,7 @@ public class HelpContentPage : PageBase
                             new PageNavigateWay(
                                 typeof(HelpContentPage), 
                                 param,
-                                (NavigationViewItem) MainWindow.Instance.mnv.SelectedItem,
+                                (FANavigationViewItem) MainWindow.Instance.mnv.SelectedItem,
                                 directlySet: true),
                             NavigateType.Append);
                     };

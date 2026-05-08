@@ -18,6 +18,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
@@ -96,7 +97,7 @@ public partial class AccountPage : PageBase
     }
     private void Button_AddAccount(object? sender, RoutedEventArgs rea)
     {
-        var dlg = new ContentDialog
+        var dlg = new FAContentDialog
         {
             Title = new TextBlock{
                 Text = I18nManager.Instance.GetString("Pages.AccountPage.AddAccountWizard.Title"),
@@ -106,7 +107,7 @@ public partial class AccountPage : PageBase
             CloseButtonText = I18nManager.Instance.GetString("Pages.AccountPage.AddAccountWizard.CloseButton"),
             PrimaryButtonText = I18nManager.Instance.GetString("Pages.AccountPage.AddAccountWizard.PreviousButton"),
             SecondaryButtonText = I18nManager.Instance.GetString("Pages.AccountPage.AddAccountWizard.NextButton"),
-            DefaultButton = ContentDialogButton.Secondary,
+            DefaultButton = FAContentDialogButton.Secondary,
             IsPrimaryButtonEnabled = true,
             IsSecondaryButtonEnabled = true
         };
@@ -140,7 +141,7 @@ public partial class AccountPage : PageBase
         var button = sender as Button;
         if (button?.DataContext is not Account account)
             return;
-        if (button.Parent?.Parent is SettingsExpanderItem se)
+        if (button.Parent?.Parent is FASettingsExpanderItem se)
         {
             se.IsVisible = false;
         }

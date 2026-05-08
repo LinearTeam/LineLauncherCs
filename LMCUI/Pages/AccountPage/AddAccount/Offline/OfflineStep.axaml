@@ -9,8 +9,8 @@
     <StackPanel Orientation="Vertical" Spacing="3">
         <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.Title}" FontSize="20" FontWeight="Bold"/>
         <TextBlock Text=""/>
-        <TextBox Watermark="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.Watermarks.GameId}" Name="ignBox" TextChanged="TextBox_TextChanged"/>
-        <TextBox Watermark="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.Watermarks.UUID}" TextChanged="TextBox_TextChanged" Name="uuidBox"/>
+        <TextBox PlaceholderText="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.Watermarks.GameId}" Name="ignBox" TextChanged="TextBox_TextChanged"/>
+        <TextBox PlaceholderText="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountWizard.Steps.OfflineStep.Watermarks.UUID}" TextChanged="TextBox_TextChanged" Name="uuidBox"/>
         <TextBlock Name="validate" Foreground="Red" IsVisible="False"/>
     </StackPanel>
 </add:AddAccountStep>

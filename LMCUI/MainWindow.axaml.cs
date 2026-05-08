@@ -31,9 +31,10 @@ using LMCUI.Pages.SettingsPage;
 using LMCUI.Pages.TaskPage;
 using LMCUI.Pages.VersionManagePage;
 
+
 namespace LMCUI;
 
-public partial class MainWindow : AppWindow
+public partial class MainWindow : FAAppWindow
 {
     private readonly static Logger s_logger = new Logger("MainWindow");
     
@@ -95,7 +96,7 @@ public partial class MainWindow : AppWindow
     /// <summary>
     /// 导航到页面
     /// </summary>
-    private static void NavigatePage(Type page, NavigateType type, NavigationViewItem item, object? param = null, string? tag = null, bool thrown = false, bool directlySet = false)
+    private static void NavigatePage(Type page, NavigateType type, FANavigationViewItem item, object? param = null, string? tag = null, bool thrown = false, bool directlySet = false)
     {
         switch (type)
         {
@@ -205,7 +206,7 @@ public partial class MainWindow : AppWindow
     /// <summary>
     /// 更新导航选中项
     /// </summary>
-    private static void UpdateNavigationSelection(NavigationViewItem item)
+    private static void UpdateNavigationSelection(FANavigationViewItem item)
     {
         Instance.mnv.SelectedItem = item;
     }
@@ -213,7 +214,7 @@ public partial class MainWindow : AppWindow
     /// <summary>
     /// 处理面包屑导航
     /// </summary>
-    private static void HandleBreadcrumb(NavigateType type, PageBase page, NavigationViewItem item, object? param)
+    private static void HandleBreadcrumb(NavigateType type, PageBase page, FANavigationViewItem item, object? param)
     {
         switch (type)
         {
@@ -238,9 +239,9 @@ public partial class MainWindow : AppWindow
     /// <summary>
     /// 导航视图选择改变事件
     /// </summary>
-    private void Mnv_OnSelectionChanged(object? sender, NavigationViewSelectionChangedEventArgs e)
+    private void Mnv_OnSelectionChanged(object? sender, FANavigationViewSelectionChangedEventArgs e)
     {
-        if (e.SelectedItem is not NavigationViewItem item)
+        if (e.SelectedItem is not FANavigationViewItem item)
         {
             return;
         }
@@ -266,7 +267,7 @@ public partial class MainWindow : AppWindow
         }
     }
 
-    private void MainBcb_OnItemClicked(BreadcrumbBar sender, BreadcrumbBarItemClickedEventArgs args)
+    private void MainBcb_OnItemClicked(FABreadcrumbBar sender, FABreadcrumbBarItemClickedEventArgs args)
     {
         var item = BreadCrumbItemSource[args.Index];
         NavigatePage(item.PageNavigateWay, NavigateType.Backward, item.Tag);
