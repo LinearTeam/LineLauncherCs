@@ -20,7 +20,7 @@ using LMCCore.Utils;
 
 namespace LMCCore.Account.OAuth;
 
-public class MicrosoftOAuth
+public static class MicrosoftOAuth
 {
     public const string LoginUrl = "https://blog.huangyu.win/line/loginRedirect.html?url=https%3a%2f%2flogin.microsoftonline.com%2fconsumers%2foauth2%2fv2.0%2fauthorize%3fclient_id%3d1cbfda79-fc84-47f9-8110-f924da9841ec%26response_type%3dcode%26redirect_uri%3dhttps%3a%2f%2fblog.huangyu.win%2fline%2floginSuccess.html%3f%26response_mode%3dquery%26scope%3dXboxLive.signin%20offline_access";
     
@@ -169,7 +169,7 @@ public class MicrosoftOAuth
                 {
                     identityToken = $"XBL3.0 x={userHash};{xstsToken}"
                 })
-                .PostAsync();
+                .PostAsync(cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             response.EnsureSuccessStatusCode();
             var json = JsonUtils.Parse(responseString);
@@ -197,8 +197,8 @@ public class MicrosoftOAuth
                     RelyingParty = "rp://api.minecraftservices.com/",
                     TokenType = "JWT"
                 })
-                .PostAsync();
-            var responseString = await response.Content.ReadAsStringAsync();
+                .PostAsync(cancellationToken);
+            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             response.EnsureSuccessStatusCode();
             var json = JsonUtils.Parse(responseString);
             var token = json.GetString("Token");
@@ -212,39 +212,41 @@ public class MicrosoftOAuth
     
     async private static Task<(string? xblToken, Exception? exception)> GetXblToken(string accessToken, CancellationToken cancellationToken)
     {
-        bool dEq = true;
-        retry:
-        try
+        for (int attempt = 0; attempt < 2; attempt++)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var response = await HttpUtils.CreateRequest("https://user.auth.xboxlive.com/user/authenticate")
-                .WithJsonContent(new
-                {
-                    Properties = new
-                    {
-                        AuthMethod = "RPS",
-                        SiteName = "user.auth.xboxlive.com",
-                        RpsTicket = $"{(dEq ? "d=" : "")}{accessToken}"
-                    },
-                    RelyingParty = "http://auth.xboxlive.com",
-                    TokenType = "JWT"
-                })
-                .PostAsync();
-            var responseString = await response.Content.ReadAsStringAsync();
-            response.EnsureSuccessStatusCode();
-            var json = JsonUtils.Parse(responseString);
-            var token = json.GetString("Token");
-            // var userHash = json.GetString("DisplayClaims.xui[0].uhs");
-            return (token, null);
-        }catch (Exception ex)
-        {
-            if(ex.Message.Contains("400") && dEq)
+            try
             {
-                dEq = false;
-                goto retry;
+                cancellationToken.ThrowIfCancellationRequested();
+                var rpsTicket = attempt == 0 ? $"d={accessToken}" : accessToken;
+                var response = await HttpUtils.CreateRequest("https://user.auth.xboxlive.com/user/authenticate")
+                    .WithJsonContent(new
+                    {
+                        Properties = new
+                        {
+                            AuthMethod = "RPS",
+                            SiteName = "user.auth.xboxlive.com",
+                            RpsTicket = rpsTicket
+                        },
+                        RelyingParty = "http://auth.xboxlive.com",
+                        TokenType = "JWT"
+                    })
+                    .PostAsync(cancellationToken);
+                var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+                response.EnsureSuccessStatusCode();
+                var json = JsonUtils.Parse(responseString);
+                var token = json.GetString("Token");
+                return (token, null);
             }
-            return (null, ex);
+            catch (Exception ex) when (attempt == 0 && ex.Message.Contains("400"))
+            {
+                continue;
+            }
+            catch (Exception ex)
+            {
+                return (null, ex);
+            }
         }
+        return (null, new Exception("XBL token acquisition failed after retries"));
     }
     
     async private static Task<(string? accessToken, string? refreshToken, int expiresIn, Exception? exception)> GetTokenByAuthCode(string code, CancellationToken cancellationToken)
@@ -259,15 +261,15 @@ public class MicrosoftOAuth
                     .Add("grant_type", "authorization_code")
                     .Add("redirect_uri", "https://blog.huangyu.win/line/loginSuccess.html?")
                     .Add("scope", "XboxLive.signin offline_access"))
-                .PostAsync();
-            var responseString = await response.Content.ReadAsStringAsync();
+                .PostAsync(cancellationToken);
+            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             try
             {
                 response.EnsureSuccessStatusCode();
             }
             catch
             {
-                if (response.StatusCode >= HttpStatusCode.BadRequest && response.StatusCode <= HttpStatusCode.InternalServerError)
+                if (response.StatusCode is >= HttpStatusCode.BadRequest and <= HttpStatusCode.InternalServerError)
                 {
                     s_logger.Error("Failed to get Access Token, response: \n" + responseString);
                 }

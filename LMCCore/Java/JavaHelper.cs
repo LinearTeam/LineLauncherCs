@@ -20,7 +20,7 @@ public class JavaHelper
 {
     public async static Task<LocalJava?> GetRequiredJava(JavaCondition condition)
     {
-        if (Current.Config?.JavaPaths == null) return null;
+        if (Current.Config.JavaPaths == null) return null;
         foreach (var path in Current.Config.JavaPaths)
         {
             var info = await JavaManager.GetJavaInfo(path);

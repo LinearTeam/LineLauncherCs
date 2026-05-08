@@ -15,7 +15,7 @@
 namespace LMCUI.Pages.SettingsPage;
 
 using LMC;
-using LMCUI.I18n;
+using I18n;
 
 public partial class AboutPage : PageBase
 {

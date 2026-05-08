@@ -132,26 +132,25 @@ public partial class AccountPage : PageBase
             }
             ((AddAccountWizard)dlg.Content).NextStep(s, e);
         };
-        dlg.CloseButtonClick += (s, e) => { ((AddAccountWizard)dlg.Content).Closed(); };
+        dlg.CloseButtonClick += (_, _) => { ((AddAccountWizard)dlg.Content).Closed(); };
         dlg.ShowAsync();
     }
     private void Button_Delete(object? sender, RoutedEventArgs e)
     {
         var button = sender as Button;
-        if (button?.DataContext is Account account)
+        if (button?.DataContext is not Account account)
+            return;
+        if (button.Parent?.Parent is SettingsExpanderItem se)
         {
-            if (button.Parent.Parent is SettingsExpanderItem se)
-            {
-                se.IsVisible = false;
-            }
-            AccountManager.Remove(account);
-            AccountManager.Load();
-            _ = Task.Delay(250)
-                .ContinueWith(async _ =>
-                {
-                    await RefreshAccountList();
-                });
+            se.IsVisible = false;
         }
+        AccountManager.Remove(account);
+        AccountManager.Load();
+        _ = Task.Delay(250)
+            .ContinueWith(async _ =>
+            {
+                await RefreshAccountList();
+            });
     }
 }
 

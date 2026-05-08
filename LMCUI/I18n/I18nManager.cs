@@ -149,12 +149,12 @@ public sealed class I18nManager
         public I18nBinding(string key)
         {
             _key = key;
-            I18nManager.Instance.CultureChanged += OnCultureChanged;
+            Instance.CultureChanged += OnCultureChanged;
         }
 
         private void OnCultureChanged()
         {
-            var value = I18nManager.Instance.GetString(_key);
+            var value = Instance.GetString(_key);
             foreach (var observer in _observers.ToArray())
             {
                 observer.OnNext(value);
@@ -164,12 +164,12 @@ public sealed class I18nManager
         public IDisposable Subscribe(IObserver<string> observer)
         {
             _observers.Add(observer);
-            observer.OnNext(I18nManager.Instance.GetString(_key));
+            observer.OnNext(Instance.GetString(_key));
                 
             return new Unsubscriber(() =>
             {
                 _observers.Remove(observer);
-                I18nManager.Instance.CultureChanged -= OnCultureChanged;
+                Instance.CultureChanged -= OnCultureChanged;
             });
         }
     }

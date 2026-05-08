@@ -28,8 +28,8 @@ public partial class MicrosoftOAuthStep : AddAccountStep
 {
     private static Logger s_logger = new Logger("OAStep");
     
-    private bool _success = false;
-    private Account? _account = null;
+    private bool _success;
+    private Account? _account;
     public MicrosoftOAuthStep()
     {
         InitializeComponent();

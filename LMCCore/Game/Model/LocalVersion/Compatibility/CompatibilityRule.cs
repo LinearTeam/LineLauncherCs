@@ -19,7 +19,7 @@ namespace LMCCore.Game.Model.LocalVersion.Compatibility;
 public class CompatibilityRule
 {
     [JsonPropertyName("action")]
-    public string Action { get; set; }
+    public required string Action { get; set; }
     [JsonPropertyName("os")]
     public RuleOs? Os { get; set; }
     [JsonPropertyName("features")]

@@ -21,6 +21,7 @@ using LMC.Basic.Logging;
 using LMCCore.Game.Download;
 using LMCCore.Tasks;
 using LMCCore.Tasks.Model;
+using LMCUI.Navigation;
 using LMCUI.Utils;
 
 namespace LMCUI.Pages.LaunchPage;
@@ -46,7 +47,7 @@ public partial class LaunchPage : PageBase
 
             var parent = TaskManager.Instance.CreateParent($"安装 Minecraft {versionInfo.Id}");
 
-            parent.CreateSubTask<int>($"获取版本信息 ({versionInfo.Id})", 0, async (ct, deps, progress) =>
+            parent.CreateSubTask($"获取版本信息 ({versionInfo.Id})", 0, async (_, _, progress) =>
             {
                 progress.Report(100);
                 await Task.CompletedTask;

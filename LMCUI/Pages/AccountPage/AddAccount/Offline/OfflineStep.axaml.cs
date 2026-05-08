@@ -37,8 +37,8 @@ public partial class OfflineStep : AddAccountStep
         if (data != null)
         {
             var offlineData = ((string? id, string? uuid))data;
-            this.ignBox.Text = offlineData.id;
-            this.uuidBox.Text = offlineData.uuid;
+            ignBox.Text = offlineData.id;
+            uuidBox.Text = offlineData.uuid;
         }
     }
     public override (Type? type, object? data) NextStep()

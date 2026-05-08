@@ -135,31 +135,40 @@ public sealed class HttpUtils
             {
                 request.Headers.TryAddWithoutValidation(header.Key, header.Value);
             }
-            
-            for(int i = 0; i < _retry; i++)
+
+            Exception? lastException = null;
+            for (int i = 0; i < _retry; i++)
             {
                 try
                 {
-                    if (!_timeout.HasValue) continue;
-                    using var cts = new CancellationTokenSource(_timeout.Value);
-                    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
-                    try
+                    HttpResponseMessage response;
+                    if (_timeout.HasValue)
                     {
-                        return await s_httpClient.SendAsync(request, linkedCts.Token);
+                        using var cts = new CancellationTokenSource(_timeout.Value);
+                        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
+                        try
+                        {
+                            response = await s_httpClient.SendAsync(request, linkedCts.Token);
+                        }
+                        catch (TaskCanceledException ex) when (cts.IsCancellationRequested)
+                        {
+                            throw new TimeoutException($"Request timed out after {_timeout.Value.TotalSeconds} seconds", ex);
+                        }
                     }
-                    catch (TaskCanceledException ex) when (cts.IsCancellationRequested)
+                    else
                     {
-                        throw new TimeoutException($"Request timed out after {_timeout.Value.TotalSeconds} seconds", ex);
+                        response = await s_httpClient.SendAsync(request, cancellationToken);
                     }
-                    catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException(cancellationToken);
-                    }
+                    return response;
                 }
-                catch (Exception)
+                catch (OperationCanceledException)
                 {
-                    if(i == _retry - 1) throw;
-                    if(_retryDelay > 0) 
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    if (i < _retry - 1 && _retryDelay > 0)
                     {
                         try
                         {
@@ -172,15 +181,8 @@ public sealed class HttpUtils
                     }
                 }
             }
-            
-            try
-            {
-                return await s_httpClient.SendAsync(request, cancellationToken);
-            }
-            catch (TaskCanceledException)
-            {
-                throw new OperationCanceledException(cancellationToken);
-            }
+
+            throw lastException ?? new HttpRequestException("Request failed after retries");
         }
 
         public Task<HttpResponseMessage> GetAsync(CancellationToken cancellationToken = default) => WithMethod(HttpMethod.Get).SendAsync(cancellationToken);

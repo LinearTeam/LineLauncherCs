@@ -32,7 +32,7 @@ public class DownloadSourceManager
         return new DownloadSourceManager(bmcl);
     }
 
-    public string? TransformUrl(string officialUrl)
+    public string? TransformUrl(string? officialUrl)
     {
         return _primarySource.TransformUrlWithFallback(officialUrl);
     }

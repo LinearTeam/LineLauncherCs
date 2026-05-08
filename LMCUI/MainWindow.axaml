@@ -21,7 +21,6 @@
         <!-- <Grid.Background> -->
         <!--     <ImageBrush Source="/Assets/LMC.png"/> -->
         <!-- </Grid.Background> -->
-        <!-- 消息队列，显示在屏幕顶部 -->
         <controls:MessageQueueControl Name="MessageQueue" 
                                   ZIndex="9999" 
                                   HorizontalAlignment="Stretch" 
@@ -43,10 +42,10 @@
             <ui:NavigationView.Header>
                 <ui:BreadcrumbBar Name="mainBcb" ItemClicked="MainBcb_OnItemClicked">
                     <ui:BreadcrumbBar.ItemTemplate>
-                        <DataTemplate DataType="lmcui:BreadCrumbBarItem">
+                        <DataTemplate DataType="nav:BreadCrumbBarItem">
                             <ui:BreadcrumbBarItem Content="{Binding}" AutomationProperties.Name="{Binding Title}">
                                 <ui:BreadcrumbBarItem.ContentTemplate>
-                                    <DataTemplate DataType="lmcui:BreadCrumbBarItem">
+                                    <DataTemplate DataType="nav:BreadCrumbBarItem">
                                         <TextBlock FontSize="20" Text="{Binding Title}" LineHeight="30"/>
                                     </DataTemplate>
                                 </ui:BreadcrumbBarItem.ContentTemplate>

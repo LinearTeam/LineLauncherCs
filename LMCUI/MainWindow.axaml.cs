@@ -23,7 +23,6 @@ using FluentAvalonia.UI.Windowing;
 using LMC.Basic.Logging;
 using LMCUI.Controls;
 using LMCUI.I18n;
-using LMCUI.Navigation;
 using LMCUI.Pages;
 using LMCUI.Pages.AccountPage;
 using LMCUI.Pages.Help;
@@ -98,15 +97,14 @@ public partial class MainWindow : AppWindow
     /// </summary>
     private static void NavigatePage(Type page, NavigateType type, NavigationViewItem item, object? param = null, string? tag = null, bool thrown = false, bool directlySet = false)
     {
-        if (type == NavigateType.Backward && tag == null)
+        switch (type)
         {
-            throw new ArgumentNullException(nameof(tag), "Argument 'tag' cannot be null when 'type' is 'Backward'.");
-        }
+            case NavigateType.Backward when tag == null:
+                throw new ArgumentNullException(nameof(tag), "Argument 'tag' cannot be null when 'type' is 'Backward'.");
 
-        if (type == NavigateType.Backward)
-        {
-            NavigateBack(tag, thrown);
-            return;
+            case NavigateType.Backward:
+                NavigateBack(tag, thrown);
+                return;
         }
 
         // 根据导航类型设置滑动方向
@@ -155,11 +153,8 @@ public partial class MainWindow : AppWindow
             pageInstance = Instance.mainFrm.CurrentPage!;
         }
 
-        // 更新标题
-        if (pageInstance.Title != null)
-        {
-            pageInstance.Title = I18nManager.Instance.GetString(pageInstance.Title);
-        }
+        pageInstance.Title = I18nManager.Instance.GetString(pageInstance.Title);
+        
 
         // 更新导航选中项
         UpdateNavigationSelection(item);
@@ -290,39 +285,4 @@ public partial class MainWindow : AppWindow
             }
         }
     }
-}
-
-public class PageNavigateWay
-{
-    public Type PageType { get; set; }
-    public object? Param { get; set; }
-    public NavigationViewItem Item { get; set; }
-    public bool DirectlySet { get; set; }
-
-    public PageNavigateWay(Type pageType, object? param, NavigationViewItem item, bool directlySet = false)
-    {
-        PageType = pageType;
-        Param = param;
-        Item = item;
-        DirectlySet = directlySet;
-    }
-
-    public PageNavigateWay(Type pageType, NavigationViewItem item) : this(pageType, null, item)
-    {
-    }
-}
-
-public class BreadCrumbBarItem(PageNavigateWay pageNavigateWay, string title, string tag)
-{
-    public PageNavigateWay PageNavigateWay { get; set; } = pageNavigateWay;
-    public string Title { get; set; } = title;
-    public string Tag { get; set; } = tag;
-
-}
-
-public enum NavigateType
-{
-    Append,
-    New,
-    Backward
 }

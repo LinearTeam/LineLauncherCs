@@ -14,6 +14,7 @@
 
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
+using LMCUI.Navigation;
 
 namespace LMCUI.Pages.VersionManagePage;
 

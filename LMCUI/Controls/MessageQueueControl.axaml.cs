@@ -65,7 +65,7 @@ public partial class MessageQueueControl : UserControl
 
         if (isClosable)
         {
-            infoBar.Closed += (sender, e) => RemoveMessage(messageId);
+            infoBar.Closed += (_, _) => RemoveMessage(messageId);
         }
 
         var messageItem = new InfoBarMessageItem
@@ -163,7 +163,7 @@ public partial class MessageQueueControl : UserControl
             var message = _messageQueue.Dequeue();
             AddMessageToUi(message);
 
-            var timer = new Timer(state => 
+            var timer = new Timer(_ => 
             {
                 Dispatcher.UIThread.Post(() => RemoveMessage(message.Id));
             }, null, message.Duration, Timeout.Infinite);
@@ -182,7 +182,7 @@ public partial class MessageQueueControl : UserControl
             var message = _messageQueue.Dequeue();
             AddMessageToUi(message);
 
-            var timer = new Timer(state => 
+            var timer = new Timer(_ => 
             {
                 Dispatcher.UIThread.Post(() => RemoveMessage(message.Id));
             }, null, message.Duration, Timeout.Infinite);
@@ -204,7 +204,7 @@ public partial class MessageQueueControl : UserControl
             teachingTipItem.Control.IsEnabled = true;
             teachingTipItem.Control.IsVisible = true;
             teachingTipItem.Control.IsOpen = true;
-            teachingTipItem.Control.Closed += (sender, args) =>
+            teachingTipItem.Control.Closed += (sender, _) =>
             {
                 if (sender.Tag is string tag) RemoveMessage(tag);
             };

@@ -66,7 +66,7 @@ public abstract class DownloadSource
     public abstract string? TransformMojangJavaUrl(string officialUrl);
 
     // 通用URL转换方法，根据URL类型自动选择合适的转换器
-    public string? TransformUrl(string officialUrl)
+    public string? TransformUrl(string? officialUrl)
     {
         if (string.IsNullOrWhiteSpace(officialUrl))
             return null;
@@ -98,7 +98,7 @@ public abstract class DownloadSource
     }
 
     // 当前源转换失败时，自动向下一个源查找
-    public string? TransformUrlWithFallback(string officialUrl)
+    public string? TransformUrlWithFallback(string? officialUrl)
     {
         var result = TransformUrl(officialUrl);
         return result ?? FallbackSource?.TransformUrlWithFallback(officialUrl);

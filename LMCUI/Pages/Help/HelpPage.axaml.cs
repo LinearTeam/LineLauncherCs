@@ -24,6 +24,7 @@ using FluentAvalonia.UI.Controls;
 using LMC.Basic.Logging;
 using LMC.Help.Models;
 using LMCUI.I18n;
+using LMCUI.Navigation;
 using LMCUI.Utils;
 using Markdown.Avalonia;
 
@@ -36,7 +37,7 @@ public partial class HelpPage : HelpContentPage
 
     public HelpPage() : base(new HelpContentPageParam(I18nManager.Instance.GetString("Pages.HelpPage.Title"), "HelpPage", []))
     {
-        this.Loaded += OnLoaded;
+        Loaded += OnLoaded;
         InitializeComponent();
     }
     async private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -63,7 +64,7 @@ public partial class HelpPage : HelpContentPage
     {
         try
         {
-            this.HelpItems = _helpFile!.Helps;
+            HelpItems = _helpFile!.Helps;
             OnLoaded();
         }
         catch(Exception ex)
@@ -81,7 +82,7 @@ public class HelpContentPage : PageBase
     public HelpContentPage(HelpContentPageParam hcpp) : base(hcpp.Title, hcpp.Tag)
     {
         HelpItems = hcpp.HelpItems;
-        this.Loaded += OnLoaded;
+        Loaded += OnLoaded;
     }
     public HelpContentPage() : base("",""){}
     public void OnLoaded()
@@ -168,7 +169,7 @@ public class HelpContentPage : PageBase
                     };
                     settingsCard.Click += (_, _) =>
                     {
-                        var param = new HelpContentPageParam(shi.Title, this.Tag + "." + shi.Key, shi.Helps);
+                        var param = new HelpContentPageParam(shi.Title, Tag + "." + shi.Key, shi.Helps);
                         MainWindow.NavigatePage(
                             new PageNavigateWay(
                                 typeof(HelpContentPage), 
@@ -183,7 +184,7 @@ public class HelpContentPage : PageBase
                 
             }
         }
-        this.Content = scrollViewer;
+        Content = scrollViewer;
     }
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
@@ -194,10 +195,10 @@ public class HelpContentPage : PageBase
     {
         if (param is HelpContentPageParam hcpp)
         {
-            this.Title = hcpp.Title;
-            this.Tag  = hcpp.Tag;
+            Title = hcpp.Title;
+            Tag  = hcpp.Tag;
             HelpItems = hcpp.HelpItems;
-            this.Loaded += OnLoaded;
+            Loaded += OnLoaded;
         }
     }
 }

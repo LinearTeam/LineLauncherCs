@@ -15,7 +15,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using LMCCore.Game.Model.LocalVersion.Libraries;
 
 namespace LMCUI;
 

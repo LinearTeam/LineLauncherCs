@@ -15,7 +15,6 @@
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Download.Vanilla;
 using LMCCore.Game.Model.LocalVersion;
-using LMCCore.Game.Model.LocalVersion.Libraries;
 using LMCCore.Tasks.Model;
 
 namespace LMCCore.Game.Download;
@@ -74,7 +73,7 @@ public class DownloadManager
         string assetRoot,
         int priority = 50)
     {
-        var name = $"下载原版资源文件 ({versionInfo.Id})";
+        var name = $"下载原版资源文件";
         var executor = VanillaGameSubTaskFactory.CreateAssetsExecutor(
             VanillaDownloader, versionInfo.Id, versionInfo.AssetIndex, assetRoot);
 
@@ -92,7 +91,7 @@ public class DownloadManager
     /// <summary>
     /// 获取指定版本的版本信息
     /// </summary>
-    public async Task<LocalVersionInfo> GetVersionInfoAsync(string versionId, CancellationToken cancellationToken = default)
+    public async Task<LocalVersionInfo?> GetVersionInfoAsync(string versionId, CancellationToken cancellationToken = default)
     {
         return await VanillaDownloader.GetVersionInfoAsync(versionId, cancellationToken);
     }
@@ -100,7 +99,7 @@ public class DownloadManager
     /// <summary>
     /// 解析版本JSON为版本信息
     /// </summary>
-    public LocalVersionInfo ParseVersionJson(string json)
+    public LocalVersionInfo? ParseVersionJson(string json)
     {
         return VanillaGameDownloader.ParseVersionJson(json);
     }

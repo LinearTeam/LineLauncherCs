@@ -94,7 +94,7 @@ public class JsonUtils
 
     public List<T>? GetArray<T>()
     {
-        var node = this.Node;
+        var node = Node;
         if (node is not JsonArray array) return null;
 
         try

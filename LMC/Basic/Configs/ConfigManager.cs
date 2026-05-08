@@ -131,7 +131,7 @@ public static class ConfigManager {
     }
 
     private static void SaveInternal<T>(string configName, T config, string filePath) {
-        string configDir = Path.GetDirectoryName(filePath)!;
+        var configDir = Path.GetDirectoryName(filePath)!;
         Directory.CreateDirectory(configDir);
 
         var jsonObject = JsonObject.Create(JsonSerializer.SerializeToElement(config, s_serializerOptions));
