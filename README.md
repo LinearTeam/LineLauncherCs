@@ -16,9 +16,9 @@ LMC曾有一个WPF版本，位于`wpf`分支下。由于WPF的无法跨平台等
  - ~~重建项目~~
  - ~~基础UI~~
  - ~~Java管理~~
- - 帮助库
+ - ~~帮助库~~
  - 版本管理
- - 账号管理
+ - ~~账号管理~~
  - OOBE
  - 下载游戏
  - 启动游戏
@@ -102,3 +102,12 @@ LineLauncherCs/
 - [Moq](https://github.com/moq/moq) 
 
   由 Moq 团队开发，使用[BSD 3-Clause](https://licenses.nuget.org/BSD-3-Clause)协议开源
+
+### 特别感谢
+项目中大部分与Minecraft有关的都参考了[PCL2](https://github.com/Hex-Dragon/PCL2/)和[HMCL](https://github.com/HMCL-dev/HMCL/tree/main/HMCL)的代码，同时还参考了[我的博客](https://blog.huangyu.win/)中的内容，而其中的内容又参考了上述启动器的代码。
+
+同时，还参考了[TT702的Forge安装处理器](https://github.com/TT702/Forge-InstallProcessor.NET)的代码。
+
+同时使用了[BMCLAPI](https://bmclapi2.bangbang93.com/)作为镜像源。
+
+同时也参考了[Minecraft Wiki](https://zh.minecraft.wiki/w/%E6%95%99%E7%A8%8B/%E7%BC%96%E5%86%99%E5%90%AF%E5%8A%A8%E5%99%A8)中的教程。

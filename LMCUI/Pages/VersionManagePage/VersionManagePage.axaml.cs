@@ -51,7 +51,7 @@ public partial class VersionManagePage : PageBase
     private string? _watchedRootPath;
     private string _lastInvalidVersionSignature = string.Empty;
     private DateTime _lastRefreshUtc = DateTime.MinValue;
-    private static readonly TimeSpan MinimumLoadingDuration = TimeSpan.FromMilliseconds(500);
+    private readonly static TimeSpan MinimumLoadingDuration = TimeSpan.FromMilliseconds(500);
     private const int RenderBatchSize = 12;
 
     private enum VersionDisplayType
@@ -238,7 +238,7 @@ public partial class VersionManagePage : PageBase
         _renderCts?.Cancel();
     }
 
-    private async Task RefreshPageAsync(bool forceInvalidNotification = false)
+    async private Task RefreshPageAsync(bool forceInvalidNotification = false)
     {
         _refreshCts?.Cancel();
         _refreshCts = new CancellationTokenSource();
@@ -337,7 +337,7 @@ public partial class VersionManagePage : PageBase
             I18nManager.Instance.GetString("Pages.VersionManagePage.EmptyState.Loading"));
     }
 
-    private async Task RenderVersionsAsync(IReadOnlyList<VersionRenderData> renderData, CancellationToken cancellationToken)
+    async private Task RenderVersionsAsync(IReadOnlyList<VersionRenderData> renderData, CancellationToken cancellationToken)
     {
         ResetVersionListPanel();
         _expanderMap.Clear();
@@ -497,7 +497,7 @@ public partial class VersionManagePage : PageBase
             string.Equals(root.RootPath, selectedRoot.RootPath, StringComparison.OrdinalIgnoreCase));
     }
 
-    private async Task AddRootAsync(ListBox rootList)
+    async private Task AddRootAsync(ListBox rootList)
     {
         try
         {
@@ -555,7 +555,7 @@ public partial class VersionManagePage : PageBase
         ShowRootManagerDialog();
     }
 
-    private async void CurrentRootExpander_OnClick(object? sender, RoutedEventArgs e)
+    async private void CurrentRootExpander_OnClick(object? sender, RoutedEventArgs e)
     {
         var selectedRoot = _versionManager.GetSelectedRoot();
         if (selectedRoot == null || !Directory.Exists(selectedRoot.RootPath))
@@ -616,7 +616,7 @@ public partial class VersionManagePage : PageBase
         };
     }
 
-    private async Task<IReadOnlyList<VersionRenderData>> BuildVersionRenderDataAsync(
+    async private Task<IReadOnlyList<VersionRenderData>> BuildVersionRenderDataAsync(
         IReadOnlyList<LocalGameVersionEntry> versions,
         CancellationToken cancellationToken)
     {
@@ -853,7 +853,7 @@ public partial class VersionManagePage : PageBase
         _watchedRootPath = null;
     }
 
-    private static async Task EnsureMinimumLoadingDurationAsync(DateTime loadingStartedUtc, CancellationToken cancellationToken)
+    async private static Task EnsureMinimumLoadingDurationAsync(DateTime loadingStartedUtc, CancellationToken cancellationToken)
     {
         var elapsed = DateTime.UtcNow - loadingStartedUtc;
         var remaining = MinimumLoadingDuration - elapsed;

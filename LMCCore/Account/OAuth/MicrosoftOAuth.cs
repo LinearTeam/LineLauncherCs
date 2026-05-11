@@ -159,6 +159,55 @@ public static class MicrosoftOAuth
             return (false, null, null, ex);
         }
     }
+
+    public async static Task<(string? skinUrl, Exception? exception)> GetActiveSkinUrlAsync(MicrosoftAccount account, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            s_logger.Info($"开始获取微软账号活跃皮肤地址: {account.Name}");
+            var mcAccessTokenResult = await GetMinecraftServiceAccessTokenAsync(account, cancellationToken);
+            if (mcAccessTokenResult.exception != null || string.IsNullOrWhiteSpace(mcAccessTokenResult.accessToken))
+            {
+                s_logger.Warn($"获取微软账号 Minecraft AccessToken 失败: {account.Name}");
+                return (null, mcAccessTokenResult.exception ?? new Exception("Failed to get minecraft access token"));
+            }
+
+            var profileResponse = await HttpUtils.CreateRequest("https://api.minecraftservices.com/minecraft/profile")
+                .WithHeader("Authorization", "Bearer " + mcAccessTokenResult.accessToken)
+                .GetAsync(cancellationToken);
+            var profileResponseString = await profileResponse.Content.ReadAsStringAsync(cancellationToken);
+            profileResponse.EnsureSuccessStatusCode();
+
+            var profileJson = JsonUtils.Parse(profileResponseString);
+            var skins = profileJson.GetArray<object>("skins");
+            if (skins == null || skins.Count == 0)
+            {
+                s_logger.Info($"微软账号没有可用皮肤记录: {account.Name}");
+                return (null, null);
+            }
+
+            foreach (var skin in skins)
+            {
+                var skinJson = JsonUtils.Parse(System.Text.Json.JsonSerializer.Serialize(skin, JsonUtils.DefaultSerializeOptions));
+                if (string.Equals(skinJson.GetString("state"), "ACTIVE", StringComparison.OrdinalIgnoreCase))
+                {
+                    var activeSkinUrl = skinJson.GetString("url");
+                    s_logger.Info($"已获取微软账号活跃皮肤地址: {account.Name}");
+                    return (activeSkinUrl, null);
+                }
+            }
+
+            var firstSkinUrl = JsonUtils.Parse(System.Text.Json.JsonSerializer.Serialize(skins[0], JsonUtils.DefaultSerializeOptions))
+                .GetString("url");
+            s_logger.Info($"微软账号没有 ACTIVE 皮肤，回退到首个皮肤地址: {account.Name}");
+            return (firstSkinUrl, null);
+        }
+        catch (Exception ex)
+        {
+            s_logger.Warn($"获取微软账号活跃皮肤地址失败: {account.Name}");
+            return (null, ex);
+        }
+    }
     
     async private static Task<(string? accessToken, Exception? exception)> GetMinecraftAccessToken(string userHash, string xstsToken, CancellationToken cancellationToken)
     {
@@ -177,6 +226,71 @@ public static class MicrosoftOAuth
             return (token, null);
         }catch (Exception ex)
         {
+            return (null, ex);
+        }
+    }
+
+    public async static Task<(string? accessToken, Exception? exception)> GetMinecraftServiceAccessTokenAsync(MicrosoftAccount account, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(account.AccessToken) && account.ExpiresAt > DateTimeOffset.Now.AddMinutes(1))
+            {
+                s_logger.Info($"微软账号使用现有 AccessToken 获取 Minecraft 服务令牌: {account.Name}");
+                var xblFromAccessToken = await GetXblToken(account.AccessToken, cancellationToken);
+                if (xblFromAccessToken.exception == null && !string.IsNullOrWhiteSpace(xblFromAccessToken.xblToken))
+                {
+                    var xstsFromAccessToken = await GetXstsToken(xblFromAccessToken.xblToken!, cancellationToken);
+                    if (xstsFromAccessToken.exception == null &&
+                        !string.IsNullOrWhiteSpace(xstsFromAccessToken.xstsToken) &&
+                        !string.IsNullOrWhiteSpace(xstsFromAccessToken.userHash))
+                    {
+                        s_logger.Info($"微软账号现有 AccessToken 可用: {account.Name}");
+                        return await GetMinecraftAccessToken(xstsFromAccessToken.userHash!, xstsFromAccessToken.xstsToken!, cancellationToken);
+                    }
+                }
+
+                s_logger.Warn($"微软账号现有 AccessToken 不可用，准备使用 RefreshToken: {account.Name}");
+            }
+
+            s_logger.Info($"微软账号开始使用 RefreshToken 刷新令牌: {account.Name}");
+            var tokenResult = await GetTokenByRefreshToken(account.RefreshToken, cancellationToken);
+            if (tokenResult.exception != null || string.IsNullOrWhiteSpace(tokenResult.accessToken))
+            {
+                s_logger.Warn($"微软账号 RefreshToken 刷新失败: {account.Name}");
+                return (null, tokenResult.exception ?? new Exception("Failed to refresh microsoft access token"));
+            }
+
+            account.AccessToken = tokenResult.accessToken!;
+            if (!string.IsNullOrWhiteSpace(tokenResult.refreshToken))
+            {
+                account.RefreshToken = tokenResult.refreshToken!;
+            }
+            account.ExpiresAt = DateTimeOffset.Now.AddSeconds(tokenResult.expiresIn);
+            s_logger.Info($"微软账号令牌刷新成功: {account.Name}");
+
+            var xblResult = await GetXblToken(account.AccessToken, cancellationToken);
+            if (xblResult.exception != null || string.IsNullOrWhiteSpace(xblResult.xblToken))
+            {
+                s_logger.Warn($"微软账号获取 XBL Token 失败: {account.Name}");
+                return (null, xblResult.exception ?? new Exception("Failed to get xbl token"));
+            }
+
+            var xstsResult = await GetXstsToken(xblResult.xblToken!, cancellationToken);
+            if (xstsResult.exception != null ||
+                string.IsNullOrWhiteSpace(xstsResult.xstsToken) ||
+                string.IsNullOrWhiteSpace(xstsResult.userHash))
+            {
+                s_logger.Warn($"微软账号获取 XSTS Token 失败: {account.Name}");
+                return (null, xstsResult.exception ?? new Exception("Failed to get xsts token"));
+            }
+
+            s_logger.Info($"微软账号已获取 Minecraft 服务令牌: {account.Name}");
+            return await GetMinecraftAccessToken(xstsResult.userHash!, xstsResult.xstsToken!, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            s_logger.Warn($"微软账号获取 Minecraft 服务令牌失败: {account.Name}");
             return (null, ex);
         }
     }
@@ -281,6 +395,32 @@ public static class MicrosoftOAuth
             var expiresIn = json.GetOrDefault("expires_in", 3600);
             return (accessToken, refreshToken, expiresIn, null);
         }catch (Exception ex)
+        {
+            return (null, null, 0, ex);
+        }
+    }
+
+    async private static Task<(string? accessToken, string? refreshToken, int expiresIn, Exception? exception)> GetTokenByRefreshToken(string refreshToken, CancellationToken cancellationToken)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var response = await HttpUtils.CreateRequest("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
+                .WithFormContent(builder => builder
+                    .Add("client_id", "1cbfda79-fc84-47f9-8110-f924da9841ec")
+                    .Add("refresh_token", refreshToken)
+                    .Add("grant_type", "refresh_token")
+                    .Add("scope", "XboxLive.signin offline_access"))
+                .PostAsync(cancellationToken);
+            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+            response.EnsureSuccessStatusCode();
+            var json = JsonUtils.Parse(responseString);
+            var accessToken = json.GetString("access_token");
+            var newRefreshToken = json.GetString("refresh_token");
+            var expiresIn = json.GetOrDefault("expires_in", 3600);
+            return (accessToken, newRefreshToken, expiresIn, null);
+        }
+        catch (Exception ex)
         {
             return (null, null, 0, ex);
         }

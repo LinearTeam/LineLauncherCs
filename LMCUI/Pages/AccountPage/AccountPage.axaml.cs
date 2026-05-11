@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
@@ -54,20 +55,17 @@ public partial class AccountPage : PageBase
 
     async private Task RefreshAccountListInternal()
     {
-        // Why
+        s_logger.Info("开始刷新账号列表");
         await Task.Delay(200);
         AccountManager.Load();
-        var accounts = AccountManager.Accounts;
+        var accounts = AccountManager.Accounts.ToList();
+        s_logger.Info($"已加载 {accounts.Count} 个账号");
         
         foreach (var account in accounts)
         {
-            if (string.IsNullOrEmpty(account.AvatarBase64))
-            {
-                //Assets/steve.png
-                // ReSharper disable once StringLiteralTypo
-                account.AvatarBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABjklEQVR4AezWwUvCUBwH8K+D0tRVRGRJqVBE1MF754LA/oA6WZgQGBRdjeoW1M2gwEtQl24dMgqC6NKhQ4EXo0seFExBihpIzbbWyW87tNOah218YI9tj/e+v21vQjgkqmwsIKosHOxQ2Ui/R2VDvS6VDfvdKuO+fo5HB0SVCbB4swcg1BWA6StSVxUwj6sVLNDlBuvr9IA58HtXtP6YXYLmS2AnEQVLrcTBdleXwZLzc2DrC1GwzZlpMG+bE6z5EtC/BWa3rU9gIzoLpsgOsOqLBFaqVMHypQqYIiva/Q2v729gixPjYNYnYHaNjfq3PgG30wkWSabAjq8HwVzyJ1jQ1wO2n/GBxfZOwdq7/WCCUURmn7cHIDznH8EyazGw+GQZ7OzmFuzk/ApsKVIAO0pMgeVy92B2CaxPQJK/wArFJ7DtgzRYyCviL1vpQ7CqVANzoEX7S2ywPgGzPzRG/VufQL5U1tbzhodiBUw/g4vsHdhlLgumv16qac8Y+dDWEmZ9AvoR/3fb9ASMJvQNAAD//zii3k4AAAAGSURBVAMAKieGVEUw3nEAAAAASUVORK5CYII=";
-            }
+            AccountAvatarService.ApplyCachedOrDefaultAvatar(account);
         }
+        s_logger.Info("已为账号列表应用默认头像或本地缓存头像");
         
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -75,6 +73,44 @@ public partial class AccountPage : PageBase
                 ? "Pages.AccountPage.AccountListExpander.NoAccountsDescription"
                 : "Pages.AccountPage.AccountListExpander.Description");
             return acclist.ItemsSource = new List<Account>(accounts);
+        });
+        s_logger.Info("账号列表已提交到 UI");
+
+        _ = Task.Run(async () =>
+        {
+            s_logger.Info("开始后台刷新微软账号头像");
+            bool hasAvatarUpdate = false;
+            bool shouldSaveAccounts = false;
+
+            foreach (var account in accounts.OfType<MicrosoftAccount>())
+            {
+                s_logger.Info($"开始刷新微软账号头像: {account.Name} ({account.Uuid})");
+                var previousRefreshToken = account.RefreshToken;
+                var avatarUpdated = await AccountAvatarService.TryUpdateMicrosoftAvatarAsync(account);
+                hasAvatarUpdate |= avatarUpdated;
+                shouldSaveAccounts |= !string.Equals(previousRefreshToken, account.RefreshToken, StringComparison.Ordinal);
+                s_logger.Info(avatarUpdated
+                    ? $"微软账号头像已更新: {account.Name}"
+                    : $"微软账号头像未更新，继续使用现有头像: {account.Name}");
+            }
+
+            if (shouldSaveAccounts)
+            {
+                s_logger.Info("检测到微软账号令牌更新，正在保存账号数据");
+                AccountManager.Save();
+            }
+
+            if (!hasAvatarUpdate)
+            {
+                s_logger.Info("后台头像刷新完成，没有需要回写到 UI 的头像变更");
+                return;
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                acclist.ItemsSource = new List<Account>(accounts);
+            });
+            s_logger.Info("后台头像刷新完成，已将最新头像回写到 UI");
         });
     }
     

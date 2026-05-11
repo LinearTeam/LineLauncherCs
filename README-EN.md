@@ -16,9 +16,9 @@ LMC previously had a WPF version located in the `wpf` branch. Due to WPF's lack 
 - ~~Project reconstruction~~
 - ~~Basic UI~~
 - ~~Java management~~
-- Help Center
+- ~~Help Center~~
 - Version management
-- Account management
+- ~~Account management~~
 - OOBE
 - Game downloads
 - Game launching
@@ -103,3 +103,12 @@ Most can be found in the [.NET License Information](https://github.com/dotnet/co
 - [Moq](https://github.com/moq/moq) 
 
   Developed by the Moq team, open-sourced under the [BSD 3-Clause](https://licenses.nuget.org/BSD-3-Clause) license
+
+### Special Thanks
+A significant portion of the project's Minecraft-related components draws upon code from [PCL2](https://github.com/Hex-Dragon/PCL2/) and [HMCL](https://github.com/HMCL-dev/HMCL/), and also references content from [my blog](https://blog.huangyu.win/), which in turn draws upon code from the aforementioned launchers.
+
+Furthermore, the code from [TT702/Forge-InstallProcessor.NET](https://github.com/TT702/Forge-InstallProcessor.NET) was referenced.
+
+[BMCLAPI](https://bmclapi2.bangbang93.com/) is also utilized as a mirror source.
+
+Additionally, the tutorials from the [Minecraft Wiki](https://zh.minecraft.wiki/w/%E6%95%99%E7%A8%8B/%E7%BC%96%E5%86%99%E5%90%AF%E5%8A%A8%E5%99%A8) were consulted.
