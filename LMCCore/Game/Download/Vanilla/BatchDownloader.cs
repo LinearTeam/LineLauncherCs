@@ -93,6 +93,12 @@ public static class BatchDownloader
     // 进度报告节流：每完成5%或至少每500ms报告一次
     private const int ProgressReportInterval = 5;
 
+    private enum FileProcessResult
+    {
+        Downloaded,
+        Skipped
+    }
+
     /// <summary>
     /// 批量下载文件
     /// </summary>
@@ -116,94 +122,141 @@ public static class BatchDownloader
             .Distinct();
         PreCreateDirectories(directories.Select(d => d!));
 
-        var semaphore = new SemaphoreSlim(options.MaxConcurrency);
-        var completedCount = 0;
+        var downloadedCount = 0;
         var failedCount = 0;
         var skippedCount = 0;
         var lastReportedPercent = -1;
         var lastReportTime = DateTime.UtcNow;
+        var nextFileIndex = -1;
+        var workerCount = Math.Min(Math.Max(options.MaxConcurrency, 1), totalCount);
+        var progressLock = new object();
 
-        var tasks = files.Select(async file =>
+        void ReportProgress()
         {
-            await semaphore.WaitAsync(cancellationToken);
-            try
+            lock (progressLock)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    return;
+                TryReportProgress(
+                    ref lastReportedPercent,
+                    ref lastReportTime,
+                    Volatile.Read(ref downloadedCount),
+                    Volatile.Read(ref skippedCount),
+                    Volatile.Read(ref failedCount),
+                    totalCount,
+                    progress);
+            }
+        }
 
-                var savePath = options.GetSavePath(file);
-                var downloadUrl = options.GetDownloadUrl(file);
-                var displayName = options.GetDisplayName?.Invoke(file) ?? Path.GetFileName(savePath);
-                
-                // 检查是否需要跳过已有文件
-                if (File.Exists(savePath))
+        var workers = Enumerable.Range(0, workerCount).Select(_ => Task.Run(async () =>
+        {
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var fileIndex = Interlocked.Increment(ref nextFileIndex);
+                if (fileIndex >= totalCount)
                 {
-                    var skipReason = ShouldSkipExistingFile(file, options, savePath);
-                    if (skipReason != null)
+                    break;
+                }
+
+                try
+                {
+                    var result = await ProcessFileAsync(options, files[fileIndex], cancellationToken);
+                    if (result == FileProcessResult.Skipped)
                     {
-                        s_logger.Debug($"{displayName} 已存在（{skipReason}），跳过下载");
                         Interlocked.Increment(ref skippedCount);
-                        Interlocked.Increment(ref completedCount);
-                        TryReportProgress(ref lastReportedPercent, ref lastReportTime, completedCount, failedCount, totalCount, progress);
-                        return;
                     }
-                }
-
-                s_logger.Debug($"下载 {displayName}");
-
-                // 下载文件
-                await DownloadFileAsync(downloadUrl, savePath, cancellationToken, options.MaxRetries);
-
-                // 下载后校验
-                var hash = options.GetHash?.Invoke(file);
-                if (!string.IsNullOrEmpty(hash))
-                {
-                    var actualHash = ComputeSha1Fast(savePath);
-                    if (actualHash != hash)
+                    else
                     {
-                        s_logger.Warn($"{displayName} 校验失败，预期 {hash}，实际 {actualHash}，重新下载中");
-                        File.Delete(savePath);
-                        await DownloadFileAsync(downloadUrl, savePath, cancellationToken, options.MaxRetries);
-                        actualHash = ComputeSha1Fast(savePath);
-                        if (actualHash != hash)
-                        {
-                            s_logger.Error($"{displayName} 在重新下载后仍校验失败");
-                            throw new InvalidOperationException($"SHA1 mismatch for {displayName}");
-                        }
+                        Interlocked.Increment(ref downloadedCount);
                     }
-                }
 
-                Interlocked.Increment(ref completedCount);
-                TryReportProgress(ref lastReportedPercent, ref lastReportTime, completedCount, failedCount, totalCount, progress);
+                    ReportProgress();
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    s_logger.Error(ex, "下载失败");
+                    Interlocked.Increment(ref failedCount);
+                    ReportProgress();
+                    throw;
+                }
             }
-            catch (TaskCanceledException)
-            {
-                s_logger.Warn($"下载已被取消");
-            }
-            catch (Exception ex)
-            {
-                s_logger.Error(ex, $"下载失败");
-                Interlocked.Increment(ref failedCount);
-                throw;
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        });
+        }, cancellationToken));
 
         try
         {
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(workers);
+        }
+        catch (OperationCanceledException)
+        {
+            s_logger.Debug("下载已被取消");
+            throw;
         }
         catch
         {
+            cancellationToken.ThrowIfCancellationRequested();
             // 忽略单个失败
         }
 
         // 确保报告最终进度
-        progress?.Report(100);
-        return new BatchDownloadResult(completedCount - failedCount, failedCount, skippedCount);
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            progress?.Report(100);
+        }
+        return new BatchDownloadResult(downloadedCount, failedCount, skippedCount);
+    }
+
+    private static async Task<FileProcessResult> ProcessFileAsync<TFile>(
+        BatchDownloadOptions<TFile> options,
+        TFile file,
+        CancellationToken cancellationToken)
+    {
+        var savePath = options.GetSavePath(file);
+        var downloadUrl = options.GetDownloadUrl(file);
+        var displayName = options.GetDisplayName?.Invoke(file) ?? Path.GetFileName(savePath);
+        
+        // 检查是否需要跳过已有文件
+        if (File.Exists(savePath))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var skipReason = ShouldSkipExistingFile(file, options, savePath, cancellationToken);
+            if (skipReason != null)
+            {
+                s_logger.Debug($"{displayName} 已存在（{skipReason}），跳过下载");
+                return FileProcessResult.Skipped;
+            }
+        }
+
+        s_logger.Debug($"下载 {displayName}");
+
+        // 下载文件
+        await DownloadFileAsync(downloadUrl, savePath, cancellationToken, options.MaxRetries);
+
+        // 下载后校验
+        var hash = options.GetHash?.Invoke(file);
+        if (!string.IsNullOrEmpty(hash))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var actualHash = ComputeSha1Fast(savePath, cancellationToken);
+            if (actualHash != hash)
+            {
+                s_logger.Warn($"{displayName} 校验失败，预期 {hash}，实际 {actualHash}，重新下载中");
+                File.Delete(savePath);
+                await DownloadFileAsync(downloadUrl, savePath, cancellationToken, options.MaxRetries);
+                cancellationToken.ThrowIfCancellationRequested();
+                actualHash = ComputeSha1Fast(savePath, cancellationToken);
+                if (actualHash != hash)
+                {
+                    s_logger.Error($"{displayName} 在重新下载后仍校验失败");
+                    throw new InvalidOperationException($"SHA1 mismatch for {displayName}");
+                }
+            }
+        }
+
+        return FileProcessResult.Downloaded;
     }
 
     /// <summary>
@@ -212,8 +265,10 @@ public static class BatchDownloader
     private static string? ShouldSkipExistingFile<TFile>(
         TFile file, 
         BatchDownloadOptions<TFile> options, 
-        string savePath)
+        string savePath,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var fileSize = options.GetFileSize?.Invoke(file);
         var hash = options.GetHash?.Invoke(file);
         var existingSize = new FileInfo(savePath).Length;
@@ -241,7 +296,7 @@ public static class BatchDownloader
             }
 
             // 有hash要校验（不管SkipIfHashMatches如何，都应该校验）
-            var fileHash = ComputeSha1Fast(savePath);
+            var fileHash = ComputeSha1Fast(savePath, cancellationToken);
             if (fileHash == hash)
             {
                 return "SHA1匹配";
@@ -253,7 +308,7 @@ public static class BatchDownloader
         // 情况3：没有大小信息，但有hash
         if (!string.IsNullOrEmpty(hash))
         {
-            var fileHash = ComputeSha1Fast(savePath);
+            var fileHash = ComputeSha1Fast(savePath, cancellationToken);
             if (fileHash == hash)
             {
                 return "SHA1匹配";
@@ -269,12 +324,13 @@ public static class BatchDownloader
     private static void TryReportProgress(
         ref int lastReportedPercent, 
         ref DateTime lastReportTime, 
-        int completedCount, 
+        int downloadedCount,
+        int skippedCount,
         int failedCount, 
         int totalCount, 
         IProgress<int>? progress)
     {
-        var currentPercent = (completedCount + failedCount) * 100 / totalCount;
+        var currentPercent = (downloadedCount + skippedCount + failedCount) * 100 / totalCount;
         var now = DateTime.UtcNow;
         
         // 如果进度变化超过报告间隔或者超过500ms，则报告
@@ -305,21 +361,50 @@ public static class BatchDownloader
     /// <summary>
     /// 优化的SHA1计算：使用同步方式但分块读取，减少异步开销
     /// </summary>
-    private static string ComputeSha1Fast(string filePath)
+    private static string ComputeSha1Fast(string filePath, CancellationToken cancellationToken)
     {
+        var fileInfo = new FileInfo(filePath);
+        var bufferSize = GetHashBufferSize(fileInfo.Length);
+
         using var sha1 = System.Security.Cryptography.SHA1.Create();
-        using var stream = File.OpenRead(filePath);
+        using var stream = new FileStream(filePath, new FileStreamOptions
+        {
+            Access = FileAccess.Read,
+            Mode = FileMode.Open,
+            Share = FileShare.Read,
+            BufferSize = bufferSize,
+            Options = FileOptions.SequentialScan
+        });
         
         // 分块读取，避免大文件一次性加载
-        var buffer = new byte[81920]; // 80KB 缓冲区
+        var buffer = new byte[bufferSize];
+
         int bytesRead;
-        while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+        while (true)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            bytesRead = stream.Read(buffer, 0, buffer.Length);
+            if (bytesRead <= 0)
+                break;
+
             sha1.TransformBlock(buffer, 0, bytesRead, buffer, 0);
         }
         sha1.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
         
         return BitConverter.ToString(sha1.Hash!).Replace("-", "").ToLowerInvariant();
+    }
+
+    private static int GetHashBufferSize(long fileLength)
+    {
+        return fileLength switch
+        {
+            <= 64 * 1024 => 4 * 1024,
+            <= 512 * 1024 => 16 * 1024,
+            <= 4 * 1024 * 1024 => 64 * 1024,
+            <= 32 * 1024 * 1024 => 256 * 1024,
+            <= 128 * 1024 * 1024 => 512 * 1024,
+            _ => 1024 * 1024
+        };
     }
 
     private static async Task DownloadFileAsync(string url, string savePath, CancellationToken cancellationToken, int maxRetries = 3)
@@ -342,7 +427,7 @@ public static class BatchDownloader
                 await contentStream.CopyToAsync(fileStream, cancellationToken);
                 return;
             }
-            catch (Exception ex) when (retry < maxRetries)
+            catch (Exception ex) when (retry < maxRetries && !cancellationToken.IsCancellationRequested)
             {
                 lastException = ex;
                 s_logger.Debug($"下载失败 (重试 {retry + 1}/{maxRetries + 1}): {ex.Message}");

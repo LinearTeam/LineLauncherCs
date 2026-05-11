@@ -45,6 +45,20 @@ public abstract class TaskBase(string name) : INotifyPropertyChanged, IDisposabl
         }
     }
     public bool IsFinished => State is TaskState.Completed or TaskState.Faulted or TaskState.Canceled;
+
+    private bool _isExecuting;
+    public bool IsExecuting
+    {
+        get => _isExecuting;
+        protected set
+        {
+            if (_isExecuting == value)
+                return;
+
+            _isExecuting = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsExecuting)));
+        }
+    }
     
     protected readonly CancellationTokenSource Cts = new();
 

@@ -54,6 +54,7 @@ public class SubTask<T>(
 
     public async override Task ExecuteAsync()
     {
+        IsExecuting = true;
         try
         {
             State = TaskState.Running;
@@ -71,6 +72,7 @@ public class SubTask<T>(
             });
 
             Result = await execute(Cts.Token, deps, progress);
+            Cts.Token.ThrowIfCancellationRequested();
             State = TaskState.Completed;
             Progress = 100;
         }
@@ -78,11 +80,15 @@ public class SubTask<T>(
         {
             State = TaskState.Canceled;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             State = TaskState.Faulted;
             Parent.OnSubTaskFaulted(this);
             throw;
+        }
+        finally
+        {
+            IsExecuting = false;
         }
     }
 }

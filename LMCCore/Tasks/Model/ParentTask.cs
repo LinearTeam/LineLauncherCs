@@ -49,6 +49,8 @@ public class ParentTask(string name) : TaskBase(name)
             {
                 sub.Cancel();
             }
+
+            TaskManager.Instance.Signal();
         });
     }
 

@@ -126,10 +126,12 @@ public class TaskManager(int maxConcurrency) : IDisposable
             // 跳过已完成的或属于已失败父任务的任务
             if (task.IsFinished) continue;
             if (_faultedParents.Contains(task.Parent)) continue;
+            if (task.Parent.State == TaskState.Canceled) continue;
 
             await WaitDependencies(task);
             if (task.IsFinished) continue;
             if (_faultedParents.Contains(task.Parent)) continue;
+            if (task.Parent.State == TaskState.Canceled) continue;
 
             await _semaphore.WaitAsync(_managerCts.Token);
             running.Add(Task.Run(async () =>
@@ -155,8 +157,15 @@ public class TaskManager(int maxConcurrency) : IDisposable
     async private Task WaitDependencies(SubTaskBase task)
     {
         foreach (var dep in task.Dependencies)
+        {
             while (!dep.IsFinished)
+            {
+                if (task.IsFinished || task.Parent.State == TaskState.Canceled)
+                    return;
+
                 await Task.Delay(10);
+            }
+        }
     }
 
     public void Dispose()
