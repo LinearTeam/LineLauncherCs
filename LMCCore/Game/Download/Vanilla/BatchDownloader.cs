@@ -102,7 +102,7 @@ public static class BatchDownloader
     /// <summary>
     /// 批量下载文件
     /// </summary>
-    public static async Task<BatchDownloadResult> DownloadAsync<TFile>(
+    public async static Task<BatchDownloadResult> DownloadAsync<TFile>(
         BatchDownloadOptions<TFile> options,
         CancellationToken cancellationToken,
         IProgress<int>? progress = null)
@@ -209,7 +209,7 @@ public static class BatchDownloader
         return new BatchDownloadResult(downloadedCount, failedCount, skippedCount);
     }
 
-    private static async Task<FileProcessResult> ProcessFileAsync<TFile>(
+    async private static Task<FileProcessResult> ProcessFileAsync<TFile>(
         BatchDownloadOptions<TFile> options,
         TFile file,
         CancellationToken cancellationToken)
@@ -407,7 +407,7 @@ public static class BatchDownloader
         };
     }
 
-    private static async Task DownloadFileAsync(string url, string savePath, CancellationToken cancellationToken, int maxRetries = 3)
+    async private static Task DownloadFileAsync(string url, string savePath, CancellationToken cancellationToken, int maxRetries = 3)
     {
         Exception? lastException = null;
         
