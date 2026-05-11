@@ -1,11 +1,11 @@
 // Copyright 2025-2026 LinearTeam
-// 
+//
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
 //    You may obtain a copy of the License at
-// 
+//
 //        http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //    Unless required by applicable law or agreed to in writing, software
 //    distributed under the License is distributed on an "AS IS" BASIS,
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,11 +18,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
-using LMCUI.Navigation;
 using FluentAvalonia.UI.Windowing;
 using LMC.Basic.Logging;
 using LMCUI.Controls;
 using LMCUI.I18n;
+using LMCUI.Navigation;
 using LMCUI.Pages;
 using LMCUI.Pages.AccountPage;
 using LMCUI.Pages.Help;
@@ -31,19 +31,16 @@ using LMCUI.Pages.SettingsPage;
 using LMCUI.Pages.TaskPage;
 using LMCUI.Pages.VersionManagePage;
 
-
 namespace LMCUI;
 
 public partial class MainWindow : FAAppWindow
 {
-    private readonly static Logger s_logger = new Logger("MainWindow");
-    
-    public static MainWindow Instance { get; private set; } = null!;
-    public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new ObservableCollection<BreadCrumbBarItem>();
+    private readonly static Logger s_logger = new("MainWindow");
 
-    /// <summary>
-    /// 导航视图项与页面类型的映射
-    /// </summary>
+    public static MainWindow Instance { get; private set; } = null!;
+
+    public ObservableCollection<BreadCrumbBarItem> BreadCrumbItemSource = new();
+
     private readonly Dictionary<string, Type> _navItemTagToPageType = new();
 
     public MainWindow()
@@ -55,15 +52,11 @@ public partial class MainWindow : FAAppWindow
         InitializeNavigationMapping();
     }
 
-    /// <summary>
-    /// 初始化导航映射
-    /// </summary>
     private void InitializeNavigationMapping()
     {
-        // 主导航项
         _navItemTagToPageType["LaunchPage"] = typeof(LaunchPage);
         _navItemTagToPageType["VersionManagePage"] = typeof(VersionManagePage);
-        _navItemTagToPageType["DownloadPage"] = typeof(LaunchPage); // TODO: 未来实现下载页面
+        _navItemTagToPageType["DownloadPage"] = typeof(LaunchPage);
         _navItemTagToPageType["AccountPage"] = typeof(AccountPage);
         _navItemTagToPageType["TaskPage"] = typeof(TaskPage);
         _navItemTagToPageType["SettingsPage"] = typeof(SettingsPage);
@@ -74,29 +67,27 @@ public partial class MainWindow : FAAppWindow
     {
         mnv.SettingsItem.Tag = "SettingsPage";
         mnv.SettingsItem.Content = I18nManager.Instance.GetString("MainWindow.NavItems.SettingsPage");
-
-        // 初始化默认页面
         mainFrm.Navigated += OnFrameNavigated;
     }
 
     private void OnFrameNavigated(object? sender, NavigationEventArgs e)
     {
-        // 通知页面
         e.Page.OnNavigatedTo();
     }
 
-    /// <summary>
-    /// 导航到页面
-    /// </summary>
     public static void NavigatePage(PageNavigateWay way, NavigateType type, string? tag = null, bool thrown = false)
     {
         NavigatePage(way.PageType, type, way.Item, way.Param, tag, thrown, way.DirectlySet);
     }
 
-    /// <summary>
-    /// 导航到页面
-    /// </summary>
-    private static void NavigatePage(Type page, NavigateType type, FANavigationViewItem item, object? param = null, string? tag = null, bool thrown = false, bool directlySet = false)
+    private static void NavigatePage(
+        Type page,
+        NavigateType type,
+        FANavigationViewItem item,
+        object? param = null,
+        string? tag = null,
+        bool thrown = false,
+        bool directlySet = false)
     {
         switch (type)
         {
@@ -108,24 +99,25 @@ public partial class MainWindow : FAAppWindow
                 return;
         }
 
-        // 根据导航类型设置滑动方向
-        // Append: 从右侧滑入，New: 从下方滑入
+        if (type == NavigateType.New)
+        {
+            item = Instance.ResolveNavigationItem(page) ?? item;
+        }
+
         Instance.mainFrm.SlideDirection = type == NavigateType.Append
             ? SlideDirection.Right
             : SlideDirection.Bottom;
 
         PageBase pageInstance;
-        
+
         if (directlySet)
         {
-            // 直接创建实例（绕过 Frame 的缓存逻辑）
             pageInstance = (PageBase)Activator.CreateInstance(page)!;
             pageInstance.ProcessParameter(param);
             Instance.mainFrm.SetContent(pageInstance);
         }
         else
         {
-            // 使用 Frame 导航
             var registration = PageRegistry.Instance.GetByType(page);
             if (registration == null)
             {
@@ -136,66 +128,56 @@ public partial class MainWindow : FAAppWindow
                 {
                     throw new Exception($"Page not registered: {page}");
                 }
+
                 return;
             }
 
             if (!Instance.mainFrm.Navigate(registration, param))
             {
                 s_logger.Error($"""
-                    导航页面失败:
+                    导航到页面失败:
                     {type} : {page}
                     """);
                 if (thrown)
                 {
                     throw new Exception("Navigate failed");
                 }
+
                 return;
             }
+
             pageInstance = Instance.mainFrm.CurrentPage!;
         }
 
         pageInstance.Title = I18nManager.Instance.GetString(pageInstance.Title);
-        
-
-        // 更新导航选中项
         UpdateNavigationSelection(item);
-
-        // 处理面包屑
         HandleBreadcrumb(type, pageInstance, item, param);
     }
 
-    /// <summary>
-    /// 导航返回（面包屑点击）- 从左侧滑入
-    /// </summary>
     private static void NavigateBack(string tag, bool thrown)
     {
-        // 查找面包屑项
         var bcbItem = Instance.BreadCrumbItemSource.ToList().Find(bcbi => bcbi.Tag == tag);
         if (bcbItem == null)
         {
-            s_logger.Error($"未找到面包屑项: {tag}");
+            s_logger.Error($"BreadCrumbItem未找到: {tag}");
             if (thrown)
             {
                 throw new InvalidOperationException($"BreadCrumbItem not found: {tag}");
             }
+
             return;
         }
 
-        // 更新选中项
         var way = bcbItem.PageNavigateWay;
         UpdateNavigationSelection(way.Item);
-
-        // 返回时使用从左侧滑入的方向
         Instance.mainFrm.SlideDirection = SlideDirection.Left;
 
-        // 导航到目标页面（不记录历史，因为这是返回操作）
         var registration = PageRegistry.Instance.GetByType(way.PageType);
         if (registration != null)
         {
             Instance.mainFrm.NavigateWithoutHistory(registration, way.Param);
         }
 
-        // 移除后续的面包屑项（不包括当前点击的项）
         var index = Instance.BreadCrumbItemSource.IndexOf(bcbItem);
         for (int i = Instance.BreadCrumbItemSource.Count - 1; i > index; i--)
         {
@@ -203,17 +185,60 @@ public partial class MainWindow : FAAppWindow
         }
     }
 
-    /// <summary>
-    /// 更新导航选中项
-    /// </summary>
     private static void UpdateNavigationSelection(FANavigationViewItem item)
     {
         Instance.mnv.SelectedItem = item;
     }
 
-    /// <summary>
-    /// 处理面包屑导航
-    /// </summary>
+    private FANavigationViewItem? ResolveNavigationItem(Type pageType)
+    {
+        var matchedTag = _navItemTagToPageType
+            .FirstOrDefault(pair => pair.Value == pageType)
+            .Key;
+
+        if (string.IsNullOrEmpty(matchedTag))
+        {
+            return null;
+        }
+
+        return FindNavigationItemByTag(matchedTag);
+    }
+
+    private FANavigationViewItem? FindNavigationItemByTag(string tag)
+    {
+        if (mnv.SettingsItem?.Tag?.ToString() == tag)
+        {
+            return mnv.SettingsItem;
+        }
+
+        return FindNavigationItemByTag(mnv.MenuItems, tag)
+               ?? FindNavigationItemByTag(mnv.FooterMenuItems, tag);
+    }
+
+    private static FANavigationViewItem? FindNavigationItemByTag(IEnumerable<object>? items, string tag)
+    {
+        if (items == null)
+        {
+            return null;
+        }
+
+        foreach (var menuItem in items.OfType<FANavigationViewItem>())
+        {
+            if (menuItem.Tag?.ToString() == tag)
+            {
+                return menuItem;
+            }
+
+            var nestedItem = FindNavigationItemByTag(menuItem.MenuItems, tag);
+            if (nestedItem != null)
+            {
+                return nestedItem;
+            }
+        }
+
+        return null;
+    }
+
     private static void HandleBreadcrumb(NavigateType type, PageBase page, FANavigationViewItem item, object? param)
     {
         switch (type)
@@ -233,12 +258,10 @@ public partial class MainWindow : FAAppWindow
                     Guid.NewGuid().ToString()));
                 break;
         }
+
         Instance.mainBcb.ItemsSource = Instance.BreadCrumbItemSource;
     }
 
-    /// <summary>
-    /// 导航视图选择改变事件
-    /// </summary>
     private void Mnv_OnSelectionChanged(object? sender, FANavigationViewSelectionChangedEventArgs e)
     {
         if (e.SelectedItem is not FANavigationViewItem item)
@@ -252,14 +275,12 @@ public partial class MainWindow : FAAppWindow
             return;
         }
 
-        // 尝试从映射中获取页面类型
         if (_navItemTagToPageType.TryGetValue(tag, out var pageType))
         {
             NavigatePage(pageType, NavigateType.New, item);
             return;
         }
 
-        // 尝试从注册表匹配
         var registration = PageRegistry.Instance.MatchByTag(tag);
         if (registration != null)
         {

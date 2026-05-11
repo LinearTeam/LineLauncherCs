@@ -37,7 +37,6 @@
                     </ui:FANavigationViewItem.MenuItems>
                 </ui:FANavigationViewItem>
                 <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.AccountPage}" Tag="AccountPage" IconSource="People" />
-                <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.TaskPage}" Tag="TaskPage" IconSource="TaskListAdd" />
             </ui:FANavigationView.MenuItems>
             <ui:FANavigationView.Header>
                 <ui:FABreadcrumbBar Name="mainBcb" ItemClicked="MainBcb_OnItemClicked">
@@ -55,6 +54,7 @@
                 </ui:FABreadcrumbBar>
             </ui:FANavigationView.Header>
             <ui:FANavigationView.FooterMenuItems>
+                <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.TaskPage}" Tag="TaskPage" IconSource="AlignDistributed" />
                 <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.HelpPage}" Tag="HelpPage" IconSource="Help"/>
             </ui:FANavigationView.FooterMenuItems>
             <nav:LineFrame Name="mainFrm" />
