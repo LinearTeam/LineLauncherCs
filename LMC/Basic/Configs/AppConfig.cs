@@ -24,6 +24,10 @@ public class AppConfig {
 
     public string SelectedJavaPath { get; set; } = string.Empty;
 
+    public List<string> ManagedGameRootPaths { get; set; } = [];
+
+    public string SelectedGameRootPath { get; set; } = string.Empty;
+
     public bool AutoSelectJava { get; set; } = true;
     public string SelectedLanguage { get; set; } = "zh-CN";
     

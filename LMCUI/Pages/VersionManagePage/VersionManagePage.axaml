@@ -1,11 +1,39 @@
-﻿<pages:PageBase xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:pages="clr-namespace:LMCUI.Pages"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="LMCUI.Pages.VersionManagePage.VersionManagePage">
-    <Grid Margin="60, 30">
-        <Button HorizontalAlignment="Center" VerticalAlignment="Center" Content="test" Click="Button_OnClick"/>
+<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="LMCUI.Pages.VersionManagePage.VersionManagePage">
+    <Grid Margin="60, 20, 40, 30" RowDefinitions="Auto,Auto,*">
+        <ui:FACommandBar Grid.Row="0" Margin="0,0,0,18" DefaultLabelPosition="Right">
+            <ui:FACommandBar.PrimaryCommands>
+                <ui:FACommandBarButton Label="{i18n:I18nBinding Key=Pages.VersionManagePage.CommandBar.InstallVersion}" Click="InstallVersionButton_OnClick">
+                    <ui:FACommandBarButton.IconSource>
+                        <ui:FASymbolIconSource Symbol="Download" />
+                    </ui:FACommandBarButton.IconSource>
+                </ui:FACommandBarButton>
+                <ui:FACommandBarButton Label="{i18n:I18nBinding Key=Pages.VersionManagePage.CommandBar.SwitchMinecraftFolder}" Click="SwitchGameRootButton_OnClick">
+                    <ui:FACommandBarButton.IconSource>
+                        <ui:FASymbolIconSource Symbol="Switch" />
+                    </ui:FACommandBarButton.IconSource>
+                </ui:FACommandBarButton>
+            </ui:FACommandBar.PrimaryCommands>
+        </ui:FACommandBar>
+
+        <ui:FASettingsExpander Grid.Row="1"
+                               Name="CurrentRootExpander"
+                               IconSource="OpenFolder"
+                               ActionIconSource="OpenFolder"
+                               IsClickEnabled="True"
+                               Click="CurrentRootExpander_OnClick"
+                               Margin="0,0,0,16" />
+
+        <ScrollViewer Grid.Row="2"
+                      Name="VersionListScrollViewer">
+            <StackPanel Name="VersionListPanel" Orientation="Vertical" Spacing="6" />
+        </ScrollViewer>
     </Grid>
 </pages:PageBase>

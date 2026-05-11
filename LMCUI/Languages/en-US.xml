@@ -175,7 +175,67 @@
 
         <VersionManagePage>
             <Title>Version Management</Title>
+            <CommandBar>
+                <InstallVersion>Install Version</InstallVersion>
+                <SwitchMinecraftFolder>Switch .minecraft Folder</SwitchMinecraftFolder>
+            </CommandBar>
+            <CurrentRoot>
+                <Header>Current Game Directory</Header>
+                <Description>The .minecraft directory currently being viewed</Description>
+                <VersionCount>{0} versions in total</VersionCount>
+            </CurrentRoot>
+            <RootDialog>
+                <Title>Select .minecraft Folder</Title>
+                <Add>Add</Add>
+                <Delete>Delete</Delete>
+                <Cancel>Cancel</Cancel>
+                <Confirm>Confirm</Confirm>
+                <PickFolderTitle>Please select a .minecraft folder</PickFolderTitle>
+            </RootDialog>
+            <VersionType>
+                <Release>Release</Release>
+                <Snapshot>Snapshot</Snapshot>
+                <AprilFools>April Fools</AprilFools>
+                <Old>Old</Old>
+                <Error>Broken Version</Error>
+                <UnknownClientVersion>Unknown Version</UnknownClientVersion>
+            </VersionType>
+            <VersionStatus>
+                <Valid>Version structure is valid</Valid>
+                <MissingJar>Error: Missing version JAR</MissingJar>
+                <MissingJson>Error: Missing version JSON</MissingJson>
+            </VersionStatus>
+            <InvalidVersions>
+                <Title>Invalid Versions Detected</Title>
+                <Content>The following versions are invalid: {0}</Content>
+            </InvalidVersions>
+            <EmptyState>
+                <NoRootHeader>No Game Directory Selected</NoRootHeader>
+                <NoRootDescription>Please select a .minecraft folder from the command bar first.</NoRootDescription>
+                <NoRootPath>There is currently no selected game directory.</NoRootPath>
+                <NoRootVersions>No game directory is available, so the version list cannot be shown.</NoRootVersions>
+                <NoVersions>No recognizable versions were found in the current directory.</NoVersions>
+                <Loading>Scanning versions...</Loading>
+            </EmptyState>
+            <Errors>
+                <SwitchRootTitle>Failed to Switch Directory</SwitchRootTitle>
+                <SwitchRootContent>Failed to switch the .minecraft folder: {0}</SwitchRootContent>
+                <AddRootTitle>Failed to Add Directory</AddRootTitle>
+                <AddRootContent>Failed to add the .minecraft folder: {0}</AddRootContent>
+                <ScanFailedTitle>Failed to Scan Versions</ScanFailedTitle>
+                <ScanFailedContent>Failed to scan versions: {0}</ScanFailedContent>
+            </Errors>
         </VersionManagePage>
+        <VersionDetailPage>
+            <Title>Version Details - {0}</Title>
+            <Status>Status: {0}</Status>
+            <RootPath>Game Directory: {0}</RootPath>
+            <VersionDirectory>Version Directory: {0}</VersionDirectory>
+            <Placeholder>
+                <Header>Details Under Construction</Header>
+                <Description>The detailed version page is not implemented yet. More version information and actions will be shown here later.</Description>
+            </Placeholder>
+        </VersionDetailPage>
 
         <HelpPage>
             <Title>Help Center</Title>

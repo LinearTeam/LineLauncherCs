@@ -175,7 +175,67 @@
 
         <VersionManagePage>
             <Title>版本管理</Title>
+            <CommandBar>
+                <InstallVersion>安装版本</InstallVersion>
+                <SwitchMinecraftFolder>切换 .minecraft 文件夹</SwitchMinecraftFolder>
+            </CommandBar>
+            <CurrentRoot>
+                <Header>当前游戏目录</Header>
+                <Description>当前正在查看的 .minecraft 目录</Description>
+                <VersionCount>共 {0} 个版本</VersionCount>
+            </CurrentRoot>
+            <RootDialog>
+                <Title>选择 .minecraft 文件夹</Title>
+                <Add>添加</Add>
+                <Delete>删除</Delete>
+                <Cancel>取消</Cancel>
+                <Confirm>确定</Confirm>
+                <PickFolderTitle>请选择 .minecraft 文件夹</PickFolderTitle>
+            </RootDialog>
+            <VersionType>
+                <Release>正式版</Release>
+                <Snapshot>快照版</Snapshot>
+                <AprilFools>愚人节版</AprilFools>
+                <Old>远古版</Old>
+                <Error>错误版本</Error>
+                <UnknownClientVersion>未知版本</UnknownClientVersion>
+            </VersionType>
+            <VersionStatus>
+                <Valid>版本结构正常</Valid>
+                <MissingJar>错误：缺少版本 JAR</MissingJar>
+                <MissingJson>错误：缺少版本 JSON</MissingJson>
+            </VersionStatus>
+            <InvalidVersions>
+                <Title>检测到异常版本</Title>
+                <Content>以下版本存在异常：{0}</Content>
+            </InvalidVersions>
+            <EmptyState>
+                <NoRootHeader>未选择游戏目录</NoRootHeader>
+                <NoRootDescription>请先通过顶部命令栏选择一个 .minecraft 文件夹。</NoRootDescription>
+                <NoRootPath>当前没有已选中的游戏目录。</NoRootPath>
+                <NoRootVersions>当前没有可用的游戏目录，因此无法显示版本列表。</NoRootVersions>
+                <NoVersions>当前目录下没有可识别的版本。</NoVersions>
+                <Loading>正在扫描版本...</Loading>
+            </EmptyState>
+            <Errors>
+                <SwitchRootTitle>切换目录失败</SwitchRootTitle>
+                <SwitchRootContent>切换 .minecraft 文件夹失败：{0}</SwitchRootContent>
+                <AddRootTitle>添加目录失败</AddRootTitle>
+                <AddRootContent>添加 .minecraft 文件夹失败：{0}</AddRootContent>
+                <ScanFailedTitle>扫描版本失败</ScanFailedTitle>
+                <ScanFailedContent>扫描版本失败：{0}</ScanFailedContent>
+            </Errors>
         </VersionManagePage>
+        <VersionDetailPage>
+            <Title>版本详情 - {0}</Title>
+            <Status>状态：{0}</Status>
+            <RootPath>游戏目录：{0}</RootPath>
+            <VersionDirectory>版本目录：{0}</VersionDirectory>
+            <Placeholder>
+                <Header>详情页开发中</Header>
+                <Description>当前版本详情页暂未实现详细内容，后续会在这里展示更完整的版本信息与操作。</Description>
+            </Placeholder>
+        </VersionDetailPage>
 
         <HelpPage>
             <Title>帮助中心</Title>

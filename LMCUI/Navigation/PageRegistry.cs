@@ -48,6 +48,7 @@ public class PageRegistry
         // 直接导航页面 - 单例模式（默认）
         Register<Pages.LaunchPage.LaunchPage>("LaunchPage");
         Register<Pages.VersionManagePage.VersionManagePage>("VersionManagePage");
+        Register(typeof(Pages.VersionManagePage.VersionDetailPage), "VersionDetailPage", PageStorageMode.Parameterized);
         Register<Pages.AccountPage.AccountPage>("AccountPage");
         Register<Pages.TaskPage.TaskPage>("TaskPage");
         Register<Pages.SettingsPage.SettingsPage>("SettingsPage");

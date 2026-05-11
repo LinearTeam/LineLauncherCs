@@ -151,6 +151,16 @@ public class JsonUtils
         return result != null ? result : defaultValue;
     }
 
+    public bool HasValue(string path)
+    {
+        return GetNode(path).Node != null;
+    }
+
+    public JsonUtils Clone()
+    {
+        return new JsonUtils(Node?.DeepClone(), IsValid);
+    }
+
     public JsonUtils Merge(JsonUtils other, IEnumerable<string>? ignorePaths = null)
     {
         if (!IsValid || Node == null) return other;
