@@ -14,11 +14,17 @@
 
 using System.Text.Json.Serialization;
 using LMCCore.Game.Model.LocalVersion.Compatibility;
+using System.Text.Json;
 
 namespace LMCCore.Game.Model.LocalVersion.Libraries;
 
 
-public class LibraryInfo
+public interface ILibraryInfo
+{
+    string Name { get; }
+}
+
+public class LibraryInfo : ILibraryInfo
 {
     [JsonPropertyName("name")]
     public required string Name { get; set; }
@@ -39,6 +45,30 @@ public class LibraryInfo
     public List<CompatibilityRule>? Rules { get; set; }
 }
 
+public class SimpleLibraryInfo : ILibraryInfo
+{
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
+
+    [JsonPropertyName("url")]
+    public string? Url { get; set; }
+
+    [JsonPropertyName("sha1")]
+    public string? Sha1 { get; set; }
+
+    [JsonPropertyName("size")]
+    public long? Size { get; set; }
+
+    [JsonPropertyName("md5")]
+    public string? Md5 { get; set; }
+
+    [JsonPropertyName("sha256")]
+    public string? Sha256 { get; set; }
+
+    [JsonPropertyName("sha512")]
+    public string? Sha512 { get; set; }
+}
+
 public class LibraryDownloadInfo
 {
     [JsonPropertyName("artifact")]
@@ -46,4 +76,33 @@ public class LibraryDownloadInfo
 
     [JsonPropertyName("classifiers")]
     public Dictionary<string, DownloadableFileInfo>? Classifiers { get; set; }
+}
+
+public class LibraryInfoConverter : JsonConverter<ILibraryInfo>
+{
+    public override ILibraryInfo? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var jsonObject = document.RootElement;
+
+        if (!jsonObject.TryGetProperty("name", out _))
+        {
+            throw new JsonException("Library entry is missing required field 'name'.");
+        }
+
+        if (jsonObject.TryGetProperty("downloads", out _) ||
+            jsonObject.TryGetProperty("natives", out _) ||
+            jsonObject.TryGetProperty("rules", out _) ||
+            jsonObject.TryGetProperty("path", out _))
+        {
+            return JsonSerializer.Deserialize<LibraryInfo>(jsonObject.GetRawText(), options);
+        }
+
+        return JsonSerializer.Deserialize<SimpleLibraryInfo>(jsonObject.GetRawText(), options);
+    }
+
+    public override void Write(Utf8JsonWriter writer, ILibraryInfo value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, (object)value, options);
+    }
 }

@@ -28,6 +28,7 @@
             <DataTemplate DataType="model:MicrosoftAccount">
                 <ui:FASettingsExpanderItem
                     Description="{Binding Uuid}"
+                    RenderOptions.BitmapInterpolationMode="None"
                     IsClickEnabled="False">
                     <ui:FASettingsExpanderItem.IconSource>
                         <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
@@ -67,6 +68,7 @@
             <DataTemplate DataType="model:OfflineAccount">
                 <ui:FASettingsExpanderItem
                     Description="{Binding Uuid}"
+                    RenderOptions.BitmapInterpolationMode="None"
                     IsClickEnabled="False">
                     <ui:FASettingsExpanderItem.IconSource>
                         <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
@@ -99,6 +101,7 @@
             <!-- AuthlibAccount -->
             <DataTemplate DataType="model:AuthlibAccount">
                 <ui:FASettingsExpanderItem
+                    RenderOptions.BitmapInterpolationMode="None"
                     IsClickEnabled="False">
                     <ui:FASettingsExpanderItem.IconSource>
                         <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>

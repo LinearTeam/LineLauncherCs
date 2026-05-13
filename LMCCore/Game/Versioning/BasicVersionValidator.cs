@@ -1,6 +1,5 @@
 using LMCCore.Game.Model;
 using LMCCore.Game.Model.LocalVersion;
-using LMCCore.Utils;
 
 namespace LMCCore.Game.Versioning;
 
@@ -32,47 +31,14 @@ public class BasicVersionValidator : IVersionValidator
             });
         }
 
-        if (!string.IsNullOrWhiteSpace(version.JsonPath) && File.Exists(version.JsonPath))
+        if (version.Status == VersionStatus.InvalidJson)
         {
-            JsonUtils parsedJson;
-            try
+            issues.Add(new VersionValidationIssue
             {
-                parsedJson = JsonUtils.Parse(File.ReadAllText(version.JsonPath));
-            }
-            catch (Exception ex)
-            {
-                issues.Add(new VersionValidationIssue
-                {
-                    Code = "json_read_failed",
-                    Message = $"读取版本 JSON 失败: {ex.Message}",
-                    Severity = VersionValidationSeverity.Error
-                });
-
-                return Task.FromResult(ToResult(issues));
-            }
-
-            if (!parsedJson.IsValid)
-            {
-                issues.Add(new VersionValidationIssue
-                {
-                    Code = "json_invalid",
-                    Message = "版本 JSON 无法解析。",
-                    Severity = VersionValidationSeverity.Error
-                });
-            }
-            else
-            {
-                var versionInfo = parsedJson.Get<LocalVersionInfo>();
-                if (versionInfo == null)
-                {
-                    issues.Add(new VersionValidationIssue
-                    {
-                        Code = "json_schema_invalid",
-                        Message = "版本 JSON 无法反序列化为本地版本信息。",
-                        Severity = VersionValidationSeverity.Error
-                    });
-                }
-            }
+                Code = "json_schema_invalid",
+                Message = "版本 JSON 无法反序列化为本地版本信息。",
+                Severity = VersionValidationSeverity.Error
+            });
         }
 
         return Task.FromResult(ToResult(issues));

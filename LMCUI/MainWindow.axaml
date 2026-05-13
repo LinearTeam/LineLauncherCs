@@ -1,4 +1,4 @@
-<Window xmlns="https://github.com/avaloniaui"
+<windowing:FAAppWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -9,13 +9,13 @@
         xmlns:lmcui="clr-namespace:LMCUI"
         xmlns:controls="clr-namespace:LMCUI.Controls"
         xmlns:nav="clr-namespace:LMCUI.Navigation"
+        xmlns:windowing="clr-namespace:FluentAvalonia.UI.Windowing;assembly=FluentAvalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LMCUI.MainWindow"
-        Title="{i18n:I18nBinding Key=MainWindow.Title}"
         Height="468"
         Width="900"
         MinHeight="600"
-        MinWidth="600">
+        MinWidth="600" >
     <Grid>
         <!-- TODO: 这会导致控件透明，在修复此问题前不使用背景图像 -->
         <!-- <Grid.Background> -->
@@ -61,4 +61,4 @@
         </ui:FANavigationView>
         
     </Grid>
-</Window>
+</windowing:FAAppWindow>

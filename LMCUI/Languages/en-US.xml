@@ -167,6 +167,46 @@
             <WelcomeMessage>Welcome to Line Launcher</WelcomeMessage>
         </LaunchPage>
 
+        <DownloadMinecraftPage>
+            <Title>Download Game</Title>
+            <Filters>
+                <Title>Filters</Title>
+                <Release>Release</Release>
+                <Snapshot>Snapshot</Snapshot>
+                <AprilFools>April Fools</AprilFools>
+                <Old>Old</Old>
+            </Filters>
+            <Latest>
+                <ReleaseHeader>Latest Release</ReleaseHeader>
+                <SnapshotHeader>Latest Snapshot</SnapshotHeader>
+            </Latest>
+            <Search>
+                <Watermark>Search version ID...</Watermark>
+            </Search>
+            <Types>
+                <Release>Release</Release>
+                <Snapshot>Snapshot</Snapshot>
+                <AprilFools>April Fools</AprilFools>
+                <Old>Old</Old>
+            </Types>
+            <Dialog>
+                <Title>Version Info - {0}</Title>
+                <CloseButton>Close</CloseButton>
+                <VersionId>Version ID: {0}</VersionId>
+                <VersionType>Version Type: {0}</VersionType>
+                <ReleaseTime>Release Time: {0}</ReleaseTime>
+                <Placeholder>The vanilla download flow is not implemented on this page yet. This page currently supports browsing, search, and filtering only.</Placeholder>
+            </Dialog>
+            <Empty>
+                <NoMatchingVersions>No matching versions were found.</NoMatchingVersions>
+            </Empty>
+            <Errors>
+                <LoadFailedTitle>Failed to Load Versions</LoadFailedTitle>
+                <LoadFailedContent>Failed to load the version manifest: {0}</LoadFailedContent>
+            </Errors>
+            <Loading>Loading versions...</Loading>
+        </DownloadMinecraftPage>
+
         <TaskPage>
             <Title>Task Management</Title>
             <CancelButton>Cancel</CancelButton>
@@ -204,6 +244,7 @@
                 <Valid>Version structure is valid</Valid>
                 <MissingJar>Error: Missing version JAR</MissingJar>
                 <MissingJson>Error: Missing version JSON</MissingJson>
+                <InvalidJson>Error: Version JSON is invalid</InvalidJson>
             </VersionStatus>
             <InvalidVersions>
                 <Title>Invalid Versions Detected</Title>

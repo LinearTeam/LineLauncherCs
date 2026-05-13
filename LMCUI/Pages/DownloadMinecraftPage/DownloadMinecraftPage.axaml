@@ -1,0 +1,106 @@
+<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                mc:Ignorable="d"
+                d:DesignWidth="900"
+                d:DesignHeight="640"
+                x:Class="LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraftPage">
+    <Grid Margin="60,20,40,30" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="16">
+        <Border Grid.Row="0"
+                Padding="16,12"
+                CornerRadius="12">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                <ui:FASymbolIcon Symbol="Filter"/>
+                <TextBlock Grid.Column="1"
+                           Margin="8,0,18,0"
+                           VerticalAlignment="Center"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Text="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.Title}" />
+                <ToggleSwitch Grid.Column="2"
+                              Name="ReleaseFilterCheckBox"
+                              IsChecked="True"
+                              VerticalAlignment="Center"
+                              IsCheckedChanged="FilterCheckBox_OnChanged"
+                              OnContent="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.Release}"
+                              OffContent="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.Release}" />
+                <ToggleSwitch Grid.Column="3"
+                              Name="SnapshotFilterCheckBox"
+                              Margin="16,0,0,0"
+                              IsChecked="False"
+                              VerticalAlignment="Center"
+                              IsCheckedChanged="FilterCheckBox_OnChanged"
+                              OnContent="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.Snapshot}"
+                              OffContent="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.Snapshot}" />
+                <ToggleSwitch Grid.Column="4"
+                              Name="AprilFoolsFilterCheckBox"
+                              Margin="16,0,0,0"
+                              IsChecked="False"
+                              VerticalAlignment="Center"
+                              IsCheckedChanged="FilterCheckBox_OnChanged"
+                              OnContent="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.AprilFools}"
+                              OffContent="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.AprilFools}" />
+                <ToggleSwitch Grid.Column="5"
+                              Name="OldFilterCheckBox"
+                              Margin="16,0,0,0"
+                              IsChecked="False"
+                              VerticalAlignment="Center"
+                              IsCheckedChanged="FilterCheckBox_OnChanged"
+                              OnContent="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.Old}"
+                              OffContent="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Filters.Old}" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="12">
+            <ui:FASettingsExpander Grid.Column="0"
+                                   Name="LatestReleaseExpander"
+                                   IsClickEnabled="True"
+                                   ActionIconSource="ChevronRight"
+                                   Click="LatestVersionExpander_OnClick" />
+            <ui:FASettingsExpander Grid.Column="1"
+                                   Name="LatestSnapshotExpander"
+                                   IsClickEnabled="True"
+                                   ActionIconSource="ChevronRight"
+                                   Click="LatestVersionExpander_OnClick" />
+        </Grid>
+
+        <AutoCompleteBox Grid.Row="2"
+                         Name="SearchBox"
+                         MinimumPrefixLength="0"
+                         PlaceholderText="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Search.Watermark}"
+                         TextChanged="SearchBox_OnTextChanged" />
+
+        <Grid Grid.Row="3">
+            <ContentControl Name="VersionListStateHost" />
+            <ListBox Name="VersionListBox"
+                     IsVisible="False"
+                     Focusable="False"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     SelectionMode="Single"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,1,0,1" />
+                        <Setter Property="MinHeight" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Focusable" Value="False" />
+                        <Setter Property="IsTabStop" Value="False" />
+                    </Style>
+                </ListBox.Styles>
+            </ListBox>
+        </Grid>
+    </Grid>
+</pages:PageBase>

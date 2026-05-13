@@ -12,24 +12,18 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using LMCCore.Game.Model.Loaders;
+namespace LMCCore.Game.Model.Loaders;
 
-namespace LMCCore.Game.Download.Model;
-
-using System.Text.Json.Serialization;
-
-public class DownloadableGameVersion
+public enum ModLoaderType
 {
-    [JsonPropertyName("versionId")]
-    public required string VersionId { get; set; }
-
-    [JsonPropertyName("versionName")]
-    public required string VersionName { get; set; }
-
-    [JsonPropertyName("loaders")]
-    public required ModLoader[] Loaders { get; set; }
-
-    [JsonPropertyName("optiFine")]
-    public bool OptiFine { get; set; } = false;
+    Forge,
+    Fabric,
+    NeoForge
 }
 
+public class ModLoader
+{
+    public required ModLoaderType Type { get; set; }
+
+    public required string VersionId { get; set; }
+}

@@ -14,12 +14,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -40,10 +42,11 @@ public partial class VersionManagePage : PageBase
     private readonly Logger _logger = new("VersionManagePage");
     private readonly VersionManager _versionManager = new();
     private readonly VersionConfigManager _versionConfigManager = new();
-    private readonly Dictionary<FASettingsExpander, LocalGameVersionEntry> _expanderMap = [];
+    private readonly ObservableCollection<VersionRenderData> _visibleVersions = [];
+    private readonly Dictionary<string, LocalGameVersionEntry> _versionNameMap = [];
+    private readonly FuncDataTemplate<VersionRenderData> _versionItemTemplate;
 
     private CancellationTokenSource? _refreshCts;
-    private CancellationTokenSource? _renderCts;
     private FileSystemWatcher? _versionsWatcher;
     private DispatcherTimer? _refreshDebounceTimer;
     private bool _pendingExternalRefresh;
@@ -52,7 +55,6 @@ public partial class VersionManagePage : PageBase
     private string _lastInvalidVersionSignature = string.Empty;
     private DateTime _lastRefreshUtc = DateTime.MinValue;
     private readonly static TimeSpan MinimumLoadingDuration = TimeSpan.FromMilliseconds(500);
-    private const int RenderBatchSize = 12;
 
     private enum VersionDisplayType
     {
@@ -81,7 +83,10 @@ public partial class VersionManagePage : PageBase
 
     public VersionManagePage() : base("Pages.VersionManagePage.Title", "VersionManagePage")
     {
+        _versionItemTemplate = new FuncDataTemplate<VersionRenderData>((renderData, _) => CreateVersionExpander(renderData), true);
         InitializeComponent();
+        VersionListBox.ItemTemplate = _versionItemTemplate;
+        VersionListBox.ItemsSource = _visibleVersions;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
     }
@@ -102,11 +107,12 @@ public partial class VersionManagePage : PageBase
             {
                 Symbol = FASymbol.ChevronRight
             },
-            IconSource = CreateVersionIconSource(renderData)
+            IconSource = CreateVersionIconSource(renderData),
+            Tag = renderData.Version.VersionName,
+            HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
         expander.Click += VersionExpander_OnClick;
-        _expanderMap[expander] = renderData.Version;
         return expander;
     }
 
@@ -235,7 +241,6 @@ public partial class VersionManagePage : PageBase
         DisposeWatcher();
         _refreshDebounceTimer?.Stop();
         _refreshCts?.Cancel();
-        _renderCts?.Cancel();
     }
 
     async private Task RefreshPageAsync(bool forceInvalidNotification = false)
@@ -244,8 +249,6 @@ public partial class VersionManagePage : PageBase
         _refreshCts = new CancellationTokenSource();
         var cancellationToken = _refreshCts.Token;
         var loadingStartedUtc = DateTime.UtcNow;
-        CancelRender();
-
         var selectedRoot = _versionManager.GetSelectedRoot();
         UpdateCurrentRootDisplay(selectedRoot, null);
 
@@ -263,7 +266,7 @@ public partial class VersionManagePage : PageBase
         List<LocalGameVersionEntry> versions;
         try
         {
-            versions = await Task.Run(() => _versionManager.ScanVersions(selectedRoot.RootPath).ToList(), cancellationToken);
+            versions = (await _versionManager.ScanVersionsAsync(selectedRoot.RootPath, cancellationToken)).ToList();
         }
         catch (OperationCanceledException)
         {
@@ -310,7 +313,7 @@ public partial class VersionManagePage : PageBase
         _lastRefreshUtc = DateTime.UtcNow;
         _pendingExternalRefresh = false;
         UpdateCurrentRootDisplay(selectedRoot, versions.Count);
-        StartRenderVersions(renderData);
+        RenderVersions(renderData);
         NotifyInvalidVersions(versions, forceInvalidNotification);
         ConfigureWatcher(selectedRoot.RootPath);
     }
@@ -332,15 +335,16 @@ public partial class VersionManagePage : PageBase
 
     private void ShowVersionLoadingState()
     {
-        ResetVersionListPanel();
-        VersionListScrollViewer.Content = CreateCenteredProgressContainer(
-            I18nManager.Instance.GetString("Pages.VersionManagePage.EmptyState.Loading"));
+        ShowStateContent(CreateCenteredProgressContainer(
+            I18nManager.Instance.GetString("Pages.VersionManagePage.EmptyState.Loading")));
     }
 
-    async private Task RenderVersionsAsync(IReadOnlyList<VersionRenderData> renderData, CancellationToken cancellationToken)
+    private void RenderVersions(IReadOnlyList<VersionRenderData> renderData)
     {
-        ResetVersionListPanel();
-        _expanderMap.Clear();
+        _visibleVersions.Clear();
+        _versionNameMap.Clear();
+        VersionListBox.ItemTemplate = _versionItemTemplate;
+        VersionListBox.ItemsSource = _visibleVersions;
 
         if (renderData.Count == 0)
         {
@@ -348,53 +352,26 @@ public partial class VersionManagePage : PageBase
             return;
         }
 
-        for (var index = 0; index < renderData.Count; index++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            VersionListPanel.Children.Add(CreateVersionExpander(renderData[index]));
+        ShowRepeater();
 
-            if ((index + 1) % RenderBatchSize == 0)
-            {
-                await Dispatcher.Yield(DispatcherPriority.Background);
-            }
+        foreach (var item in renderData)
+        {
+            _visibleVersions.Add(item);
+            _versionNameMap[item.Version.VersionName] = item.Version;
         }
     }
 
     private void RenderEmptyState(string text)
     {
-        ResetVersionListPanel();
-        VersionListPanel.Children.Add(new TextBlock
+        _visibleVersions.Clear();
+        _versionNameMap.Clear();
+        ShowStateContent(new TextBlock
         {
             Text = text,
             TextWrapping = TextWrapping.Wrap,
             Opacity = 0.75,
             Margin = new Thickness(0, 8, 0, 0)
         });
-    }
-
-    private void StartRenderVersions(IReadOnlyList<VersionRenderData> renderData)
-    {
-        CancelRender();
-        _renderCts = new CancellationTokenSource();
-        var cancellationToken = _renderCts.Token;
-        _ = RenderVersionsAsync(renderData, cancellationToken);
-    }
-
-    private void CancelRender()
-    {
-        _renderCts?.Cancel();
-        _renderCts?.Dispose();
-        _renderCts = null;
-    }
-
-    private void ResetVersionListPanel()
-    {
-        VersionListPanel = new StackPanel
-        {
-            Orientation = Orientation.Vertical,
-            Spacing = 6
-        };
-        VersionListScrollViewer.Content = VersionListPanel;
     }
 
     private Control CreateCenteredProgressContainer(string text)
@@ -431,6 +408,20 @@ public partial class VersionManagePage : PageBase
                 }
             }
         };
+    }
+
+    private void ShowRepeater()
+    {
+        VersionListStateHost.Content = null;
+        VersionListStateHost.IsVisible = false;
+        VersionListBox.IsVisible = true;
+    }
+
+    private void ShowStateContent(Control content)
+    {
+        VersionListBox.IsVisible = false;
+        VersionListStateHost.Content = content;
+        VersionListStateHost.IsVisible = true;
     }
 
     private Control CreateRootDialogContent(ListBox rootList, Button addButton, Button deleteButton)
@@ -537,7 +528,7 @@ public partial class VersionManagePage : PageBase
 
     private void VersionExpander_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is FASettingsExpander expander && _expanderMap.TryGetValue(expander, out var version))
+        if (sender is FASettingsExpander { Tag: string versionName } && _versionNameMap.TryGetValue(versionName, out var version))
         {
             NavigateToVersionDetail(version);
         }
@@ -578,7 +569,27 @@ public partial class VersionManagePage : PageBase
 
     private VersionDisplayType GetDisplayType(LocalGameVersionEntry version)
     {
-        return version.Status == VersionStatus.Valid ? VersionDisplayType.Release : VersionDisplayType.Error;
+        if (version.Status != VersionStatus.Valid)
+        {
+            return VersionDisplayType.Error;
+        }
+
+        var displayType = version.VersionInfo == null
+            ? GameVersionDisplayType.Release
+            : GameVersionTypeClassifier.ClassifyManifestVersion(
+                version.VersionInfo.Id,
+                version.VersionInfo.Type,
+                version.VersionInfo.ReleaseTime,
+                version.VersionName,
+                version.ClientVersionId);
+
+        return displayType switch
+        {
+            GameVersionDisplayType.Snapshot => VersionDisplayType.Snapshot,
+            GameVersionDisplayType.AprilFools => VersionDisplayType.AprilFools,
+            GameVersionDisplayType.Old => VersionDisplayType.Old,
+            _ => VersionDisplayType.Release
+        };
     }
 
     private string GetVersionDescription(LocalGameVersionEntry version, VersionDisplayType displayType)
@@ -612,6 +623,7 @@ public partial class VersionManagePage : PageBase
             VersionStatus.Valid => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionStatus.Valid"),
             VersionStatus.MissingJar => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionStatus.MissingJar"),
             VersionStatus.MissingJson => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionStatus.MissingJson"),
+            VersionStatus.InvalidJson => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionStatus.InvalidJson"),
             _ => status.ToString()
         };
     }

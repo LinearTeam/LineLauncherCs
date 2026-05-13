@@ -27,7 +27,7 @@ public class LocalVersionInfo
     public required string MainClass { get; set; }
 
     [JsonPropertyName("libraries")]
-    public required List<LibraryInfo> Libraries { get; set; }
+    public required List<ILibraryInfo> Libraries { get; set; }
 
     [JsonIgnore]
     public string? JavaVersion { get; set; }
@@ -61,8 +61,21 @@ public class LocalVersionInfo
     
     [JsonPropertyName("downloads")]
     public Dictionary<string, DownloadableFileInfo>? Downloads { get; set; }
-}
+    
+    [JsonPropertyName("clientVersion")]
+    public string? ClientVersion { get; set; }
 
+    [JsonPropertyName("patches")]
+    public List<HMCLPatchInfo>? Patches { get; set; }
+
+}
+public class HMCLPatchInfo
+{
+    [JsonPropertyName("id")]
+    public string? Id { get; set; }
+    [JsonPropertyName("version")]
+    public string? Version { get; set; }
+}
 public class AssetIndexInfo
 {
     [JsonPropertyName("id")]

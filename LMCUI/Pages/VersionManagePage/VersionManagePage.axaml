@@ -31,9 +31,30 @@
                                Click="CurrentRootExpander_OnClick"
                                Margin="0,0,0,16" />
 
-        <ScrollViewer Grid.Row="2"
-                      Name="VersionListScrollViewer">
-            <StackPanel Name="VersionListPanel" Orientation="Vertical" Spacing="6" />
-        </ScrollViewer>
+        <Grid Grid.Row="2">
+            <ContentControl Name="VersionListStateHost" />
+            <ListBox Name="VersionListBox"
+                     IsVisible="False"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     SelectionMode="Single"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,1,0,1" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="MinHeight" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="0" />
+                    </Style>
+                </ListBox.Styles>
+            </ListBox>
+        </Grid>
     </Grid>
 </pages:PageBase>

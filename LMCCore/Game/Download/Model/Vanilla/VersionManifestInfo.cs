@@ -49,8 +49,8 @@ public class VersionEntry
     public required string Url { get; set; }
 
     [JsonPropertyName("time")]
-    public required string Time { get; set; }
+    public DateTimeOffset Time { get; set; }
 
     [JsonPropertyName("releaseTime")]
-    public required string ReleaseTime { get; set; }
+    public DateTimeOffset ReleaseTime { get; set; }
 }

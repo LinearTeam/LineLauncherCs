@@ -15,6 +15,7 @@
 using System.Text.Json.Serialization.Metadata;
 using LMCCore.Account;
 using LMCCore.Game.Model.LocalVersion.Arguments;
+using LMCCore.Game.Model.LocalVersion.Libraries;
 
 namespace LMCCore.Utils;
 
@@ -32,7 +33,7 @@ public class JsonUtils
         WriteIndented = true,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
         TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
-        Converters = { new AccountJsonConverter(), new GameArgumentConverter() }
+        Converters = { new AccountJsonConverter(), new GameArgumentConverter(), new LibraryInfoConverter() }
     };
     private JsonUtils(JsonNode? node, bool isValid = true)
     {

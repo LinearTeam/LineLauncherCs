@@ -14,34 +14,62 @@
 
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using LMCCore.Game.Download.Model.Vanilla;
-using LMCCore.Utils;
 using LMC.Basic.Logging;
+using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Model.LocalVersion;
+using LMCCore.Game.Model.LocalVersion.Libraries;
+using LMCCore.Utils;
 
 namespace LMCCore.Game.Download.Vanilla;
 
-/// <summary>
-/// 原版游戏下载器核心类
-/// </summary>
 public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
 {
     private readonly DownloadSourceManager _sourceManager = sourceManager ?? DownloadSourceManager.CreateDefault();
     private readonly static Logger s_logger = new("Download.Vanilla");
+    private readonly static object s_manifestLock = new();
+    private static Task<VersionManifestInfo>? s_manifestTask;
 
     public async Task<VersionManifestInfo> GetVersionManifestAsync(CancellationToken cancellationToken = default)
     {
-        var url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+        Task<VersionManifestInfo> manifestTask;
+        lock (s_manifestLock)
+        {
+            s_manifestTask ??= FetchVersionManifestAsync();
+            manifestTask = s_manifestTask;
+        }
+
+        try
+        {
+            return await manifestTask.WaitAsync(cancellationToken);
+        }
+        catch
+        {
+            lock (s_manifestLock)
+            {
+                if (ReferenceEquals(s_manifestTask, manifestTask) && manifestTask.IsFaulted)
+                {
+                    s_manifestTask = null;
+                }
+            }
+
+            throw;
+        }
+    }
+
+    async private Task<VersionManifestInfo> FetchVersionManifestAsync()
+    {
+        const string url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
         var transformedUrl = _sourceManager.TransformUrl(url);
 
         var response = await HttpUtils.CreateRequest(transformedUrl ?? url)
             .WithRetry(3)
             .WithRetryDelay(1000)
-            .GetAsync(cancellationToken);
+            .GetAsync();
 
         response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadAsStringAsync(cancellationToken);
-        return JsonUtils.Parse(json).Get<VersionManifestInfo>() ?? throw new InvalidOperationException("Failed to parse version manifest");
+        var json = await response.Content.ReadAsStringAsync();
+        return JsonUtils.Parse(json).Get<VersionManifestInfo>() ??
+               throw new InvalidOperationException("Failed to parse version manifest");
     }
 
     public async Task<LocalVersionInfo?> GetVersionInfoAsync(string versionId, CancellationToken cancellationToken = default)
@@ -69,8 +97,7 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
 
     public static LocalVersionInfo? ParseVersionJson(string json)
     {
-        return JsonUtils.Parse(json)
-            .Get<LocalVersionInfo>();
+        return JsonUtils.Parse(json).Get<LocalVersionInfo>();
     }
 
     public static List<DownloadableFileInfo> GetLibrariesForDownload(LocalVersionInfo versionInfo)
@@ -78,63 +105,128 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
         var libraries = versionInfo.Libraries;
         var librariesShouldDownload = new List<DownloadableFileInfo>();
 
-        if (libraries is { Count: > 0 })
-        {
-            s_logger.Info($"在版本JSON中找到 {libraries.Count} 个依赖库");
-
-            foreach (var libInfo in libraries)
-            {
-                var name = libInfo.Name;
-                if (string.IsNullOrEmpty(name))
-                {
-                    s_logger.Warn($"已跳过没有name的依赖库");
-                    continue;
-                }
-
-                var rules = libInfo.Rules;
-                if (!CompatibilityRuleEvaluator.CheckRulesApply(rules))
-                {
-                    s_logger.Info($"已跳过不适用的依赖库{name}");
-                    continue;
-                }
-
-                var hasNative = libInfo.Name.Contains("natives") ||
-                                libInfo.Natives is { Count: > 0 } ||
-                                libInfo.Downloads?.Classifiers is { Count: > 0 };
-
-                if (hasNative)
-                {
-                    if (libInfo is { Natives.Count: > 0, Downloads.Classifiers.Count: > 0 })
-                    {
-                        var os = PlatformDetector.GetCurrentOs();
-                        if (libInfo.Natives.TryGetValue(os, out var key))
-                        {
-                            var fileInfo = libInfo.Downloads.Classifiers[key];
-                            if (fileInfo.Url == null)
-                            {
-                                s_logger.Warn($"依赖库 {name} 的 {os} 本地库下载地址为空，跳过");
-                            }
-                            else
-                            {
-                                librariesShouldDownload.Add(fileInfo);
-                            }
-                        }
-                    }
-                }
-
-                if (libInfo.Downloads?.Artifact?.Url is not null)
-                {
-                    librariesShouldDownload.Add(libInfo.Downloads.Artifact);
-                }
-            }
-
-            s_logger.Info($"共解析 {librariesShouldDownload.Count} 个需要下载的依赖库");
-        }
-        else
+        if (libraries is not { Count: > 0 })
         {
             s_logger.Error("解析依赖库失败");
+            return librariesShouldDownload;
         }
+
+        s_logger.Info($"在版本 JSON 中找到 {libraries.Count} 个依赖库");
+
+        foreach (var library in libraries)
+        {
+            if (string.IsNullOrWhiteSpace(library.Name))
+            {
+                s_logger.Warn("已跳过没有 name 的依赖库");
+                continue;
+            }
+
+            switch (library)
+            {
+                case LibraryInfo detailedLibrary:
+                    AppendDetailedLibraryDownloads(detailedLibrary, librariesShouldDownload);
+                    break;
+                case SimpleLibraryInfo simpleLibrary:
+                    AppendSimpleLibraryDownload(simpleLibrary, librariesShouldDownload);
+                    break;
+                default:
+                    s_logger.Warn($"已跳过未知格式的依赖库 {library.Name}");
+                    break;
+            }
+        }
+
+        s_logger.Info($"共解析 {librariesShouldDownload.Count} 个需要下载的依赖库");
         return librariesShouldDownload;
+    }
+
+    private static void AppendDetailedLibraryDownloads(LibraryInfo libInfo, ICollection<DownloadableFileInfo> librariesShouldDownload)
+    {
+        if (!CompatibilityRuleEvaluator.CheckRulesApply(libInfo.Rules))
+        {
+            s_logger.Info($"已跳过不适用的依赖库 {libInfo.Name}");
+            return;
+        }
+
+        var hasNative = libInfo.Name.Contains("natives", StringComparison.OrdinalIgnoreCase) ||
+                        libInfo.Natives is { Count: > 0 } ||
+                        libInfo.Downloads?.Classifiers is { Count: > 0 };
+
+        if (hasNative &&
+            libInfo.Natives is { Count: > 0 } &&
+            libInfo.Downloads?.Classifiers is { Count: > 0 })
+        {
+            var os = PlatformDetector.GetCurrentOs();
+            if (libInfo.Natives.TryGetValue(os, out var key) &&
+                libInfo.Downloads.Classifiers.TryGetValue(key, out var fileInfo))
+            {
+                if (string.IsNullOrWhiteSpace(fileInfo.Url))
+                {
+                    s_logger.Warn($"依赖库 {libInfo.Name} 的 {os} 本地库下载地址为空，已跳过");
+                }
+                else
+                {
+                    librariesShouldDownload.Add(fileInfo);
+                }
+            }
+        }
+
+        if (libInfo.Downloads?.Artifact?.Url is not null)
+        {
+            librariesShouldDownload.Add(libInfo.Downloads.Artifact);
+        }
+    }
+
+    private static void AppendSimpleLibraryDownload(SimpleLibraryInfo libInfo, ICollection<DownloadableFileInfo> librariesShouldDownload)
+    {
+        if (string.IsNullOrWhiteSpace(libInfo.Url))
+        {
+            s_logger.Warn($"简单依赖库 {libInfo.Name} 缺少下载地址，已跳过");
+            return;
+        }
+
+        if (!TryBuildMavenRelativePath(libInfo.Name, out var relativePath))
+        {
+            s_logger.Warn($"简单依赖库 {libInfo.Name} 的 Maven 坐标无法解析，已跳过");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(libInfo.Sha1))
+        {
+            s_logger.Warn($"简单依赖库 {libInfo.Name} 缺少 sha1，将跳过校验");
+        }
+
+        var downloadUrl = new Uri(new Uri(EnsureTrailingSlash(libInfo.Url)), relativePath).ToString();
+        librariesShouldDownload.Add(new DownloadableFileInfo
+        {
+            Path = relativePath,
+            Url = downloadUrl,
+            Sha1 = libInfo.Sha1,
+            Size = libInfo.Size
+        });
+    }
+
+    private static string EnsureTrailingSlash(string url) =>
+        url.EndsWith("/", StringComparison.Ordinal) ? url : $"{url}/";
+
+    private static bool TryBuildMavenRelativePath(string name, out string relativePath)
+    {
+        var parts = name.Split(':', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length is not (3 or 4))
+        {
+            relativePath = string.Empty;
+            return false;
+        }
+
+        var group = parts[0].Replace('.', '/');
+        var artifact = parts[1];
+        var version = parts[2];
+        var classifier = parts.Length == 4 ? parts[3] : null;
+        var fileName = classifier == null
+            ? $"{artifact}-{version}.jar"
+            : $"{artifact}-{version}-{classifier}.jar";
+
+        relativePath = $"{group}/{artifact}/{version}/{fileName}";
+        return true;
     }
 
     public async Task<Dictionary<string, AssetInfo>> GetAssetIndexAsync(AssetIndexInfo assetIndex, CancellationToken cancellationToken = default)
@@ -151,14 +243,14 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
 
         return ParseAssetIndex(json);
     }
-    
-    
+
     public async Task<string> GetAssetIndexJsonAsync(AssetIndexInfo? assetIndex, CancellationToken cancellationToken = default)
     {
         if (assetIndex?.Url == null)
         {
             throw new NullReferenceException("AssetIndex or it's url is null");
         }
+
         var transformedUrl = _sourceManager.TransformUrl(assetIndex.Url);
 
         var response = await HttpUtils.CreateRequest(transformedUrl ?? assetIndex.Url)
@@ -169,8 +261,7 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync(cancellationToken);
     }
-    
-    
+
     public Dictionary<string, AssetInfo> ParseAssetIndex(string json)
     {
         var assets = new Dictionary<string, AssetInfo>();
@@ -180,16 +271,22 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
         {
             foreach (var prop in objects)
             {
-                if (prop.Value is not JsonObject assetObj) continue;
+                if (prop.Value is not JsonObject assetObj)
+                {
+                    continue;
+                }
 
                 var hashNode = assetObj["hash"];
                 var sizeNode = assetObj["size"];
-                
-                if (hashNode == null || hashNode.GetValueKind() != JsonValueKind.String) continue;
+
+                if (hashNode == null || hashNode.GetValueKind() != JsonValueKind.String)
+                {
+                    continue;
+                }
 
                 var hash = hashNode.GetValue<string>();
-                long size = sizeNode?.GetValueKind() == JsonValueKind.Number 
-                    ? sizeNode.GetValue<long>() 
+                long size = sizeNode?.GetValueKind() == JsonValueKind.Number
+                    ? sizeNode.GetValue<long>()
                     : -1;
 
                 assets[prop.Key] = new AssetInfo
@@ -203,34 +300,22 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
         return assets;
     }
 
-    /// <summary>
-    /// 获取依赖库下载链接（已转换）
-    /// </summary>
     public string GetLibraryDownloadUrl(string originalUrl)
     {
         return _sourceManager.TransformUrl(originalUrl) ?? originalUrl;
     }
 
-    /// <summary>
-    /// 获取资源文件下载链接（已转换）
-    /// </summary>
     public string GetAssetDownloadUrl(string hash)
     {
         var originalUrl = $"https://resources.download.minecraft.net/{hash[..2]}/{hash}";
         return _sourceManager.TransformUrl(originalUrl) ?? originalUrl;
     }
 
-    /// <summary>
-    /// 获取资源文件保存路径
-    /// </summary>
     public static string GetAssetSavePath(string assetRoot, string hash)
     {
         return Path.Combine(assetRoot, "objects", hash[..2], hash);
     }
 
-    /// <summary>
-    /// 获取依赖库保存路径
-    /// </summary>
     public static string GetLibrarySavePath(string libraryRoot, string path)
     {
         return Path.Combine(libraryRoot, "libraries", path);

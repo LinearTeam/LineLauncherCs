@@ -167,6 +167,46 @@
             <WelcomeMessage>欢迎使用 Line Launcher</WelcomeMessage>
         </LaunchPage>
 
+        <DownloadMinecraftPage>
+            <Title>下载游戏</Title>
+            <Filters>
+                <Title>过滤</Title>
+                <Release>正式版</Release>
+                <Snapshot>快照版</Snapshot>
+                <AprilFools>愚人节版</AprilFools>
+                <Old>远古版</Old>
+            </Filters>
+            <Latest>
+                <ReleaseHeader>最新正式版</ReleaseHeader>
+                <SnapshotHeader>最新快照版</SnapshotHeader>
+            </Latest>
+            <Search>
+                <Watermark>搜索版本 ID...</Watermark>
+            </Search>
+            <Types>
+                <Release>正式版</Release>
+                <Snapshot>快照版</Snapshot>
+                <AprilFools>愚人节版</AprilFools>
+                <Old>远古版</Old>
+            </Types>
+            <Dialog>
+                <Title>版本信息 - {0}</Title>
+                <CloseButton>关闭</CloseButton>
+                <VersionId>版本 ID：{0}</VersionId>
+                <VersionType>版本类型：{0}</VersionType>
+                <ReleaseTime>发布时间：{0}</ReleaseTime>
+                <Placeholder>原版下载安装流程暂未在此页面实现，当前仅提供版本浏览、搜索与筛选。</Placeholder>
+            </Dialog>
+            <Empty>
+                <NoMatchingVersions>当前没有符合条件的版本。</NoMatchingVersions>
+            </Empty>
+            <Errors>
+                <LoadFailedTitle>加载版本列表失败</LoadFailedTitle>
+                <LoadFailedContent>获取版本清单失败：{0}</LoadFailedContent>
+            </Errors>
+            <Loading>正在加载版本列表...</Loading>
+        </DownloadMinecraftPage>
+
         <TaskPage>
             <Title>任务管理</Title>
             <CancelButton>取消</CancelButton>
@@ -204,6 +244,7 @@
                 <Valid>版本结构正常</Valid>
                 <MissingJar>错误：缺少版本 JAR</MissingJar>
                 <MissingJson>错误：缺少版本 JSON</MissingJson>
+                <InvalidJson>错误：版本 JSON 格式无效</InvalidJson>
             </VersionStatus>
             <InvalidVersions>
                 <Title>检测到异常版本</Title>

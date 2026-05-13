@@ -14,6 +14,7 @@
 
 using System;
 using LMCCore.Game.Model;
+using LMCCore.Game.Versioning;
 using LMCUI.I18n;
 
 namespace LMCUI.Pages.VersionManagePage;
@@ -38,10 +39,10 @@ public partial class VersionDetailPage : PageBase
         _version = version;
         Title = I18nManager.Instance.GetString("Pages.VersionDetailPage.Title", version.VersionName);
         VersionNameText.Text = version.VersionName;
-        var typeText = I18nManager.Instance.GetString(
-            version.Status == VersionStatus.Valid
-                ? "Pages.VersionManagePage.VersionType.Release"
-                : "Pages.VersionManagePage.VersionType.Error");
+
+        var typeText = version.Status != VersionStatus.Valid
+            ? I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.Error")
+            : GetVersionTypeDisplayText(version);
         var clientVersionIdText = string.Equals(version.ClientVersionId, "未知版本", StringComparison.Ordinal)
             ? I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.UnknownClientVersion")
             : version.ClientVersionId;
@@ -51,6 +52,26 @@ public partial class VersionDetailPage : PageBase
         VersionDirectoryText.Text = I18nManager.Instance.GetString("Pages.VersionDetailPage.VersionDirectory", version.VersionDirectory);
     }
 
+    private string GetVersionTypeDisplayText(LocalGameVersionEntry version)
+    {
+        var displayType = version.VersionInfo == null
+            ? GameVersionDisplayType.Release
+            : GameVersionTypeClassifier.ClassifyManifestVersion(
+                version.VersionInfo.Id,
+                version.VersionInfo.Type,
+                version.VersionInfo.ReleaseTime,
+                version.VersionName,
+                version.ClientVersionId);
+
+        return displayType switch
+        {
+            GameVersionDisplayType.Snapshot => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.Snapshot"),
+            GameVersionDisplayType.AprilFools => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.AprilFools"),
+            GameVersionDisplayType.Old => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.Old"),
+            _ => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.Release")
+        };
+    }
+
     private string GetStatusText(VersionStatus status)
     {
         return status switch
@@ -58,6 +79,7 @@ public partial class VersionDetailPage : PageBase
             VersionStatus.Valid => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionStatus.Valid"),
             VersionStatus.MissingJar => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionStatus.MissingJar"),
             VersionStatus.MissingJson => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionStatus.MissingJson"),
+            VersionStatus.InvalidJson => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionStatus.InvalidJson"),
             _ => status.ToString()
         };
     }

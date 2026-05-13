@@ -97,7 +97,7 @@ public class LineFrame : ContentControl
     /// <summary>
     /// 是否启用导航动画
     /// </summary>
-    public static readonly StyledProperty<bool> IsAnimationEnabledProperty =
+    public readonly static StyledProperty<bool> IsAnimationEnabledProperty =
         AvaloniaProperty.Register<LineFrame, bool>(nameof(IsAnimationEnabled), true);
 
     public bool IsAnimationEnabled
@@ -109,7 +109,7 @@ public class LineFrame : ContentControl
     /// <summary>
     /// 动画时长（毫秒）
     /// </summary>
-    public static readonly StyledProperty<int> AnimationDurationProperty =
+    public readonly static StyledProperty<int> AnimationDurationProperty =
         AvaloniaProperty.Register<LineFrame, int>(nameof(AnimationDuration), 200);
 
     public int AnimationDuration
@@ -121,7 +121,7 @@ public class LineFrame : ContentControl
     /// <summary>
     /// 动画滑动方向
     /// </summary>
-    public static readonly StyledProperty<SlideDirection> SlideDirectionProperty =
+    public readonly static StyledProperty<SlideDirection> SlideDirectionProperty =
         AvaloniaProperty.Register<LineFrame, SlideDirection>(nameof(SlideDirection));
 
     public SlideDirection SlideDirection
@@ -251,7 +251,7 @@ public class LineFrame : ContentControl
     /// <summary>
     /// 执行页面切换动画
     /// </summary>
-    private async void PerformTransitionAnimation(PageBase newPage, PageRegistration registration, object? param)
+    async private void PerformTransitionAnimation(PageBase newPage, PageRegistration registration, object? param)
     {
         // 设置新页面
         CurrentPage = newPage;

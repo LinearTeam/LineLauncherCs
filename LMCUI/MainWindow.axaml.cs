@@ -25,6 +25,7 @@ using LMCUI.I18n;
 using LMCUI.Navigation;
 using LMCUI.Pages;
 using LMCUI.Pages.AccountPage;
+using LMCUI.Pages.DownloadMinecraftPage;
 using LMCUI.Pages.Help;
 using LMCUI.Pages.LaunchPage;
 using LMCUI.Pages.SettingsPage;
@@ -47,20 +48,47 @@ public partial class MainWindow : FAAppWindow
     {
         Instance = this;
         InitializeComponent();
+        ConfigureTitleBar();
+        RefreshWindowTitle();
         SplashScreen = new LineSplashScreen();
         Loaded += OnLoaded;
         InitializeNavigationMapping();
+        I18nManager.Instance.CultureChanged += OnCultureChanged;
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        I18nManager.Instance.CultureChanged -= OnCultureChanged;
+        base.OnClosed(e);
     }
 
     private void InitializeNavigationMapping()
     {
         _navItemTagToPageType["LaunchPage"] = typeof(LaunchPage);
         _navItemTagToPageType["VersionManagePage"] = typeof(VersionManagePage);
-        _navItemTagToPageType["DownloadPage"] = typeof(LaunchPage);
+        _navItemTagToPageType["DownloadMinecraftPage"] = typeof(DownloadMinecraftPage);
         _navItemTagToPageType["AccountPage"] = typeof(AccountPage);
         _navItemTagToPageType["TaskPage"] = typeof(TaskPage);
         _navItemTagToPageType["SettingsPage"] = typeof(SettingsPage);
         _navItemTagToPageType["HelpPage"] = typeof(HelpPage);
+    }
+
+    private void ConfigureTitleBar()
+    {
+        if (TitleBar != null)
+        {
+            TitleBar.ExtendsContentIntoTitleBar = false;
+        }
+    }
+
+    private void RefreshWindowTitle()
+    {
+        Title = I18nManager.Instance.GetString("MainWindow.Title");
+    }
+
+    private void OnCultureChanged()
+    {
+        RefreshWindowTitle();
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
