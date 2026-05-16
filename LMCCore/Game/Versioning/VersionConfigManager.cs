@@ -8,6 +8,7 @@ public class VersionConfigManager
 {
     private readonly IReadOnlyList<IVersionConfigSource> _configSources;
     private readonly string _globalConfigPath;
+    private readonly VersionConfigFileCache _fileCache = new();
 
     public VersionConfigManager(IEnumerable<IVersionConfigSource>? configSources = null, string? globalConfigPath = null)
     {
@@ -69,7 +70,7 @@ public class VersionConfigManager
     {
         foreach (var source in _configSources)
         {
-            var config = source.TryLoad(version);
+            var config = source.TryLoad(version, _fileCache);
             if (config is not { IsValid: true, Node: not null })
             {
                 continue;
@@ -91,12 +92,7 @@ public class VersionConfigManager
 
     private JsonUtils? LoadGlobalConfig()
     {
-        if (!File.Exists(_globalConfigPath))
-        {
-            return null;
-        }
-
-        var json = JsonUtils.Parse(File.ReadAllText(_globalConfigPath));
+        var json = _fileCache.GetOrAdd(_globalConfigPath);
         return json.IsValid ? json : null;
     }
 

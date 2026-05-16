@@ -93,7 +93,7 @@ public sealed class HttpUtils
             {
                  WithHeader("Content-Type", "application/json");
             }
-            return WithContent(ContentBuilder.Json(data, options ?? JsonUtils.DefaultSerializeOptions));
+            return WithContent(ContentBuilder.Json(data, options ?? JsonUtils.DefaultSerializerOptions));
         }
 
         public HttpRequestBuilder WithFormContent(Action<FormContentBuilder> configure, bool setContentType = true)

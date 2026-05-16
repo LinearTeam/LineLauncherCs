@@ -28,7 +28,7 @@ public class Startup {
     private static Logger s_logger = null!;
     
     //DO NOT TRANSLATE
-    public static Task Initialize() {
+    public static void Initialize() {
 
         CreateDirectory();
         s_logger = new Logger("Startup");
@@ -46,7 +46,6 @@ public class Startup {
         HandleArguments();
         PreInit();
         LoadConfiguration();
-        return Task.CompletedTask;
     }
 
     private static void PreInit()

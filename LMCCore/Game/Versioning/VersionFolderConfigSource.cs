@@ -10,15 +10,9 @@ public class VersionFolderConfigSource : IVersionConfigSource
 
     public VersionConfigSourceType SourceType => VersionConfigSourceType.VersionFolder;
 
-    public JsonUtils? TryLoad(LocalGameVersionEntry version)
+    public JsonUtils? TryLoad(LocalGameVersionEntry version, VersionConfigFileCache cache)
     {
         var configPath = Path.Combine(version.VersionDirectory, ConfigDirectoryName, ConfigFileName);
-        if (!File.Exists(configPath))
-        {
-            return null;
-        }
-
-        var json = JsonUtils.Parse(File.ReadAllText(configPath));
-        return json.IsValid ? json : null;
+        return cache.GetOrAdd(configPath);
     }
 }

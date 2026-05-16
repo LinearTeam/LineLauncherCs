@@ -35,6 +35,7 @@ public class ParentTask(string name) : TaskBase(name)
     {
         var subTask = new SubTask<T>(name, priority, this, dependencies, execute);
         SubTasks.Add(subTask);
+        TaskManager.Instance.OnSubTaskAdded(subTask);
         return subTask;
     }
 

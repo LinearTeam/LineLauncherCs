@@ -7,5 +7,5 @@ public interface IVersionConfigSource
 {
     VersionConfigSourceType SourceType { get; }
 
-    JsonUtils? TryLoad(LocalGameVersionEntry version);
+    JsonUtils? TryLoad(LocalGameVersionEntry version, VersionConfigFileCache cache);
 }

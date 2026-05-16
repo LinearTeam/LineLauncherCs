@@ -26,15 +26,11 @@ using System.Text.Json.Nodes;
 
 public class JsonUtils
 {
+    public static readonly JsonSerializerOptions DefaultSerializerOptions = CreateDefaultSerializerOptions();
+    public static readonly JsonSerializerOptions AccountSerializerOptions = CreateAccountSerializerOptions();
     public JsonNode? Node { get; }
     public bool IsValid { get; }
-    public static JsonSerializerOptions DefaultSerializeOptions = new()
-    {
-        WriteIndented = true,
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-        TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
-        Converters = { new AccountJsonConverter(), new GameArgumentConverter(), new LibraryInfoConverter() }
-    };
+
     private JsonUtils(JsonNode? node, bool isValid = true)
     {
         Node = node;
@@ -100,7 +96,7 @@ public class JsonUtils
 
         try
         {
-            return array.Deserialize<List<T>>(DefaultSerializeOptions);
+            return array.Deserialize<List<T>>(DefaultSerializerOptions);
         }
         catch
         {
@@ -122,7 +118,7 @@ public class JsonUtils
 
         try
         {
-            return array.Deserialize<List<T>>(DefaultSerializeOptions);
+            return array.Deserialize<List<T>>(DefaultSerializerOptions);
         }
         catch
         {
@@ -138,12 +134,12 @@ public class JsonUtils
 
     public T? Get<T>()
     {
-        return Node.Deserialize<T>(DefaultSerializeOptions) ?? default;
+        return Node.Deserialize<T>(DefaultSerializerOptions) ?? default;
     }
     public T? Get<T>(string path)
     {
         var node = GetNode(path).Node;
-        return node != null ? node.Deserialize<T>(DefaultSerializeOptions) : default;
+        return node != null ? node.Deserialize<T>(DefaultSerializerOptions) : default;
     }
 
     public T? GetOrDefault<T>(string path, T? defaultValue = default)
@@ -212,7 +208,29 @@ public class JsonUtils
     }
 
     public override string ToString() => Node?.ToJsonString() ?? "null";
-    public JsonElement ToJsonElement() => Node?.Deserialize<JsonElement>(DefaultSerializeOptions) ?? default;
+    public JsonElement ToJsonElement() => Node?.Deserialize<JsonElement>(DefaultSerializerOptions) ?? default;
+
+    private static JsonSerializerOptions CreateDefaultSerializerOptions()
+    {
+        var options = CreateBaseSerializerOptions();
+        options.Converters.Add(new GameArgumentConverter());
+        options.Converters.Add(new LibraryInfoConverter());
+        return options;
+    }
+
+    private static JsonSerializerOptions CreateAccountSerializerOptions()
+    {
+        var options = CreateBaseSerializerOptions();
+        options.Converters.Add(new AccountJsonConverter());
+        return options;
+    }
+
+    private static JsonSerializerOptions CreateBaseSerializerOptions() => new()
+    {
+        WriteIndented = true,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+    };
 
     private JsonUtils GetNode(string path)
     {
