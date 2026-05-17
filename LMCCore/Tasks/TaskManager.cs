@@ -35,8 +35,11 @@ public class TaskManager(int maxConcurrency) : IDisposable
     private readonly HashSet<ParentTask> _faultedParents = [];
     private readonly HashSet<SubTaskBase> _queuedTasks = [];
     private readonly HashSet<SubTaskBase> _activeTasks = [];
+    private readonly HashSet<Task> _runningExecutions = [];
     private readonly CancellationTokenSource _managerCts = new();
     private Task? _schedulerTask;
+    private bool _isStopping;
+    private bool _resourcesDisposed;
 
     public event Action<ParentTask>? ParentTaskAdded;
 
@@ -52,19 +55,55 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     public async Task StopAsync()
     {
-        _managerCts.Cancel();
-        _signal.Release();
+        Task? schedulerTask;
+        Task[] runningExecutions;
+        lock (_syncRoot)
+        {
+            if (_resourcesDisposed)
+            {
+                return;
+            }
 
-        if (_schedulerTask == null)
+            _isStopping = true;
+            schedulerTask = _schedulerTask;
+        }
+
+        _managerCts.Cancel();
+        Signal();
+
+        if (schedulerTask == null)
+        {
+            lock (_syncRoot)
+            {
+                runningExecutions = _runningExecutions.ToArray();
+            }
+        }
+        else
+        {
+            try
+            {
+                await schedulerTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            lock (_syncRoot)
+            {
+                runningExecutions = _runningExecutions.ToArray();
+            }
+        }
+
+        if (runningExecutions.Length == 0)
         {
             return;
         }
 
         try
         {
-            await _schedulerTask.ConfigureAwait(false);
+            await Task.WhenAll(runningExecutions).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch
         {
         }
     }
@@ -76,7 +115,18 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     internal void Signal()
     {
-        _signal.Release();
+        if (_resourcesDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            _signal.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 
     internal void RegisterFaultedParent(ParentTask parent)
@@ -93,6 +143,11 @@ public class TaskManager(int maxConcurrency) : IDisposable
     {
         lock (_syncRoot)
         {
+            if (_isStopping || _resourcesDisposed)
+            {
+                return;
+            }
+
             RegisterDependencyHandlersUnsafe(subTask);
             TryEnqueueUnsafe(subTask);
         }
@@ -105,6 +160,11 @@ public class TaskManager(int maxConcurrency) : IDisposable
         var parent = new ParentTask(name);
         lock (_syncRoot)
         {
+            if (_isStopping || _resourcesDisposed)
+            {
+                return parent;
+            }
+
             _parents.Add(parent);
         }
 
@@ -182,9 +242,28 @@ public class TaskManager(int maxConcurrency) : IDisposable
                     break;
                 }
 
-                _ = ExecuteTaskAsync(nextTask);
+                _ = StartExecution(nextTask);
             }
         }
+    }
+
+    private Task StartExecution(SubTaskBase task)
+    {
+        var execution = ExecuteTaskAsync(task);
+        lock (_syncRoot)
+        {
+            _runningExecutions.Add(execution);
+        }
+
+        _ = execution.ContinueWith(_ =>
+        {
+            lock (_syncRoot)
+            {
+                _runningExecutions.Remove(execution);
+            }
+        }, TaskScheduler.Default);
+
+        return execution;
     }
 
     private async Task ExecuteTaskAsync(SubTaskBase task)
@@ -203,7 +282,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
             {
                 _activeTasks.Remove(task);
             }
-            _semaphore.Release();
+            TryReleaseSemaphore();
             Signal();
         }
     }
@@ -264,7 +343,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     private void TryEnqueueUnsafe(SubTaskBase subTask)
     {
-        if (subTask.IsFinished || subTask.IsExecuting || _queuedTasks.Contains(subTask) || _activeTasks.Contains(subTask))
+        if (_isStopping || _resourcesDisposed || subTask.IsFinished || subTask.IsExecuting || _queuedTasks.Contains(subTask) || _activeTasks.Contains(subTask))
         {
             return;
         }
@@ -293,9 +372,36 @@ public class TaskManager(int maxConcurrency) : IDisposable
             parent.Cancel();
         }
 
-        _managerCts.Cancel();
+        Stop();
+
+        lock (_syncRoot)
+        {
+            if (_resourcesDisposed)
+            {
+                return;
+            }
+
+            _resourcesDisposed = true;
+        }
+
         _semaphore.Dispose();
         _signal.Dispose();
         _managerCts.Dispose();
+    }
+
+    private void TryReleaseSemaphore()
+    {
+        if (_resourcesDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            _semaphore.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 }
