@@ -34,6 +34,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
     private readonly List<ParentTask> _parents = [];
     private readonly HashSet<ParentTask> _faultedParents = [];
     private readonly HashSet<SubTaskBase> _queuedTasks = [];
+    private readonly HashSet<SubTaskBase> _activeTasks = [];
     private readonly CancellationTokenSource _managerCts = new();
     private Task? _schedulerTask;
 
@@ -156,10 +157,15 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
                     nextTask = _queue.Dequeue();
                     _queuedTasks.Remove(nextTask);
+                    _activeTasks.Add(nextTask);
                 }
 
                 if (!CanExecute(nextTask))
                 {
+                    lock (_syncRoot)
+                    {
+                        _activeTasks.Remove(nextTask);
+                    }
                     continue;
                 }
 
@@ -169,6 +175,10 @@ public class TaskManager(int maxConcurrency) : IDisposable
                 }
                 catch (OperationCanceledException)
                 {
+                    lock (_syncRoot)
+                    {
+                        _activeTasks.Remove(nextTask);
+                    }
                     break;
                 }
 
@@ -189,6 +199,10 @@ public class TaskManager(int maxConcurrency) : IDisposable
         }
         finally
         {
+            lock (_syncRoot)
+            {
+                _activeTasks.Remove(task);
+            }
             _semaphore.Release();
             Signal();
         }
@@ -250,7 +264,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     private void TryEnqueueUnsafe(SubTaskBase subTask)
     {
-        if (subTask.IsFinished || _queuedTasks.Contains(subTask))
+        if (subTask.IsFinished || subTask.IsExecuting || _queuedTasks.Contains(subTask) || _activeTasks.Contains(subTask))
         {
             return;
         }
@@ -270,7 +284,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
     }
 
     private static bool AreDependenciesSatisfied(SubTaskBase subTask) =>
-        subTask.Dependencies.All(dependency => dependency.IsFinished);
+        subTask.Dependencies.All(dependency => dependency.State == TaskState.Completed);
 
     public void Dispose()
     {

@@ -93,7 +93,7 @@ public class VersionConfigManager
     private JsonUtils? LoadGlobalConfig()
     {
         var json = _fileCache.GetOrAdd(_globalConfigPath);
-        return json.IsValid ? json : null;
+        return json is { IsValid: true } ? json : null;
     }
 
     private static IEnumerable<IVersionConfigSource> CreateDefaultSources()

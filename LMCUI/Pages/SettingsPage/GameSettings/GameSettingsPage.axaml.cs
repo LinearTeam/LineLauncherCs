@@ -132,7 +132,7 @@ public partial class GameSettingsPage : PageBase {
         
         try {
             var javas = await JavaManager.SearchJava(progress);
-            JavaManager.AddJavas(javas);
+            await JavaManager.AddJavasAsync(javas);
             SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchSuccess");
         }
         catch (Exception ex) {

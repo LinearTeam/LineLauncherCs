@@ -75,16 +75,28 @@ public static class JavaManager {
         
     }
 
-    public static void AddJavas(IEnumerable<string> javaPaths)
+    public static async Task AddJavasAsync(IEnumerable<string> javaPaths)
     {
         var normalizedPaths = javaPaths
             .Select(Path.GetFullPath)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        var validPaths = new List<string>(normalizedPaths.Count);
+        foreach (var javaPath in normalizedPaths)
+        {
+            if (await IsValidJavaRoot(javaPath))
+            {
+                validPaths.Add(javaPath);
+                continue;
+            }
+
+            s_logger.Warn($"批量添加时忽略无效 Java 路径: {javaPath}");
+        }
+
         lock (s_configLock)
         {
-            foreach (var javaPath in normalizedPaths)
+            foreach (var javaPath in validPaths)
             {
                 if (!Current.Config.JavaPaths.Contains(javaPath))
                 {
