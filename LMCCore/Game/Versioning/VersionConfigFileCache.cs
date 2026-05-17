@@ -18,7 +18,17 @@ public sealed class VersionConfigFileCache
                 return cached.Value?.Clone();
             }
 
-            var loaded = LoadJsonUnsafe(normalizedPath, stamp);
+            if (stamp == null)
+            {
+                _cache[normalizedPath] = new CacheEntry(null, null);
+                return null;
+            }
+
+            if (!TryLoadJson(normalizedPath, out var loaded))
+            {
+                return null;
+            }
+
             _cache[normalizedPath] = new CacheEntry(stamp, loaded?.Clone());
             return loaded?.Clone();
         }
@@ -35,25 +45,23 @@ public sealed class VersionConfigFileCache
         return $"{info.Length}:{info.LastWriteTimeUtc.Ticks}";
     }
 
-    private static JsonUtils? LoadJsonUnsafe(string normalizedPath, string? stamp)
+    private static bool TryLoadJson(string normalizedPath, out JsonUtils? json)
     {
-        if (stamp == null)
-        {
-            return null;
-        }
-
         try
         {
-            var json = JsonUtils.Parse(File.ReadAllText(normalizedPath));
-            return json.IsValid ? json : null;
+            var loaded = JsonUtils.Parse(File.ReadAllText(normalizedPath));
+            json = loaded.IsValid ? loaded : null;
+            return true;
         }
         catch (IOException)
         {
-            return null;
+            json = null;
+            return false;
         }
         catch (UnauthorizedAccessException)
         {
-            return null;
+            json = null;
+            return false;
         }
     }
 

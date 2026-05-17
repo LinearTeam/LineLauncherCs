@@ -18,7 +18,7 @@ public class VersionJsonConfigSource : IVersionConfigSource
         }
 
         var json = cache.GetOrAdd(version.JsonPath);
-        if (!json.IsValid || json.Node is not JsonObject jsonObject)
+        if (json is not { IsValid: true, Node: JsonObject jsonObject })
         {
             return null;
         }
