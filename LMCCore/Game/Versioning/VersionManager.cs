@@ -8,10 +8,10 @@ using LMCCore.Game.Model.LocalVersion.Arguments;
 
 namespace LMCCore.Game.Versioning;
 
-public class VersionManager(IEnumerable<IVersionValidator>? validators = null)
+public class VersionManager(DownloadManager? downloadManager = null, IEnumerable<IVersionValidator>? validators = null)
 {
     private readonly IReadOnlyList<IVersionValidator> _validators = (validators ?? CreateDefaultValidators()).ToList().AsReadOnly();
-    private readonly DownloadManager _downloadManager = new();
+    private readonly DownloadManager _downloadManager = downloadManager ?? new DownloadManager();
     private readonly Logger _logger = new("VersionManager");
 
     public IReadOnlyList<ManagedGameRoot> GetManagedRoots()
@@ -100,19 +100,14 @@ public class VersionManager(IEnumerable<IVersionValidator>? validators = null)
         }
 
         var versionDirectories = await Task.Run(() => Directory.GetDirectories(versionsDirectory), cancellationToken);
-        var results = new List<LocalGameVersionEntry>(versionDirectories.Length);
+        var tasks = versionDirectories
+            .Select(versionDirectory => CreateVersionEntryAsync(normalizedRoot, versionDirectory, cancellationToken))
+            .ToArray();
+        var entries = await Task.WhenAll(tasks);
 
-        foreach (var versionDirectory in versionDirectories)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var entry = await CreateVersionEntryAsync(normalizedRoot, versionDirectory, cancellationToken);
-            if (entry != null)
-            {
-                results.Add(entry);
-            }
-        }
-
-        return results
+        return entries
+            .Where(entry => entry != null)
+            .Cast<LocalGameVersionEntry>()
             .OrderBy(entry => entry.VersionName, StringComparer.OrdinalIgnoreCase)
             .ToList()
             .AsReadOnly();

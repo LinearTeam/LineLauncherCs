@@ -27,7 +27,7 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        Startup.Initialize().Wait();
+        Startup.Initialize();
         I18nManager.Instance.LoadAllLanguages();
     }
 

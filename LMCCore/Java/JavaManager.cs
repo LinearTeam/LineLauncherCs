@@ -25,6 +25,8 @@ public static class JavaManager {
     private readonly static Logger s_logger = new("JavaManager");
 
     private readonly static object s_configLock = new object();
+    private readonly static object s_javaInfoCacheLock = new object();
+    private readonly static Dictionary<string, LocalJava> s_javaInfoCache = new(StringComparer.OrdinalIgnoreCase);
 
     public async static Task AddJava(string javaPath, Action<TaskCallbackInfo>? callback = null, bool force = false) {
         callback ??= _ => {};
@@ -72,9 +74,50 @@ public static class JavaManager {
         }
         
     }
+
+    public static async Task AddJavasAsync(IEnumerable<string> javaPaths)
+    {
+        var normalizedPaths = javaPaths
+            .Select(Path.GetFullPath)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var validPaths = new List<string>(normalizedPaths.Count);
+        foreach (var javaPath in normalizedPaths)
+        {
+            if (await IsValidJavaRoot(javaPath))
+            {
+                validPaths.Add(javaPath);
+                continue;
+            }
+
+            s_logger.Warn($"批量添加时忽略无效 Java 路径: {javaPath}");
+        }
+
+        lock (s_configLock)
+        {
+            foreach (var javaPath in validPaths)
+            {
+                if (!Current.Config.JavaPaths.Contains(javaPath))
+                {
+                    Current.Config.JavaPaths.Add(javaPath);
+                }
+            }
+
+            ConfigManager.Save("app", Current.Config);
+        }
+    }
     
     public async static Task<LocalJava> GetJavaInfo(string path) {
         path = Path.GetFullPath(path);
+        lock (s_javaInfoCacheLock)
+        {
+            if (s_javaInfoCache.TryGetValue(path, out var cachedJava))
+            {
+                return cachedJava;
+            }
+        }
+
         s_logger.Info($"获取Java信息：{path}");
         var release = Path.Combine(path, "release");
         s_logger.Debug($"release 文件路径: {release}");
@@ -116,6 +159,10 @@ public static class JavaManager {
 版本：{java.Version}
 发行商：{java.Implementor}
 是否是JDK：{java.IsJdk}");
+        lock (s_javaInfoCacheLock)
+        {
+            s_javaInfoCache[path] = java;
+        }
         return java;
     }
     

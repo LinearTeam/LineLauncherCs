@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 public abstract class SubTaskBase(string name, int priority, ParentTask parent, IEnumerable<SubTaskBase>? deps)
     : TaskBase(name)
 {
+    public event Action<SubTaskBase>? Completed;
     private int _progress = -1;
     public int Progress
     {
@@ -37,6 +38,7 @@ public abstract class SubTaskBase(string name, int priority, ParentTask parent, 
     public IReadOnlyList<SubTaskBase> Dependencies { get; } = deps?.ToList() ?? new List<SubTaskBase>();
     public ParentTask Parent { get; } = parent;
 
+    protected void OnCompleted() => Completed?.Invoke(this);
 }
 
 public class SubTask<T>(
@@ -89,6 +91,10 @@ public class SubTask<T>(
         finally
         {
             IsExecuting = false;
+            if (IsFinished)
+            {
+                OnCompleted();
+            }
         }
     }
 }

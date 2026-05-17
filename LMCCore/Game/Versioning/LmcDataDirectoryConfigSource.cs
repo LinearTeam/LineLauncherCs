@@ -16,15 +16,10 @@ public class LMCDataDirectoryConfigSource : IVersionConfigSource
 
     public VersionConfigSourceType SourceType => VersionConfigSourceType.LMCDataDirectory;
 
-    public JsonUtils? TryLoad(LocalGameVersionEntry version)
+    public JsonUtils? TryLoad(LocalGameVersionEntry version, VersionConfigFileCache cache)
     {
-        if (!File.Exists(_configFilePath))
-        {
-            return null;
-        }
-
-        var json = JsonUtils.Parse(File.ReadAllText(_configFilePath));
-        if (!json.IsValid || json.Node is not JsonObject jsonObject)
+        var json = cache.GetOrAdd(_configFilePath);
+        if (json is not { IsValid: true, Node: JsonObject jsonObject })
         {
             return null;
         }
@@ -43,7 +38,7 @@ public class LMCDataDirectoryConfigSource : IVersionConfigSource
                 return null;
             }
 
-            return JsonUtils.Parse(valueObject.ToJsonString(JsonUtils.DefaultSerializeOptions));
+            return JsonUtils.Parse(valueObject.ToJsonString(JsonUtils.DefaultSerializerOptions));
         }
 
         return null;

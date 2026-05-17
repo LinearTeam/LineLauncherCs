@@ -1,11 +1,11 @@
 // Copyright 2025-2026 LinearTeam
-// 
+//
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
 //    You may obtain a copy of the License at
-// 
+//
 //        http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //    Unless required by applicable law or agreed to in writing, software
 //    distributed under the License is distributed on an "AS IS" BASIS,
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ namespace LMCCore.Tasks;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,153 +26,382 @@ public class TaskManager(int maxConcurrency) : IDisposable
 {
     private static TaskManager? s_instance;
     public static TaskManager Instance => s_instance ??= new TaskManager(4);
-    
+
     private readonly PriorityQueue<SubTaskBase, int> _queue = new();
     private readonly SemaphoreSlim _semaphore = new(maxConcurrency);
-    private readonly List<ParentTask> _parents = new();
-    private readonly CancellationTokenSource _managerCts = new(); 
-    private readonly HashSet<ParentTask> _faultedParents = new();
-    private Task? _schedulerTask;
-    
-    // 事件驱动机制：使用信号量替代轮询
     private readonly SemaphoreSlim _signal = new(0, int.MaxValue);
+    private readonly object _syncRoot = new();
+    private readonly List<ParentTask> _parents = [];
+    private readonly HashSet<ParentTask> _faultedParents = [];
+    private readonly HashSet<SubTaskBase> _queuedTasks = [];
+    private readonly HashSet<SubTaskBase> _activeTasks = [];
+    private readonly HashSet<Task> _runningExecutions = [];
+    private readonly CancellationTokenSource _managerCts = new();
+    private Task? _schedulerTask;
+    private bool _isStopping;
+    private bool _resourcesDisposed;
 
-    /// <summary>
-    /// 当有新的父任务添加时触发
-    /// </summary>
     public event Action<ParentTask>? ParentTaskAdded;
 
     public void Start()
     {
-        if (_schedulerTask is { Status: TaskStatus.Running }) return;
+        if (_schedulerTask is { IsCompleted: false })
+        {
+            return;
+        }
+
         _schedulerTask = Task.Run(SchedulerLoopAsync, _managerCts.Token);
+    }
+
+    public async Task StopAsync()
+    {
+        Task? schedulerTask;
+        Task[] runningExecutions;
+        lock (_syncRoot)
+        {
+            if (_resourcesDisposed)
+            {
+                return;
+            }
+
+            _isStopping = true;
+            schedulerTask = _schedulerTask;
+        }
+
+        _managerCts.Cancel();
+        Signal();
+
+        if (schedulerTask == null)
+        {
+            lock (_syncRoot)
+            {
+                runningExecutions = _runningExecutions.ToArray();
+            }
+        }
+        else
+        {
+            try
+            {
+                await schedulerTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            lock (_syncRoot)
+            {
+                runningExecutions = _runningExecutions.ToArray();
+            }
+        }
+
+        if (runningExecutions.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.WhenAll(runningExecutions).ConfigureAwait(false);
+        }
+        catch
+        {
+        }
     }
 
     public void Stop()
     {
-        _managerCts.Cancel();
-        _signal.Release(); // 唤醒等待中的循环
-        _schedulerTask?.Wait();
+        StopAsync().GetAwaiter().GetResult();
     }
-    
-    /// <summary>
-    /// 当有新的父任务添加或有子任务完成时调用，唤醒调度循环
-    /// </summary>
+
     internal void Signal()
     {
-        _signal.Release();
+        if (_resourcesDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            _signal.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
-    
-    async private Task SchedulerLoopAsync()
+
+    internal void RegisterFaultedParent(ParentTask parent)
+    {
+        lock (_syncRoot)
+        {
+            _faultedParents.Add(parent);
+        }
+
+        Signal();
+    }
+
+    internal void OnSubTaskAdded(SubTaskBase subTask)
+    {
+        lock (_syncRoot)
+        {
+            if (_isStopping || _resourcesDisposed)
+            {
+                return;
+            }
+
+            RegisterDependencyHandlersUnsafe(subTask);
+            TryEnqueueUnsafe(subTask);
+        }
+
+        Signal();
+    }
+
+    public ParentTask CreateParent(string name)
+    {
+        var parent = new ParentTask(name);
+        lock (_syncRoot)
+        {
+            if (_isStopping || _resourcesDisposed)
+            {
+                return parent;
+            }
+
+            _parents.Add(parent);
+        }
+
+        Signal();
+        ParentTaskAdded?.Invoke(parent);
+        return parent;
+    }
+
+    public IReadOnlyList<ParentTask> GetParents()
+    {
+        lock (_syncRoot)
+        {
+            return _parents.ToArray();
+        }
+    }
+
+    public void RemoveParent(ParentTask parent)
+    {
+        lock (_syncRoot)
+        {
+            _parents.Remove(parent);
+        }
+    }
+
+    private async Task SchedulerLoopAsync()
     {
         while (!_managerCts.IsCancellationRequested)
         {
             try
             {
-                // 等待信号触发，而不是固定间隔轮询
-                await _signal.WaitAsync(TimeSpan.FromSeconds(1), _managerCts.Token);
+                await _signal.WaitAsync(_managerCts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
                 break;
             }
 
-            // 移除已完成/失败/取消的父任务
-            _parents.RemoveAll(p => p.IsFinished);
-
-            foreach (var parent in _parents.ToArray())
+            while (true)
             {
-                // 只对等待中的父任务入队子任务
-                if (parent.State != TaskState.Waiting)
-                    continue;
-                foreach (var sub in parent.SubTasks.Where(s => !s.IsFinished))
-                    _queue.Enqueue(sub, sub.Priority);
-            }
-            
-            if (_queue.Count > 0)
-                await RunOnceAsync();
-        }
-    }
-    
-    internal void RegisterFaultedParent(ParentTask parent)
-    {
-        _faultedParents.Add(parent);
-        Signal(); // 通知调度循环处理
-    }
-    
-    
-    public ParentTask CreateParent(string name)
-    {
-        var p = new ParentTask(name);
-        _parents.Add(p);
-        Signal(); // 通知调度循环有新任务
-        ParentTaskAdded?.Invoke(p); // 触发事件通知 UI
-        return p;
-    }
+                SubTaskBase? nextTask;
+                lock (_syncRoot)
+                {
+                    _parents.RemoveAll(parent => parent.IsFinished);
+                    EnqueueReadyTasksUnsafe();
 
-    public IReadOnlyList<ParentTask> GetParents() => _parents.AsReadOnly();
+                    if (_queue.Count == 0)
+                    {
+                        break;
+                    }
 
-    public void RemoveParent(ParentTask parent)
-    {
-        _parents.Remove(parent);
-    }
-
-    async private Task RunOnceAsync()
-    {
-        var running = new List<Task>();
-        while (_queue.Count > 0 && !_managerCts.IsCancellationRequested)
-        {
-            var task = _queue.Dequeue();
-            
-            // 跳过已完成的或属于已失败父任务的任务
-            if (task.IsFinished) continue;
-            if (_faultedParents.Contains(task.Parent)) continue;
-            if (task.Parent.State == TaskState.Canceled) continue;
-
-            await WaitDependencies(task);
-            if (task.IsFinished) continue;
-            if (_faultedParents.Contains(task.Parent)) continue;
-            if (task.Parent.State == TaskState.Canceled) continue;
-
-            await _semaphore.WaitAsync(_managerCts.Token);
-            running.Add(Task.Run(async () =>
-            {
-                try { await task.ExecuteAsync(); }
-                catch { /* 忽略异常，任务状态已由 TaskBase 设置 */ }
-                finally 
-                { 
-                    _semaphore.Release();
-                    Signal(); // 通知调度循环有任务完成
+                    nextTask = _queue.Dequeue();
+                    _queuedTasks.Remove(nextTask);
+                    _activeTasks.Add(nextTask);
                 }
-            }, _managerCts.Token));
 
-            if (_queue.Count == 0 || _queue.Peek().Priority != task.Priority)
-            {
-                try { await Task.WhenAll(running); }
-                catch { /* 忽略异常，任务状态已由 TaskBase 设置 */ }
-                running.Clear();
+                if (!CanExecute(nextTask))
+                {
+                    lock (_syncRoot)
+                    {
+                        _activeTasks.Remove(nextTask);
+                    }
+                    continue;
+                }
+
+                try
+                {
+                    await _semaphore.WaitAsync(_managerCts.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    lock (_syncRoot)
+                    {
+                        _activeTasks.Remove(nextTask);
+                    }
+                    break;
+                }
+
+                _ = StartExecution(nextTask);
             }
         }
     }
-    
-    async private Task WaitDependencies(SubTaskBase task)
+
+    private Task StartExecution(SubTaskBase task)
     {
-        foreach (var dep in task.Dependencies)
+        var execution = ExecuteTaskAsync(task);
+        lock (_syncRoot)
         {
-            while (!dep.IsFinished)
-            {
-                if (task.IsFinished || task.Parent.State == TaskState.Canceled)
-                    return;
+            _runningExecutions.Add(execution);
+        }
 
-                await Task.Delay(10);
+        _ = execution.ContinueWith(_ =>
+        {
+            lock (_syncRoot)
+            {
+                _runningExecutions.Remove(execution);
+            }
+        }, TaskScheduler.Default);
+
+        return execution;
+    }
+
+    private async Task ExecuteTaskAsync(SubTaskBase task)
+    {
+        try
+        {
+            await task.ExecuteAsync().ConfigureAwait(false);
+        }
+        catch
+        {
+            // TaskBase/ParentTask already owns state transition and fault propagation.
+        }
+        finally
+        {
+            lock (_syncRoot)
+            {
+                _activeTasks.Remove(task);
+            }
+            TryReleaseSemaphore();
+            Signal();
+        }
+    }
+
+    private bool CanExecute(SubTaskBase task)
+    {
+        if (task.IsFinished)
+        {
+            return false;
+        }
+
+        lock (_syncRoot)
+        {
+            if (_faultedParents.Contains(task.Parent) || task.Parent.State == TaskState.Canceled)
+            {
+                return false;
+            }
+        }
+
+        return AreDependenciesSatisfied(task);
+    }
+
+    private void DependencyCompleted(SubTaskBase _)
+    {
+        lock (_syncRoot)
+        {
+            EnqueueReadyTasksUnsafe();
+        }
+
+        Signal();
+    }
+
+    private void EnqueueReadyTasksUnsafe()
+    {
+        foreach (var parent in _parents)
+        {
+            if (parent.State != TaskState.Waiting)
+            {
+                continue;
+            }
+
+            foreach (var subTask in parent.SubTasks)
+            {
+                RegisterDependencyHandlersUnsafe(subTask);
+                TryEnqueueUnsafe(subTask);
             }
         }
     }
+
+    private void RegisterDependencyHandlersUnsafe(SubTaskBase subTask)
+    {
+        foreach (var dependency in subTask.Dependencies)
+        {
+            dependency.Completed -= DependencyCompleted;
+            dependency.Completed += DependencyCompleted;
+        }
+    }
+
+    private void TryEnqueueUnsafe(SubTaskBase subTask)
+    {
+        if (_isStopping || _resourcesDisposed || subTask.IsFinished || subTask.IsExecuting || _queuedTasks.Contains(subTask) || _activeTasks.Contains(subTask))
+        {
+            return;
+        }
+
+        if (_faultedParents.Contains(subTask.Parent) || subTask.Parent.State == TaskState.Canceled)
+        {
+            return;
+        }
+
+        if (!AreDependenciesSatisfied(subTask))
+        {
+            return;
+        }
+
+        _queue.Enqueue(subTask, subTask.Priority);
+        _queuedTasks.Add(subTask);
+    }
+
+    private static bool AreDependenciesSatisfied(SubTaskBase subTask) =>
+        subTask.Dependencies.All(dependency => dependency.State == TaskState.Completed);
 
     public void Dispose()
     {
-        foreach (var p in _parents) p.Cancel();
+        foreach (var parent in GetParents())
+        {
+            parent.Cancel();
+        }
+
+        Stop();
+
+        lock (_syncRoot)
+        {
+            if (_resourcesDisposed)
+            {
+                return;
+            }
+
+            _resourcesDisposed = true;
+        }
+
         _semaphore.Dispose();
         _signal.Dispose();
+        _managerCts.Dispose();
+    }
+
+    private void TryReleaseSemaphore()
+    {
+        if (_resourcesDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            _semaphore.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 }

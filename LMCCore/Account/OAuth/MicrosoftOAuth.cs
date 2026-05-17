@@ -188,7 +188,7 @@ public static class MicrosoftOAuth
 
             foreach (var skin in skins)
             {
-                var skinJson = JsonUtils.Parse(System.Text.Json.JsonSerializer.Serialize(skin, JsonUtils.DefaultSerializeOptions));
+                var skinJson = JsonUtils.Parse(System.Text.Json.JsonSerializer.Serialize(skin, JsonUtils.DefaultSerializerOptions));
                 if (string.Equals(skinJson.GetString("state"), "ACTIVE", StringComparison.OrdinalIgnoreCase))
                 {
                     var activeSkinUrl = skinJson.GetString("url");
@@ -197,7 +197,7 @@ public static class MicrosoftOAuth
                 }
             }
 
-            var firstSkinUrl = JsonUtils.Parse(System.Text.Json.JsonSerializer.Serialize(skins[0], JsonUtils.DefaultSerializeOptions))
+            var firstSkinUrl = JsonUtils.Parse(System.Text.Json.JsonSerializer.Serialize(skins[0], JsonUtils.DefaultSerializerOptions))
                 .GetString("url");
             s_logger.Info($"微软账号没有 ACTIVE 皮肤，回退到首个皮肤地址: {account.Name}");
             return (firstSkinUrl, null);

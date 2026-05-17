@@ -10,15 +10,15 @@ public class VersionJsonConfigSource : IVersionConfigSource
 
     public VersionConfigSourceType SourceType => VersionConfigSourceType.VersionJson;
 
-    public JsonUtils? TryLoad(LocalGameVersionEntry version)
+    public JsonUtils? TryLoad(LocalGameVersionEntry version, VersionConfigFileCache cache)
     {
         if (string.IsNullOrWhiteSpace(version.JsonPath) || !File.Exists(version.JsonPath))
         {
             return null;
         }
 
-        var json = JsonUtils.Parse(File.ReadAllText(version.JsonPath));
-        if (!json.IsValid || json.Node is not JsonObject jsonObject)
+        var json = cache.GetOrAdd(version.JsonPath);
+        if (json is not { IsValid: true, Node: JsonObject jsonObject })
         {
             return null;
         }
@@ -28,6 +28,6 @@ public class VersionJsonConfigSource : IVersionConfigSource
             return null;
         }
 
-        return JsonUtils.Parse(configNode.ToJsonString(JsonUtils.DefaultSerializeOptions));
+        return JsonUtils.Parse(configNode.ToJsonString(JsonUtils.DefaultSerializerOptions));
     }
 }

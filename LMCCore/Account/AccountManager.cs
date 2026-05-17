@@ -25,7 +25,8 @@ namespace LMCCore.Account;
 
 public static class AccountManager
 {
-    private static List<Model.Account> s_accounts = new List<Model.Account>();
+    private static readonly object s_accountsLock = new();
+    private static List<Model.Account> s_accounts = [];
 
     public static IReadOnlyList<Model.Account> Accounts = s_accounts.AsReadOnly();
     public static string GenerateOfflineUuid(string playerName)
@@ -60,59 +61,85 @@ public static class AccountManager
     public static void Load()
     {
         var accStr = SecretsManager.Instance.Extra.GetValueOrDefault("Accounts", "[]");
-        var accounts = JsonUtils.Parse(accStr).GetArray<Model.Account>();
-        s_accounts = (accounts ?? []).ToList();
-        Accounts = s_accounts.AsReadOnly();
+        List<Model.Account> parsedAccounts;
+        try
+        {
+            parsedAccounts = JsonSerializer.Deserialize<List<Model.Account>>(accStr, JsonUtils.AccountSerializerOptions) ?? [];
+        }
+        catch
+        {
+            parsedAccounts = [];
+        }
+
+        lock (s_accountsLock)
+        {
+            s_accounts = parsedAccounts;
+            Accounts = s_accounts.AsReadOnly();
+        }
     }
 
     public static void Save()
     {
-        SecretsManager.Instance.Extra["Accounts"] = JsonSerializer.Serialize(s_accounts, JsonUtils.DefaultSerializeOptions);
+        List<Model.Account> snapshot;
+        lock (s_accountsLock)
+        {
+            snapshot = [..s_accounts];
+        }
+
+        SecretsManager.Instance.Extra["Accounts"] = JsonSerializer.Serialize(snapshot, JsonUtils.AccountSerializerOptions);
         SecretsManager.Save();
     }
 
     public static void Add(Model.Account account)
     {
         // 检查是否已存在相同账户
-        bool isDuplicate = s_accounts.Any(existingAccount =>
+        lock (s_accountsLock)
         {
-            if (existingAccount.Type != account.Type)
-                return false;
-                
-            switch (account.Type)
+            bool isDuplicate = s_accounts.Any(existingAccount =>
             {
-                case AccountType.Offline:
-                    return existingAccount.Name == account.Name;
-                    
-                case AccountType.Microsoft:
-                    string normalizedExistingUuid = existingAccount.Uuid.Replace("-", "").ToLower();
-                    string normalizedNewUuid = account.Uuid.Replace("-", "").ToLower();
-                    return normalizedExistingUuid == normalizedNewUuid;
-                    
-                case AccountType.Authlib:
-                    if (existingAccount is AuthlibAccount authlibAccount && account is AuthlibAccount addAuthlibAccount)
-                    {
-                        return authlibAccount.Username.Equals(addAuthlibAccount.Username, StringComparison.OrdinalIgnoreCase);
-                    }
-                    throw new Exception($"Account type is not Authlib (exist: {existingAccount is AuthlibAccount}, add: {account is AuthlibAccount})");
-                    
-                default:
+                if (existingAccount.Type != account.Type)
                     return false;
+
+                switch (account.Type)
+                {
+                    case AccountType.Offline:
+                        return existingAccount.Name == account.Name;
+
+                    case AccountType.Microsoft:
+                        string normalizedExistingUuid = existingAccount.Uuid.Replace("-", "").ToLowerInvariant();
+                        string normalizedNewUuid = account.Uuid.Replace("-", "").ToLowerInvariant();
+                        return normalizedExistingUuid == normalizedNewUuid;
+
+                    case AccountType.Authlib:
+                        if (existingAccount is AuthlibAccount authlibAccount && account is AuthlibAccount addAuthlibAccount)
+                        {
+                            return authlibAccount.Username.Equals(addAuthlibAccount.Username, StringComparison.OrdinalIgnoreCase);
+                        }
+
+                        throw new Exception($"Account type is not Authlib (exist: {existingAccount is AuthlibAccount}, add: {account is AuthlibAccount})");
+
+                    default:
+                        return false;
+                }
+            });
+
+            if (isDuplicate)
+            {
+                throw new ArgumentException("Messages.AccountManager.AddAccount.Duplicate");
             }
-        });
-        
-        if (isDuplicate)
-        {
-            throw new ArgumentException("Messages.AccountManager.AddAccount.Duplicate");
+
+            s_accounts.Add(account);
         }
-        
-        s_accounts.Add(account);
+
         Save();
     }
 
     public static void Remove(Model.Account account)
     {
-        s_accounts.Remove(account);
+        lock (s_accountsLock)
+        {
+            s_accounts.Remove(account);
+        }
         Save();
     }
 }
