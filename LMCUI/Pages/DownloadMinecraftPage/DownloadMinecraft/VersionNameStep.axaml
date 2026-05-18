@@ -1,11 +1,12 @@
-<local:DownloadMinecraftStep xmlns="https://github.com/avaloniaui"
+<downloadMinecraft:DownloadMinecraftStep xmlns="https://github.com/avaloniaui"
                              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                              xmlns:i18n="clr-namespace:LMCUI.I18n"
                              xmlns:local="clr-namespace:LMCUI.Pages.DownloadMinecraftPage"
+                             xmlns:downloadMinecraft="clr-namespace:LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft"
                              mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="300"
-                             x:Class="LMCUI.Pages.DownloadMinecraftPage.VersionNameStep">
+                             x:Class="LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft.VersionNameStep">
     <StackPanel Orientation="Vertical" Spacing="6">
         <TextBlock Text="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.VersionNameStep.Title}" FontSize="20" FontWeight="Bold"/>
         <TextBlock Text="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.VersionNameStep.Description}"
@@ -16,4 +17,4 @@
                  TextChanged="VersionNameBox_OnTextChanged"/>
         <TextBlock Name="ValidationText" Foreground="Red" IsVisible="False" TextWrapping="Wrap"/>
     </StackPanel>
-</local:DownloadMinecraftStep>
+</downloadMinecraft:DownloadMinecraftStep>

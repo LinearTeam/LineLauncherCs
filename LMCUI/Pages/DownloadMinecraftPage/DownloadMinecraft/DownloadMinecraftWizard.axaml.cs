@@ -2,7 +2,7 @@ using System;
 using Avalonia.Controls;
 using FluentAvalonia.UI.Media.Animation;
 
-namespace LMCUI.Pages.DownloadMinecraftPage;
+namespace LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 
 public partial class DownloadMinecraftWizard : UserControl
 {

@@ -19,6 +19,7 @@ using LMCCore.Game.Download;
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Versioning;
 using LMCUI.I18n;
+using LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 using LMCUI.Utils;
 
 namespace LMCUI.Pages.DownloadMinecraftPage;
@@ -344,7 +345,7 @@ public partial class DownloadMinecraftPage : PageBase
             IsSecondaryButtonEnabled = true
         };
 
-        var wizard = new DownloadMinecraftWizard(
+        var wizard = new DownloadMinecraft.DownloadMinecraftWizard(
             new DownloadMinecraftWizardContext(Current.Config.SelectedGameRootPath, version.Id),
             state =>
             {

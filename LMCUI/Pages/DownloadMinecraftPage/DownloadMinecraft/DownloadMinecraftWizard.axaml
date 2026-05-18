@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="300"
-             x:Class="LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraftWizard">
+             x:Class="LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft.DownloadMinecraftWizard">
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Orientation="Vertical" Spacing="5">

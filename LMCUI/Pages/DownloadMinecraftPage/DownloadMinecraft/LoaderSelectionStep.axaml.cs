@@ -8,7 +8,7 @@ using Avalonia.Controls;
 using LMCCore.Utils;
 using LMCUI.I18n;
 
-namespace LMCUI.Pages.DownloadMinecraftPage;
+namespace LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 
 public partial class LoaderSelectionStep : DownloadMinecraftStep
 {

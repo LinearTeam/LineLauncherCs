@@ -3,7 +3,7 @@ using System.IO;
 using Avalonia.Controls;
 using LMCUI.I18n;
 
-namespace LMCUI.Pages.DownloadMinecraftPage;
+namespace LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 
 public partial class VersionNameStep : DownloadMinecraftStep
 {
@@ -47,7 +47,7 @@ public partial class VersionNameStep : DownloadMinecraftStep
         if (_context == null)
             return (null, null);
 
-        return (typeof(LoaderSelectionStep), new DownloadMinecraftWizardContext(_context.SelectedRootPath, _context.ManifestVersionId));
+        return (typeof(DownloadMinecraft.LoaderSelectionStep), new DownloadMinecraftWizardContext(_context.SelectedRootPath, _context.ManifestVersionId));
     }
 
     public override bool IsFinalStep() => _isFinal;
