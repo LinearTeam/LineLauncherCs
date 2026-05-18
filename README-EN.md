@@ -112,3 +112,5 @@ Furthermore, the code from [TT702/Forge-InstallProcessor.NET](https://github.com
 [BMCLAPI](https://bmclapi2.bangbang93.com/) is also utilized as a mirror source.
 
 Additionally, the tutorials from the [Minecraft Wiki](https://zh.minecraft.wiki/w/%E6%95%99%E7%A8%8B/%E7%BC%96%E5%86%99%E5%90%AF%E5%8A%A8%E5%99%A8) were consulted.
+
+The UI Design of some pages referenced [Fluent Launcher](https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/), it's open-sourced under the [MIT](https://licenses.nuget.org/MIT) LICENSE.

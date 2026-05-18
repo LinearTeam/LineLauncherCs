@@ -293,6 +293,10 @@
                 <Header>关于 Line (Minecraft) Launcher</Header>
                 <VersionDescription>版本 {0}-{1} Build-{2}</VersionDescription>
             </AboutLauncherExpander>
+            <CopyrightExpander>
+                <Header>版权声明</Header>
+                <Description>查看项目与第三方依赖的版权说明</Description>
+            </CopyrightExpander>
             <Author>
                 <Name>Huangyu (皇鱼)</Name>
                 <Description>LMC C#版的主要作者与维护者。</Description>
@@ -300,6 +304,104 @@
                 <Blog>Huangyu's Blog</Blog>
             </Author>
         </AboutPage>
+
+        <CopyrightPage>
+            <Title>版权声明</Title>
+            <Items>
+                <SystemGroup>
+                    <Title>System 包与 .NET 运行时</Title>
+                    <Description>Microsoft 提供的 .NET 及 System 命名空间相关组件。</Description>
+                </SystemGroup>
+                <System>
+                    <Title>System / .NET</Title>
+                    <Description>部分遵循 MIT，部分遵循 .NET 库许可证。</Description>
+                </System>
+                <AvaloniaGroup>
+                    <Title>Avalonia 包</Title>
+                    <Description>AvaloniaUI 团队开发的跨平台 UI 依赖。</Description>
+                </AvaloniaGroup>
+                <Avalonia>
+                    <Title>Avalonia</Title>
+                    <Description>MIT 许可。</Description>
+                </Avalonia>
+                <AvaloniaDesktop>
+                    <Title>Avalonia.Desktop</Title>
+                    <Description>MIT 许可。</Description>
+                </AvaloniaDesktop>
+                <AvaloniaThemesFluent>
+                    <Title>Avalonia.Themes.Fluent</Title>
+                    <Description>MIT 许可。</Description>
+                </AvaloniaThemesFluent>
+                <AvaloniaFontsInter>
+                    <Title>Avalonia.Fonts.Inter</Title>
+                    <Description>MIT 许可。</Description>
+                </AvaloniaFontsInter>
+                <AvaloniaDiagnostics>
+                    <Title>Avalonia.Diagnostics</Title>
+                    <Description>MIT 许可。</Description>
+                </AvaloniaDiagnostics>
+                <FluentAvaloniaGroup>
+                    <Title>FluentAvalonia 包</Title>
+                    <Description>由 amwx 开发的 Fluent 风格扩展。</Description>
+                </FluentAvaloniaGroup>
+                <FluentAvalonia>
+                    <Title>FluentAvaloniaUI</Title>
+                    <Description>MIT 许可。</Description>
+                </FluentAvalonia>
+                <OtherGroup>
+                    <Title>其他包</Title>
+                    <Description>其余第三方依赖库。</Description>
+                </OtherGroup>
+                <NLog>
+                    <Title>NLog</Title>
+                    <Description>由 NLog 团队开发，BSD 3-Clause。</Description>
+                </NLog>
+                <MicrosoftNetTestSdk>
+                    <Title>Microsoft.NET.Test.Sdk</Title>
+                    <Description>由 Microsoft 开发，MIT 许可。</Description>
+                </MicrosoftNetTestSdk>
+                <Xunit>
+                    <Title>xunit</Title>
+                    <Description>由 xUnit 团队开发，Apache-2.0。</Description>
+                </Xunit>
+                <XunitRunnerVisualStudio>
+                    <Title>xunit.runner.visualstudio</Title>
+                    <Description>由 xUnit 团队开发，Apache-2.0。</Description>
+                </XunitRunnerVisualStudio>
+                <CoverletCollector>
+                    <Title>coverlet.collector</Title>
+                    <Description>由 Coverlet 团队开发，MIT 许可。</Description>
+                </CoverletCollector>
+                <Moq>
+                    <Title>Moq</Title>
+                    <Description>由 Moq 团队开发，BSD 3-Clause。</Description>
+                </Moq>
+                <SpecialThanksGroup>
+                    <Title>特别感谢</Title>
+                    <Description>项目开发与资料参考来源。</Description>
+                </SpecialThanksGroup>
+                <PCL2HMCL>
+                    <Title>PCL2 / HMCL</Title>
+                    <Description>Minecraft 相关实现的重要参考。</Description>
+                </PCL2HMCL>
+                <TT702ForgeInstallProcessor>
+                    <Title>TT702 Forge Install Processor.NET</Title>
+                    <Description>Forge 安装处理器参考代码。</Description>
+                </TT702ForgeInstallProcessor>
+                <BMCLAPI>
+                    <Title>BMCLAPI</Title>
+                    <Description>镜像源支持。</Description>
+                </BMCLAPI>
+                <MinecraftWiki>
+                    <Title>Minecraft Wiki</Title>
+                    <Description>启动器相关教程参考。</Description>
+                </MinecraftWiki>
+                <FluentLauncher>
+                    <Title>Fluent Launcher</Title>
+                    <Description>部分 UI 设计参考。</Description>
+                </FluentLauncher>
+            </Items>
+        </CopyrightPage>
 
         <SettingsPage>
             <AboutPageNav>

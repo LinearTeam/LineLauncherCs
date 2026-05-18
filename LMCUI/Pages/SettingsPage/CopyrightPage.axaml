@@ -1,0 +1,15 @@
+<pages:PageBase xmlns="https://github.com/avaloniaui"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+              xmlns:pages="clr-namespace:LMCUI.Pages"
+              xmlns:ui="using:FluentAvalonia.UI.Controls"
+              xmlns:i18n="clr-namespace:LMCUI.I18n"
+              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+              x:Class="LMCUI.Pages.SettingsPage.CopyrightPage">
+    <Grid Margin="60, 20, 40, 30">
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical" x:Name="CopyrightItems" Spacing="8"/>
+        </ScrollViewer>
+    </Grid>
+</pages:PageBase>

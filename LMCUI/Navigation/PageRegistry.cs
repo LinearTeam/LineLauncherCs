@@ -62,6 +62,7 @@ public class PageRegistry
         Register<Pages.SettingsPage.LauncherSettings.LauncherSettingsPage>("LauncherSettingsPage");
         Register<Pages.SettingsPage.GameSettings.GameSettingsPage>("GameSettingsPage");
         Register<Pages.SettingsPage.AboutPage>("AboutPage");
+        Register<Pages.SettingsPage.CopyrightPage>("CopyrightPage");
 
         _logger.Info("内置页面注册完成");
     }

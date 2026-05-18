@@ -16,6 +16,8 @@ namespace LMCUI.Pages.SettingsPage;
 
 using LMC;
 using I18n;
+using LMCUI.Navigation;
+using Avalonia.Interactivity;
 
 public partial class AboutPage : PageBase
 {
@@ -29,5 +31,10 @@ public partial class AboutPage : PageBase
     {
         var versionFormat = I18nManager.Instance.GetString("Pages.AboutPage.AboutLauncherExpander.VersionDescription");
         AboutLauncherExpander.Description = string.Format(versionFormat, Current.VersionType, Current.Version, Current.BuildNumber);
+    }
+
+    private void CopyrightExpander_OnClick(object? sender, RoutedEventArgs e)
+    {
+        MainWindow.NavigatePage(new PageNavigateWay(typeof(CopyrightPage), MainWindow.Instance.mnv.SettingsItem), NavigateType.Append);
     }
 }

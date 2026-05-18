@@ -293,6 +293,10 @@
                 <Header>About Line (Minecraft) Launcher</Header>
                 <VersionDescription>Version {0}-{1} Build-{2}</VersionDescription>
             </AboutLauncherExpander>
+            <CopyrightExpander>
+                <Header>Copyright</Header>
+                <Description>View project and third-party license notices</Description>
+            </CopyrightExpander>
             <Author>
                 <Name>Huangyu (皇鱼)</Name>
                 <Description>Main author and maintainer of LMC C# version.</Description>
@@ -300,6 +304,104 @@
                 <Blog>Huangyu's Blog</Blog>
             </Author>
         </AboutPage>
+
+        <CopyrightPage>
+            <Title>Copyright</Title>
+            <Items>
+                <SystemGroup>
+                    <Title>System packages and .NET runtime</Title>
+                    <Description>Microsoft-provided .NET and System namespace components.</Description>
+                </SystemGroup>
+                <System>
+                    <Title>System / .NET</Title>
+                    <Description>Partly MIT licensed and partly under the .NET library license.</Description>
+                </System>
+                <AvaloniaGroup>
+                    <Title>Avalonia packages</Title>
+                    <Description>Cross-platform UI dependencies developed by the AvaloniaUI team.</Description>
+                </AvaloniaGroup>
+                <Avalonia>
+                    <Title>Avalonia</Title>
+                    <Description>MIT licensed.</Description>
+                </Avalonia>
+                <AvaloniaDesktop>
+                    <Title>Avalonia.Desktop</Title>
+                    <Description>MIT licensed.</Description>
+                </AvaloniaDesktop>
+                <AvaloniaThemesFluent>
+                    <Title>Avalonia.Themes.Fluent</Title>
+                    <Description>MIT licensed.</Description>
+                </AvaloniaThemesFluent>
+                <AvaloniaFontsInter>
+                    <Title>Avalonia.Fonts.Inter</Title>
+                    <Description>MIT licensed.</Description>
+                </AvaloniaFontsInter>
+                <AvaloniaDiagnostics>
+                    <Title>Avalonia.Diagnostics</Title>
+                    <Description>MIT licensed.</Description>
+                </AvaloniaDiagnostics>
+                <FluentAvaloniaGroup>
+                    <Title>FluentAvalonia package</Title>
+                    <Description>Fluent-style extensions developed by amwx.</Description>
+                </FluentAvaloniaGroup>
+                <FluentAvalonia>
+                    <Title>FluentAvaloniaUI</Title>
+                    <Description>MIT licensed.</Description>
+                </FluentAvalonia>
+                <OtherGroup>
+                    <Title>Other packages</Title>
+                    <Description>Other third-party dependencies.</Description>
+                </OtherGroup>
+                <NLog>
+                    <Title>NLog</Title>
+                    <Description>Developed by the NLog team, BSD 3-Clause.</Description>
+                </NLog>
+                <MicrosoftNetTestSdk>
+                    <Title>Microsoft.NET.Test.Sdk</Title>
+                    <Description>Developed by Microsoft, MIT licensed.</Description>
+                </MicrosoftNetTestSdk>
+                <Xunit>
+                    <Title>xunit</Title>
+                    <Description>Developed by the xUnit team, Apache-2.0.</Description>
+                </Xunit>
+                <XunitRunnerVisualStudio>
+                    <Title>xunit.runner.visualstudio</Title>
+                    <Description>Developed by the xUnit team, Apache-2.0.</Description>
+                </XunitRunnerVisualStudio>
+                <CoverletCollector>
+                    <Title>coverlet.collector</Title>
+                    <Description>Developed by the Coverlet team, MIT licensed.</Description>
+                </CoverletCollector>
+                <Moq>
+                    <Title>Moq</Title>
+                    <Description>Developed by the Moq team, BSD 3-Clause.</Description>
+                </Moq>
+                <SpecialThanksGroup>
+                    <Title>Special thanks</Title>
+                    <Description>Projects and references that helped this launcher.</Description>
+                </SpecialThanksGroup>
+                <PCL2HMCL>
+                    <Title>PCL2 / HMCL</Title>
+                    <Description>Important references for Minecraft-related implementation.</Description>
+                </PCL2HMCL>
+                <TT702ForgeInstallProcessor>
+                    <Title>TT702 Forge Install Processor.NET</Title>
+                    <Description>Reference implementation for Forge installation processing.</Description>
+                </TT702ForgeInstallProcessor>
+                <BMCLAPI>
+                    <Title>BMCLAPI</Title>
+                    <Description>Mirror source support.</Description>
+                </BMCLAPI>
+                <MinecraftWiki>
+                    <Title>Minecraft Wiki</Title>
+                    <Description>Launcher-related tutorial reference.</Description>
+                </MinecraftWiki>
+                <FluentLauncher>
+                    <Title>Fluent Launcher</Title>
+                    <Description>UI design reference.</Description>
+                </FluentLauncher>
+            </Items>
+        </CopyrightPage>
 
         <SettingsPage>
             <AboutPageNav>

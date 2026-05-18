@@ -42,7 +42,12 @@
                     </ui:FASettingsExpander.Items>
                 </ui:FASettingsExpander>
                 <Grid Height="5"/>
-                <ui:FASettingsExpander></ui:FASettingsExpander>
+                <ui:FASettingsExpander IsClickEnabled="True"
+                                     Header="{i18n:I18nBinding Key=Pages.AboutPage.CopyrightExpander.Header}"
+                                     Description="{i18n:I18nBinding Key=Pages.AboutPage.CopyrightExpander.Description}"
+                                     IconSource="Document"
+                                     ActionIconSource="ChevronRight"
+                                     Click="CopyrightExpander_OnClick"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -111,3 +111,5 @@ LineLauncherCs/
 同时使用了[BMCLAPI](https://bmclapi2.bangbang93.com/)作为镜像源。
 
 同时也参考了[Minecraft Wiki](https://zh.minecraft.wiki/w/%E6%95%99%E7%A8%8B/%E7%BC%96%E5%86%99%E5%90%AF%E5%8A%A8%E5%99%A8)中的教程。
+
+部分页面的UI设计参考了[Fluent Launcher](https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/)，其使用[MIT](https://licenses.nuget.org/MIT)协议开源。
