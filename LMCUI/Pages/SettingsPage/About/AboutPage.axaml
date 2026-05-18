@@ -9,7 +9,7 @@
              xmlns:i18n="clr-namespace:LMCUI.I18n"
              xmlns:lmc="clr-namespace:LMC;assembly=LMC"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="LMCUI.Pages.SettingsPage.AboutPage">
+             x:Class="LMCUI.Pages.SettingsPage.About.AboutPage">
     
     <Grid Margin="60, 20, 40, 30">
         <ScrollViewer>
@@ -45,7 +45,7 @@
                 <ui:FASettingsExpander IsClickEnabled="True"
                                      Header="{i18n:I18nBinding Key=Pages.AboutPage.CopyrightExpander.Header}"
                                      Description="{i18n:I18nBinding Key=Pages.AboutPage.CopyrightExpander.Description}"
-                                     IconSource="Document"
+                                     IconSource="Code"
                                      ActionIconSource="ChevronRight"
                                      Click="CopyrightExpander_OnClick"/>
             </StackPanel>

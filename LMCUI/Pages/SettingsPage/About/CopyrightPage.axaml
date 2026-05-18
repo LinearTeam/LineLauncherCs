@@ -1,0 +1,312 @@
+<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="LMCUI.Pages.SettingsPage.About.CopyrightPage">
+    <Grid Margin="60, 20, 40, 30">
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical" Spacing="8">
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.SystemGroup.Title}"
+                                       Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.SystemGroup.Description}"
+                                       IconSource="Document"
+                                       IsExpanded="False">
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.System.Title}"
+                                                   Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.System.Description}"
+                                                   IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/dotnet/runtime">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Content>
+                                <TextBlock Text="Licenses"/>
+                            </ui:FASettingsExpanderItem.Content>
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://licenses.nuget.org/MIT">
+                                        <TextBlock Text="MIT"/>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://dotnet.microsoft.com/en-us/dotnet_library_license.htm">
+                                        <TextBlock Text=".NET Library License"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
+
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaGroup.Title}"
+                                       Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaGroup.Description}"
+                                       IconSource="Document"
+                                       IsExpanded="False">
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.Avalonia.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.Avalonia.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/AvaloniaUI/Avalonia">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaDesktop.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaDesktop.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/AvaloniaUI/Avalonia">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaThemesFluent.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaThemesFluent.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/AvaloniaUI/Avalonia">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaFontsInter.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaFontsInter.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/AvaloniaUI/Avalonia">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaDiagnostics.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.AvaloniaDiagnostics.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/AvaloniaUI/Avalonia">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Content>
+                                <TextBlock Text="License"/>
+                            </ui:FASettingsExpanderItem.Content>
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://licenses.nuget.org/MIT">
+                                        <TextBlock Text="MIT"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
+
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.FluentAvaloniaGroup.Title}"
+                                       Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.FluentAvaloniaGroup.Description}"
+                                       IconSource="Document"
+                                       IsExpanded="False">
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.FluentAvalonia.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.FluentAvalonia.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/amwx/FluentAvalonia">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Content>
+                                <TextBlock Text="License"/>
+                            </ui:FASettingsExpanderItem.Content>
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://licenses.nuget.org/MIT">
+                                        <TextBlock Text="MIT"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
+
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.OtherGroup.Title}"
+                                       Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.OtherGroup.Description}"
+                                       IconSource="Document"
+                                       IsExpanded="False">
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.NLog.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.NLog.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/NLog/NLog">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.MicrosoftNetTestSdk.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.MicrosoftNetTestSdk.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/microsoft/vstest">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.Xunit.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.Xunit.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/xunit/xunit">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.XunitRunnerVisualStudio.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.XunitRunnerVisualStudio.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/xunit/visualstudio.xunit">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.CoverletCollector.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.CoverletCollector.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/coverlet-coverage/coverlet">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.Moq.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.Moq.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/moq/moq">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Content>
+                                <TextBlock Text="Licenses"/>
+                            </ui:FASettingsExpanderItem.Content>
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://licenses.nuget.org/MIT">
+                                        <TextBlock Text="MIT"/>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://licenses.nuget.org/BSD-3-Clause">
+                                        <TextBlock Text="BSD 3-Clause"/>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://licenses.nuget.org/Apache-2.0">
+                                        <TextBlock Text="Apache-2.0"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
+
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.SpecialThanksGroup.Title}"
+                                       Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.SpecialThanksGroup.Description}"
+                                       IconSource="Document"
+                                       IsExpanded="False">
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.HMCL.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.HMCL.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/HMCL-dev/HMCL">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.PCL2.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.PCL2.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/Hex-Dragon/PCL2">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.TT702ForgeInstallProcessor.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.TT702ForgeInstallProcessor.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/TT702/Forge-InstallProcessor.NET">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.BMCLAPI.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.BMCLAPI.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://bmclapi2.bangbang93.com/">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.MinecraftWiki.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.MinecraftWiki.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://zh.minecraft.wiki/">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.FluentLauncher.Title}" Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.FluentLauncher.Description}" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/">
+                                        <TextBlock Text="GitHub"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Content>
+                                <TextBlock Text="Links"/>
+                            </ui:FASettingsExpanderItem.Content>
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <HyperlinkButton NavigateUri="https://github.com/Hex-Dragon/PCL2">
+                                        <TextBlock Text="PCL2"/>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://github.com/HMCL-dev/HMCL/tree/main/HMCL">
+                                        <TextBlock Text="HMCL"/>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://github.com/TT702/Forge-InstallProcessor.NET">
+                                        <TextBlock Text="Forge"/>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://bmclapi2.bangbang93.com/">
+                                        <TextBlock Text="BMCLAPI"/>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://zh.minecraft.wiki/">
+                                        <TextBlock Text="Wiki"/>
+                                    </HyperlinkButton>
+                                    <HyperlinkButton NavigateUri="https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/">
+                                        <TextBlock Text="Fluent Launcher"/>
+                                    </HyperlinkButton>
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</pages:PageBase>

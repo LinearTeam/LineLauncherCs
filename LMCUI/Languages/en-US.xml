@@ -380,10 +380,14 @@
                     <Title>Special thanks</Title>
                     <Description>Projects and references that helped this launcher.</Description>
                 </SpecialThanksGroup>
-                <PCL2HMCL>
-                    <Title>PCL2 / HMCL</Title>
-                    <Description>Important references for Minecraft-related implementation.</Description>
-                </PCL2HMCL>
+                <HMCL>
+                    <Title>HMCL</Title>
+                    <Description>Important references for Minecraft-related implementation. GPL v3 licensed.</Description>
+                </HMCL>
+                <PCL2>
+                    <Title>PCL2</Title>
+                    <Description>Important references for Minecraft-related implementation. No specific open source license (ARR with explanatory terms).</Description>
+                </PCL2>
                 <TT702ForgeInstallProcessor>
                     <Title>TT702 Forge Install Processor.NET</Title>
                     <Description>Reference implementation for Forge installation processing.</Description>
@@ -394,7 +398,7 @@
                 </BMCLAPI>
                 <MinecraftWiki>
                     <Title>Minecraft Wiki</Title>
-                    <Description>Launcher-related tutorial reference.</Description>
+                    <Description>Minecraft-related information reference.</Description>
                 </MinecraftWiki>
                 <FluentLauncher>
                     <Title>Fluent Launcher</Title>

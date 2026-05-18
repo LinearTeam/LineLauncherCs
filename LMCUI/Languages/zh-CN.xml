@@ -380,25 +380,29 @@
                     <Title>特别感谢</Title>
                     <Description>项目开发与资料参考来源。</Description>
                 </SpecialThanksGroup>
-                <PCL2HMCL>
-                    <Title>PCL2 / HMCL</Title>
-                    <Description>Minecraft 相关实现的重要参考。</Description>
-                </PCL2HMCL>
+                <HMCL>
+                    <Title>HMCL</Title>
+                    <Description>Minecraft 相关实现的重要参考。以GPL v3开源。</Description>
+                </HMCL>
+                <PCL2>
+                    <Title>PCL2</Title>
+                    <Description>Minecraft 相关实现的重要参考。无具体开源协议（有说明性条款的ARR）。</Description>
+                </PCL2>
                 <TT702ForgeInstallProcessor>
                     <Title>TT702 Forge Install Processor.NET</Title>
                     <Description>Forge 安装处理器参考代码。</Description>
                 </TT702ForgeInstallProcessor>
                 <BMCLAPI>
                     <Title>BMCLAPI</Title>
-                    <Description>镜像源支持。</Description>
+                    <Description>国内镜像源支持。</Description>
                 </BMCLAPI>
                 <MinecraftWiki>
                     <Title>Minecraft Wiki</Title>
-                    <Description>启动器相关教程参考。</Description>
+                    <Description>游戏相关信息参考。</Description>
                 </MinecraftWiki>
                 <FluentLauncher>
                     <Title>Fluent Launcher</Title>
-                    <Description>部分 UI 设计参考。</Description>
+                    <Description>部分 UI 设计参考。以MIT开源。</Description>
                 </FluentLauncher>
             </Items>
         </CopyrightPage>

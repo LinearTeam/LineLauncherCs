@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LMC.Basic.Logging;
 using LMCUI.Pages;
+using LMCUI.Pages.SettingsPage.About;
 
 namespace LMCUI.Navigation;
 
@@ -61,8 +62,8 @@ public class PageRegistry
         // 设置子页面 - 单例模式（默认）
         Register<Pages.SettingsPage.LauncherSettings.LauncherSettingsPage>("LauncherSettingsPage");
         Register<Pages.SettingsPage.GameSettings.GameSettingsPage>("GameSettingsPage");
-        Register<Pages.SettingsPage.AboutPage>("AboutPage");
-        Register<Pages.SettingsPage.CopyrightPage>("CopyrightPage");
+        Register<AboutPage>("AboutPage");
+        Register<Pages.SettingsPage.About.CopyrightPage>("CopyrightPage");
 
         _logger.Info("内置页面注册完成");
     }

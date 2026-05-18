@@ -12,12 +12,12 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace LMCUI.Pages.SettingsPage;
-
-using LMC;
-using I18n;
-using LMCUI.Navigation;
 using Avalonia.Interactivity;
+using LMC;
+using LMCUI.I18n;
+using LMCUI.Navigation;
+
+namespace LMCUI.Pages.SettingsPage.About;
 
 public partial class AboutPage : PageBase
 {

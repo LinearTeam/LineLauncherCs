@@ -89,5 +89,13 @@
       <Compile Update="Pages\VersionManagePage\VersionDetailPage.axaml.cs">
         <DependentUpon>VersionDetailPage.axaml</DependentUpon>
       </Compile>
+      <Compile Update="Pages\SettingsPage\About\CopyrightPage.axaml.cs">
+        <DependentUpon>CopyrightPage.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Pages\SettingsPage\About\AboutPage.axaml.cs">
+        <DependentUpon>AboutPage.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>
