@@ -169,6 +169,50 @@
 
         <DownloadMinecraftPage>
             <Title>Download Game</Title>
+            <Wizard>
+                <Title>Download Version - {0}</Title>
+                <PreviousButton>Previous</PreviousButton>
+                <NextButton>Next</NextButton>
+                <FinishButton>Finish</FinishButton>
+                <Errors>
+                    <NoRootTitle>No Game Directory Selected</NoRootTitle>
+                    <NoRootContent>Please select the current .minecraft folder in Version Management first.</NoRootContent>
+                </Errors>
+                <Steps>
+                    <LoaderSelectionStep>
+                        <Title>Select Loader Versions</Title>
+                        <Description>Select available Fabric, Forge, and OptiFine versions for this game version first.</Description>
+                        <None>Do not install</None>
+                        <Loading>Loading...</Loading>
+                        <Fabric>
+                            <Header>Fabric Version</Header>
+                            <Description>Available Fabric versions.</Description>
+                        </Fabric>
+                        <Forge>
+                            <Header>Forge Version</Header>
+                            <Description>Available Forge versions.</Description>
+                        </Forge>
+                        <OptiFine>
+                            <Header>OptiFine Version</Header>
+                            <Description>Available OptiFine versions.</Description>
+                        </OptiFine>
+                        <Validation>
+                            <FabricOptiFineWarning>Fabric and OptiFine require OptiFabric to work properly, and compatibility is relatively poor.</FabricOptiFineWarning>
+                        </Validation>
+                    </LoaderSelectionStep>
+                    <VersionNameStep>
+                        <Title>Set Version Name</Title>
+                        <Description>Enter the version name to install under the current .minecraft/versions directory.</Description>
+                        <SelectedVersion>Target version: {0} | Current directory: {1} | Loaders: {2}</SelectedVersion>
+                        <Watermark>Enter version name...</Watermark>
+                        <Validation>
+                            <Empty>Please enter a version name.</Empty>
+                            <InvalidPath>The version name is not a valid path name.</InvalidPath>
+                            <AlreadyExists>A version with the same name already exists in the current versions directory.</AlreadyExists>
+                        </Validation>
+                    </VersionNameStep>
+                </Steps>
+            </Wizard>
             <Filters>
                 <Title>Filters</Title>
                 <Release>Release</Release>

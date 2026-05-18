@@ -97,5 +97,17 @@
         <DependentUpon>AboutPage.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Pages\DownloadMinecraftPage\DownloadMinecraft\DownloadMinecraftWizard.axaml.cs">
+        <DependentUpon>DownloadMinecraftWizard.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Pages\DownloadMinecraftPage\DownloadMinecraft\VersionNameStep.axaml.cs">
+        <DependentUpon>VersionNameStep.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Pages\DownloadMinecraftPage\DownloadMinecraft\LoaderSelectionStep.axaml.cs">
+        <DependentUpon>LoaderSelectionStep.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>

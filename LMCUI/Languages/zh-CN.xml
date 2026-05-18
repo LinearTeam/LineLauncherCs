@@ -169,6 +169,50 @@
 
         <DownloadMinecraftPage>
             <Title>下载游戏</Title>
+            <Wizard>
+                <Title>下载版本 - {0}</Title>
+                <PreviousButton>上一步</PreviousButton>
+                <NextButton>下一步</NextButton>
+                <FinishButton>完成</FinishButton>
+                <Errors>
+                    <NoRootTitle>未选择游戏目录</NoRootTitle>
+                    <NoRootContent>请先在版本管理页选择当前使用的 .minecraft 文件夹。</NoRootContent>
+                </Errors>
+                <Steps>
+                    <LoaderSelectionStep>
+                        <Title>选择加载器版本</Title>
+                        <Description>先选择该版本可用的 Fabric、Forge 和 OptiFine 版本。</Description>
+                        <None>不安装</None>
+                        <Loading>加载中...</Loading>
+                        <Fabric>
+                            <Header>Fabric 版本</Header>
+                            <Description>Fabric 可用版本列表。</Description>
+                        </Fabric>
+                        <Forge>
+                            <Header>Forge 版本</Header>
+                            <Description>Forge 可用版本列表。</Description>
+                        </Forge>
+                        <OptiFine>
+                            <Header>OptiFine 版本</Header>
+                            <Description>OptiFine 可用版本列表。</Description>
+                        </OptiFine>
+                        <Validation>
+                            <FabricOptiFineWarning>Fabric和OptiFine需要OptiFabric以正常工作，同时兼容性较差。</FabricOptiFineWarning>
+                        </Validation>
+                    </LoaderSelectionStep>
+                    <VersionNameStep>
+                        <Title>设置版本名称</Title>
+                        <Description>请输入要安装到当前 .minecraft/versions 目录中的版本名称。</Description>
+                        <SelectedVersion>目标版本：{0} | 当前目录：{1} | 加载器：{2}</SelectedVersion>
+                        <Watermark>输入版本名称...</Watermark>
+                        <Validation>
+                            <Empty>请输入版本名称。</Empty>
+                            <InvalidPath>版本名称不是合法的路径名称。</InvalidPath>
+                            <AlreadyExists>当前 versions 目录中已存在同名版本。</AlreadyExists>
+                        </Validation>
+                    </VersionNameStep>
+                </Steps>
+            </Wizard>
             <Filters>
                 <Title>过滤</Title>
                 <Release>正式版</Release>

@@ -1,0 +1,43 @@
+<local:DownloadMinecraftStep xmlns="https://github.com/avaloniaui"
+                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                             xmlns:i18n="clr-namespace:LMCUI.I18n"
+                             xmlns:local="clr-namespace:LMCUI.Pages.DownloadMinecraftPage"
+                             xmlns:ui="using:FluentAvalonia.UI.Controls"
+                             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="420"
+                             x:Class="LMCUI.Pages.DownloadMinecraftPage.LoaderSelectionStep">
+    <StackPanel Orientation="Vertical" Spacing="8">
+        <TextBlock Text="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Title}" FontSize="20" FontWeight="Bold"/>
+        <TextBlock Text="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Description}" TextWrapping="Wrap"/>
+
+        <ui:FASettingsExpander x:Name="FabricExpander"
+                               MinWidth="430"
+                               Header="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Fabric.Header}"
+                               Description="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Fabric.Description}">
+            <ui:FASettingsExpander.Footer>
+                <ComboBox x:Name="FabricComboBox" SelectionChanged="ComboBox_OnSelectionChanged"/>
+            </ui:FASettingsExpander.Footer>
+        </ui:FASettingsExpander>
+
+        <ui:FASettingsExpander x:Name="ForgeExpander"
+                               MinWidth="430"
+                               Header="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Forge.Header}"
+                               Description="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Forge.Description}">
+            <ui:FASettingsExpander.Footer>
+                <ComboBox x:Name="ForgeComboBox" SelectionChanged="ComboBox_OnSelectionChanged"/>
+            </ui:FASettingsExpander.Footer>
+        </ui:FASettingsExpander>
+
+        <ui:FASettingsExpander x:Name="OptiFineExpander"
+                               MinWidth="430"
+                               Header="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.OptiFine.Header}"
+                               Description="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.OptiFine.Description}">
+            <ui:FASettingsExpander.Footer>
+                <ComboBox x:Name="OptiFineComboBox" SelectionChanged="ComboBox_OnSelectionChanged"/>
+            </ui:FASettingsExpander.Footer>
+        </ui:FASettingsExpander>
+
+        <TextBlock x:Name="ValidationText" Foreground="Yellow" IsVisible="False" TextWrapping="Wrap"/>
+    </StackPanel>
+</local:DownloadMinecraftStep>

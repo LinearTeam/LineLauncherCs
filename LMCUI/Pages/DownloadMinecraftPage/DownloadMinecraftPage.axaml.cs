@@ -14,6 +14,7 @@ using Avalonia.Layout;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
 using LMC.Basic.Logging;
+using LMC;
 using LMCCore.Game.Download;
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Versioning;
@@ -324,40 +325,52 @@ public partial class DownloadMinecraftPage : PageBase
 
     private void ShowVersionDialog(ManifestVersionViewModel version)
     {
+        if (string.IsNullOrWhiteSpace(Current.Config.SelectedGameRootPath))
+        {
+            _ = MessageQueueHelper.ShowError(
+                I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Errors.NoRootTitle"),
+                I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Errors.NoRootContent"));
+            return;
+        }
+
         var dialog = new FAContentDialog
         {
-            Title = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Dialog.Title", version.Id),
+            Title = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Title", version.Id),
             CloseButtonText = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Dialog.CloseButton"),
-            Content = new StackPanel
+            PrimaryButtonText = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.PreviousButton"),
+            SecondaryButtonText = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.FinishButton"),
+            DefaultButton = FAContentDialogButton.Secondary,
+            IsPrimaryButtonEnabled = false,
+            IsSecondaryButtonEnabled = true
+        };
+
+        var wizard = new DownloadMinecraftWizard(
+            new DownloadMinecraftWizardContext(Current.Config.SelectedGameRootPath, version.Id),
+            state =>
             {
-                Spacing = 8,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Dialog.VersionId", version.Id),
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
-                    },
-                    new TextBlock
-                    {
-                        Text = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Dialog.VersionType", version.DisplayTypeText),
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
-                    },
-                    new TextBlock
-                    {
-                        Text = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Dialog.ReleaseTime", version.LocalReleaseTimeText),
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
-                    },
-                    new TextBlock
-                    {
-                        Text = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Dialog.Placeholder"),
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-                        Opacity = 0.8,
-                        Margin = new Thickness(0, 8, 0, 0)
-                    }
-                }
+                dialog.IsPrimaryButtonEnabled = state.hasPrev;
+                dialog.IsSecondaryButtonEnabled = state.hasNext;
+                dialog.SecondaryButtonText = state.isFinal
+                    ? I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.FinishButton")
+                    : I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.NextButton");
+            });
+
+        dialog.Content = wizard;
+        dialog.PrimaryButtonClick += (s, e) =>
+        {
+            e.Cancel = true;
+            wizard.PreviousStep(s, e);
+        };
+        dialog.SecondaryButtonClick += (s, e) =>
+        {
+            e.Cancel = true;
+            if (wizard.Continue())
+            {
+                e.Cancel = false;
+                return;
             }
         };
+
         dialog.ShowAsync();
     }
 
