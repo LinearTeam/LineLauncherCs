@@ -39,14 +39,21 @@ public class JsonUtils
 
     public static JsonUtils Parse(string json)
     {
+        return TryParse(json, out var parsed) ? parsed : new JsonUtils(null, false);
+    }
+
+    public static bool TryParse(string json, out JsonUtils parsed)
+    {
         try
         {
             var node = JsonNode.Parse(json);
-            return new JsonUtils(node);
+            parsed = new JsonUtils(node);
+            return true;
         }
         catch
         {
-            return new JsonUtils(null, false);
+            parsed = new JsonUtils(null, false);
+            return false;
         }
     }
     
@@ -136,6 +143,20 @@ public class JsonUtils
     {
         return Node.Deserialize<T>(DefaultSerializerOptions) ?? default;
     }
+
+    public static bool TryDeserialize<T>(string json, out T? value, JsonSerializerOptions? options = null)
+    {
+        try
+        {
+            value = JsonSerializer.Deserialize<T>(json, options ?? DefaultSerializerOptions);
+            return value != null;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
+    }
     public T? Get<T>(string path)
     {
         var node = GetNode(path).Node;
@@ -165,11 +186,10 @@ public class JsonUtils
 
         var current = Node.DeepClone();
         var otherClone = other.Node.DeepClone();
-        MergeNodes(current, otherClone, ignorePaths ?? Enumerable.Empty<string>(), "");
-        return new JsonUtils(current);
+        return new JsonUtils(MergeNodes(current, otherClone, ignorePaths ?? Enumerable.Empty<string>(), ""));
     }
 
-    private void MergeNodes(JsonNode current, JsonNode other, IEnumerable<string> ignorePaths, string currentPath)
+    private JsonNode MergeNodes(JsonNode current, JsonNode other, IEnumerable<string> ignorePaths, string currentPath)
     {
         if (current is JsonObject currentObj && other is JsonObject otherObj)
         {
@@ -185,7 +205,7 @@ public class JsonUtils
                 {
                     if (existing != null && property.Value != null)
                     {
-                        MergeNodes(existing, property.Value, ignorePaths, fullPath);
+                        currentObj[property.Key] = MergeNodes(existing, property.Value, ignorePaths, fullPath);
                     }
                 }
                 else
@@ -193,18 +213,21 @@ public class JsonUtils
                     currentObj[property.Key] = property.Value?.DeepClone();
                 }
             }
+
+            return currentObj;
         }
-        else if (current is JsonArray currentArr && other is JsonArray otherArr)
+
+        if (current is JsonArray currentArr && other is JsonArray otherArr)
         {
             foreach (var item in otherArr)
             {
                 currentArr.Add(item?.DeepClone());
             }
+
+            return currentArr;
         }
-        else
-        {
-            current = other.DeepClone();
-        }
+
+        return other.DeepClone();
     }
 
     public override string ToString() => Node?.ToJsonString() ?? "null";

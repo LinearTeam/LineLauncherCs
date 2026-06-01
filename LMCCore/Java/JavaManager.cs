@@ -27,17 +27,14 @@ public static class JavaManager {
     private readonly static object s_configLock = new object();
     private readonly static object s_javaInfoCacheLock = new object();
     private readonly static Dictionary<string, LocalJava> s_javaInfoCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly static JavaDirectoryScanner s_directoryScanner = new(IsValidJavaRoot, s_logger);
 
     public async static Task AddJava(string javaPath, Action<TaskCallbackInfo>? callback = null, bool force = false) {
         callback ??= _ => {};
 
         int prcId = new Random().Next(100, 999);
         
-        javaPath = Path.GetFullPath(javaPath);
-        if (javaPath.EndsWith(Path.DirectorySeparatorChar))
-        {
-            javaPath = javaPath[..^1];
-        }
+        javaPath = JavaPathNormalizer.NormalizeRootPath(javaPath);
         s_logger.Debug($"[添加 Java/{prcId}] : {javaPath}");
 
         
@@ -63,7 +60,7 @@ public static class JavaManager {
     }
 
     public static void RemoveJava(string javaPath) {
-        javaPath = Path.GetFullPath(javaPath);
+        javaPath = JavaPathNormalizer.NormalizeRootPath(javaPath);
         s_logger.Info($"禁用Java : {javaPath}");
 
         lock (s_configLock) {
@@ -77,10 +74,7 @@ public static class JavaManager {
 
     public static async Task AddJavasAsync(IEnumerable<string> javaPaths)
     {
-        var normalizedPaths = javaPaths
-            .Select(Path.GetFullPath)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        var normalizedPaths = JavaPathNormalizer.DistinctNormalizedRoots(javaPaths);
 
         var validPaths = new List<string>(normalizedPaths.Count);
         foreach (var javaPath in normalizedPaths)
@@ -109,7 +103,7 @@ public static class JavaManager {
     }
     
     public async static Task<LocalJava> GetJavaInfo(string path) {
-        path = Path.GetFullPath(path);
+        path = JavaPathNormalizer.NormalizeRootPath(path);
         lock (s_javaInfoCacheLock)
         {
             if (s_javaInfoCache.TryGetValue(path, out var cachedJava))
@@ -122,37 +116,7 @@ public static class JavaManager {
         var release = Path.Combine(path, "release");
         s_logger.Debug($"release 文件路径: {release}");
         var lines = await File.ReadAllLinesAsync(release);
-        var ve = 
-            (from l in lines
-            where l.Replace("=", ":").StartsWith("JAVA_VERSION:", StringComparison.OrdinalIgnoreCase)
-            select l).ToArray();
-        s_logger.Debug($"过滤的版本字符串: {string.Join(", ", ve)}");
-        LocalJava java = new()
-        {
-            Path = path,
-            Version = Version.Parse(ve.First()
-                .Replace("=",":")
-                .Replace("JAVA_VERSION:", "", StringComparison.OrdinalIgnoreCase)
-                .Replace("_",".")  //1.8.0_51
-                .Replace("\"", ""))
-        };
-
-        var impl = 
-            (from l in lines
-            where l.Replace("=", ":").StartsWith("IMPLEMENTOR:", StringComparison.OrdinalIgnoreCase)
-            select l).ToArray();
-        
-        s_logger.Debug($"过滤的发行商字符串: {string.Join(", ", impl)}");
-
-        if (impl.Any())
-        {
-            java.Implementor = impl.First()
-                .Replace("=",":")
-                .Replace("IMPLEMENTOR:", "", StringComparison.OrdinalIgnoreCase)
-                .Replace("\"", "");
-        }
-        
-        java.IsJdk = File.Exists(Path.Combine(path, "bin", IsWindows() ? "javac.exe" : "javac"));
+        LocalJava java = JavaInstallationInfoParser.Parse(path, lines, IsWindows());
         
         s_logger.Debug(@$"最终Java：
 路径：{path}
@@ -300,7 +264,7 @@ public static class JavaManager {
         {
             if (Directory.Exists(dir))
             {
-                await ScanDirectoryRecursively(dir, paths);
+                await s_directoryScanner.ScanDirectoryRecursivelyAsync(dir, paths);
             }
         }
     }
@@ -314,36 +278,12 @@ public static class JavaManager {
 
         if (Directory.Exists(mcRuntimePath))
         {
-            await ScanDirectoryRecursively(mcRuntimePath, paths);
+            await s_directoryScanner.ScanDirectoryRecursivelyAsync(mcRuntimePath, paths);
         }
     }
 
     async private static Task FindViaCurrentDirectory(HashSet<string> paths) {
-        await ScanDirectoryRecursively(Directory.GetCurrentDirectory(), paths);
-    }
-
-    async private static Task ScanDirectoryRecursively(string directory, HashSet<string> paths, int depth = 0) {
-        if(depth >= 4) return;
-        if (!Directory.Exists(directory))
-        {
-            return;
-        }
-
-        try
-        {
-            if (await IsValidJavaRoot(directory))
-            {
-                s_logger.Info($"[Java 搜索] Dir: {directory}");
-                paths.Add(Path.GetFullPath(directory));
-                return;
-            }
-
-            foreach (string subdir in Directory.GetDirectories(directory))
-            {
-                await ScanDirectoryRecursively(subdir, paths, depth+1);
-            }
-        }
-        catch(Exception ex) { s_logger.Error(ex, "Scan directory for Java"); }
+        await s_directoryScanner.ScanDirectoryRecursivelyAsync(Directory.GetCurrentDirectory(), paths);
     }
 
     async private static Task<bool> IsValidJavaRoot(string path) {
@@ -363,6 +303,14 @@ public static class JavaManager {
             return false;
         }
         return File.Exists(javaExe);
+    }
+
+    internal static void ResetForTesting()
+    {
+        lock (s_javaInfoCacheLock)
+        {
+            s_javaInfoCache.Clear();
+        }
     }
 
     private static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);

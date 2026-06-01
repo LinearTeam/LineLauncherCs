@@ -68,41 +68,19 @@ public abstract class DownloadSource
     // 通用URL转换方法，根据URL类型自动选择合适的转换器
     public string? TransformUrl(string? officialUrl)
     {
-        if (string.IsNullOrWhiteSpace(officialUrl))
-            return null;
-
-        var finalUrl = officialUrl;
-        if (officialUrl.Contains("http://"))
-        {
-            finalUrl = officialUrl.Replace("http://", "https://");
-        }
-        
-        // 尝试各种转换器
-        var transformers = new[]
-        {
-            TransformVersionManifestUrl(finalUrl),
-            TransformVersionJsonUrl(finalUrl),
-            TransformAssetsUrl(finalUrl),
-            TransformLibrariesUrl(finalUrl),
-            TransformForgeUrl(finalUrl),
-            TransformFabricMetaUrl(finalUrl),
-            TransformFabricMavenUrl(finalUrl),
-            TransformNeoForgeUrl(finalUrl),
-            TransformLiteLoaderUrl(finalUrl),
-            TransformAuthlibInjectorUrl(finalUrl),
-            TransformMojangJavaUrl(finalUrl)
-        };
-
-        return transformers.OfType<string>().FirstOrDefault(officialUrl);
-
+        var normalizedUrl = NormalizeUrl(officialUrl);
+        return normalizedUrl == null
+            ? null
+            : TransformUrlCore(normalizedUrl) ?? normalizedUrl;
     }
 
     // 当前源转换失败时，自动向下一个源查找
     public string? TransformUrlWithFallback(string? officialUrl)
     {
-        var result = TransformUrl(officialUrl);
-        return result ?? FallbackSource?.TransformUrlWithFallback(officialUrl);
-
+        var normalizedUrl = NormalizeUrl(officialUrl);
+        return normalizedUrl == null
+            ? null
+            : TransformUrlWithFallbackCore(normalizedUrl);
     }
 
     public IEnumerable<DownloadSource> GetSourceChain()
@@ -113,6 +91,71 @@ public abstract class DownloadSource
             yield return current;
             current = current.FallbackSource;
         }
+    }
+
+    protected static string? KeepOriginalIfStartsWith(string officialUrl, params string[] prefixes)
+    {
+        return prefixes.Any(prefix => officialUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            ? officialUrl
+            : null;
+    }
+
+    protected static string? ReplacePrefix(string officialUrl, string sourcePrefix, string targetPrefix)
+    {
+        return officialUrl.StartsWith(sourcePrefix, StringComparison.OrdinalIgnoreCase)
+            ? officialUrl.Replace(sourcePrefix, targetPrefix, StringComparison.OrdinalIgnoreCase)
+            : null;
+    }
+
+    protected static string? ReplaceByMappings(string officialUrl, IReadOnlyDictionary<string, string> mappings)
+    {
+        foreach (var mapping in mappings)
+        {
+            var transformedUrl = ReplacePrefix(officialUrl, mapping.Key, mapping.Value);
+            if (transformedUrl != null)
+            {
+                return transformedUrl;
+            }
+        }
+
+        return null;
+    }
+
+    private string TransformUrlWithFallbackCore(string officialUrl)
+    {
+        return TransformUrlCore(officialUrl)
+               ?? FallbackSource?.TransformUrlWithFallbackCore(officialUrl)
+               ?? officialUrl;
+    }
+
+    private string? TransformUrlCore(string officialUrl)
+    {
+        return new[]
+        {
+            TransformVersionManifestUrl(officialUrl),
+            TransformVersionJsonUrl(officialUrl),
+            TransformAssetsUrl(officialUrl),
+            TransformLibrariesUrl(officialUrl),
+            TransformForgeUrl(officialUrl),
+            TransformFabricMetaUrl(officialUrl),
+            TransformFabricMavenUrl(officialUrl),
+            TransformNeoForgeUrl(officialUrl),
+            TransformLiteLoaderUrl(officialUrl),
+            TransformAuthlibInjectorUrl(officialUrl),
+            TransformMojangJavaUrl(officialUrl)
+        }.FirstOrDefault(result => result != null);
+    }
+
+    private static string? NormalizeUrl(string? officialUrl)
+    {
+        if (string.IsNullOrWhiteSpace(officialUrl))
+        {
+            return null;
+        }
+
+        return officialUrl.Contains("http://", StringComparison.OrdinalIgnoreCase)
+            ? officialUrl.Replace("http://", "https://", StringComparison.OrdinalIgnoreCase)
+            : officialUrl;
     }
 }
 
@@ -125,61 +168,37 @@ public class OfficialDownloadSource : DownloadSource
     }
 
     public override string? TransformVersionManifestUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://launchermeta.mojang.com") ||
-        officialUrl.StartsWith("https://launchermeta.mojang.com")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://launchermeta.mojang.com");
 
     public override string? TransformVersionJsonUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://launchermeta.mojang.com") ||
-        officialUrl.StartsWith("https://launcher.mojang.com")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://launchermeta.mojang.com", "https://launcher.mojang.com");
 
     public override string? TransformAssetsUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://resources.download.minecraft.net")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://resources.download.minecraft.net");
 
     public override string? TransformLibrariesUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://libraries.minecraft.net/")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://libraries.minecraft.net/");
 
     public override string? TransformForgeUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://files.minecraftforge.net/maven")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://files.minecraftforge.net/maven");
 
     public override string? TransformFabricMetaUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://meta.fabricmc.net")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://meta.fabricmc.net");
 
     public override string? TransformFabricMavenUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://maven.fabricmc.net")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://maven.fabricmc.net");
 
     public override string? TransformNeoForgeUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://maven.neoforged.net/releases")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://maven.neoforged.net/releases");
 
     public override string? TransformLiteLoaderUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://dl.liteloader.com")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://dl.liteloader.com");
 
     public override string? TransformAuthlibInjectorUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://authlib-injector.yushi.moe")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://authlib-injector.yushi.moe");
 
     public override string? TransformMojangJavaUrl(string officialUrl) =>
-        officialUrl.StartsWith("https://launchermeta.mojang.com/v1/products/java-runtime")
-            ? officialUrl
-            : null;
+        KeepOriginalIfStartsWith(officialUrl, "https://launchermeta.mojang.com/v1/products/java-runtime");
 }
 
 // <summary>
@@ -210,100 +229,63 @@ public class BmclDownloadSource : DownloadSource
 
     public override string? TransformVersionJsonUrl(string officialUrl)
     {
-        // 替换 https://launchermeta.mojang.com/ 和 https://launcher.mojang.com/
-        if (officialUrl.StartsWith("https://launchermeta.mojang.com/", StringComparison.OrdinalIgnoreCase))
-            return officialUrl.Replace("https://launchermeta.mojang.com/", $"{BmclBase}/", StringComparison.OrdinalIgnoreCase);
-
-        if (officialUrl.StartsWith("https://launcher.mojang.com/", StringComparison.OrdinalIgnoreCase))
-            return officialUrl.Replace("https://launcher.mojang.com/", $"{BmclBase}/", StringComparison.OrdinalIgnoreCase);
-
-        return null;
+        return ReplacePrefix(officialUrl, "https://launchermeta.mojang.com/", $"{BmclBase}/")
+               ?? ReplacePrefix(officialUrl, "https://launcher.mojang.com/", $"{BmclBase}/");
     }
 
     public override string? TransformAssetsUrl(string officialUrl)
     {
-        // https://resources.download.minecraft.net -> https://bmclapi2.bangbang93.com/assets
-        if (officialUrl.StartsWith("https://resources.download.minecraft.net", StringComparison.OrdinalIgnoreCase))
-            return officialUrl.Replace("https://resources.download.minecraft.net", $"{BmclBase}/assets", StringComparison.OrdinalIgnoreCase);
-
-        return null;
+        return ReplacePrefix(officialUrl, "https://resources.download.minecraft.net", $"{BmclBase}/assets");
     }
 
     public override string? TransformLibrariesUrl(string officialUrl)
     {
-        // https://libraries.minecraft.net/ -> https://bmclapi2.bangbang93.com/maven
-        if (officialUrl.StartsWith("https://libraries.minecraft.net/", StringComparison.OrdinalIgnoreCase))
-            return officialUrl.Replace("https://libraries.minecraft.net/", $"{BmclBase}/maven/", StringComparison.OrdinalIgnoreCase);
-
-        return null;
+        return ReplacePrefix(officialUrl, "https://libraries.minecraft.net/", $"{BmclBase}/maven/");
     }
 
     public override string? TransformForgeUrl(string officialUrl)
     {
-        // https://files.minecraftforge.net/maven -> https://bmclapi2.bangbang93.com/maven
-        if (officialUrl.StartsWith("https://files.minecraftforge.net/maven", StringComparison.OrdinalIgnoreCase))
-            return officialUrl.Replace("https://files.minecraftforge.net/maven", $"{BmclBase}/maven", StringComparison.OrdinalIgnoreCase);
-
-        return null;
+        return ReplacePrefix(officialUrl, "https://files.minecraftforge.net/maven", $"{BmclBase}/maven");
     }
 
     public override string? TransformFabricMetaUrl(string officialUrl)
     {
-        // https://meta.fabricmc.net -> https://bmclapi2.bangbang93.com/fabric-meta
-        if (officialUrl.StartsWith("https://meta.fabricmc.net", StringComparison.OrdinalIgnoreCase))
-            return officialUrl.Replace("https://meta.fabricmc.net", $"{BmclBase}/fabric-meta", StringComparison.OrdinalIgnoreCase);
-
-        return null;
+        return ReplacePrefix(officialUrl, "https://meta.fabricmc.net", $"{BmclBase}/fabric-meta");
     }
 
     public override string? TransformFabricMavenUrl(string officialUrl)
     {
-        // https://maven.fabricmc.net -> https://bmclapi2.bangbang93.com/maven
-        if (officialUrl.StartsWith("https://maven.fabricmc.net", StringComparison.OrdinalIgnoreCase))
-            return officialUrl.Replace("https://maven.fabricmc.net", $"{BmclBase}/maven", StringComparison.OrdinalIgnoreCase);
-
-        return null;
+        return ReplacePrefix(officialUrl, "https://maven.fabricmc.net", $"{BmclBase}/maven");
     }
 
     public override string? TransformNeoForgeUrl(string officialUrl)
     {
-        // https://maven.neoforged.net/releases/net/neoforged/* -> https://bmclapi2.bangbang93.com/maven/net/neoforged/*
-        if (officialUrl.StartsWith("https://maven.neoforged.net/releases/", StringComparison.OrdinalIgnoreCase))
-            return officialUrl.Replace("https://maven.neoforged.net/releases/", $"{BmclBase}/maven/", StringComparison.OrdinalIgnoreCase);
-
-        return null;
+        return ReplacePrefix(officialUrl, "https://maven.neoforged.net/releases/", $"{BmclBase}/maven/");
     }
 
     public override string? TransformLiteLoaderUrl(string officialUrl)
     {
-        // https://dl.liteloader.com/versions/versions.json -> https://bmclapi.bangbang93.com/maven/com/mumfrey/liteloader/versions.json
         if (officialUrl.Equals("https://dl.liteloader.com/versions/versions.json", StringComparison.OrdinalIgnoreCase))
             return $"{BmclOldBase}/maven/com/mumfrey/liteloader/versions.json";
 
-        // 其他LiteLoader资源
-        return officialUrl.StartsWith("https://dl.liteloader.com/", StringComparison.OrdinalIgnoreCase) ? officialUrl.Replace("https://dl.liteloader.com/", $"{BmclBase}/maven/com/mumfrey/liteloader/", StringComparison.OrdinalIgnoreCase) : null;
-
+        return ReplacePrefix(officialUrl, "https://dl.liteloader.com/", $"{BmclBase}/maven/com/mumfrey/liteloader/");
     }
 
     public override string? TransformAuthlibInjectorUrl(string officialUrl)
     {
-        // https://authlib-injector.yushi.moe -> https://bmclapi2.bangbang93.com/mirrors/authlib-injector
-        return officialUrl.StartsWith("https://authlib-injector.yushi.moe", StringComparison.OrdinalIgnoreCase) ? officialUrl.Replace("https://authlib-injector.yushi.moe", $"{BmclBase}/mirrors/authlib-injector", StringComparison.OrdinalIgnoreCase) : null;
-
+        return ReplacePrefix(officialUrl, "https://authlib-injector.yushi.moe", $"{BmclBase}/mirrors/authlib-injector");
     }
 
     public override string? TransformMojangJavaUrl(string officialUrl)
     {
-        // https://launchermeta.mojang.com/v1/products/java-runtime/... -> https://bmclapi2.bangbang93.com/v1/products/java-runtime/...
-        return officialUrl.StartsWith("https://launchermeta.mojang.com/v1/products/java-runtime", StringComparison.OrdinalIgnoreCase) ? officialUrl.Replace("https://launchermeta.mojang.com/", $"{BmclBase}/", StringComparison.OrdinalIgnoreCase) : null;
-
+        return ReplacePrefix(officialUrl, "https://launchermeta.mojang.com/v1/products/java-runtime", $"{BmclBase}/v1/products/java-runtime");
     }
 }
 
 // 自定义
 public class CustomDownloadSource : DownloadSource
 {
-    private readonly Dictionary<string, string> _urlMappings;
+    private readonly IReadOnlyDictionary<string, string> _urlMappings;
 
     public CustomDownloadSource(string name, Dictionary<string, string>? urlMappings)
     {
@@ -311,15 +293,7 @@ public class CustomDownloadSource : DownloadSource
         _urlMappings = urlMappings ?? new Dictionary<string, string>();
     }
 
-    private string? TransformByMapping(string officialUrl)
-    {
-        foreach (var kvp in _urlMappings)
-        {
-            if (officialUrl.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
-                return officialUrl.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
-        }
-        return null;
-    }
+    private string? TransformByMapping(string officialUrl) => ReplaceByMappings(officialUrl, _urlMappings);
 
     public override string? TransformVersionManifestUrl(string officialUrl) => TransformByMapping(officialUrl);
     public override string? TransformVersionJsonUrl(string officialUrl) => TransformByMapping(officialUrl);

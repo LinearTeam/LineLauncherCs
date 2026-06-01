@@ -66,8 +66,8 @@ internal static class AccountAvatarService
             }
 
             var cachedSkinUrl = ReadCachedSkinUrl(account.Uuid);
-            if (string.Equals(cachedSkinUrl, skinUrlResult.skinUrl, StringComparison.OrdinalIgnoreCase) &&
-                TryReadCachedAvatarBase64(account.Uuid, out var cachedAvatar))
+            var hasCachedAvatar = TryReadCachedAvatarBase64(account.Uuid, out var cachedAvatar);
+            if (AccountAvatarCacheHelper.ShouldUseCachedAvatar(cachedSkinUrl, skinUrlResult.skinUrl, hasCachedAvatar))
             {
                 account.AvatarBase64 = cachedAvatar;
                 s_logger.Info($"微软账号 {account.Name} 的皮肤地址未变化，继续使用缓存头像");
@@ -82,7 +82,7 @@ internal static class AccountAvatarService
             }
 
             WriteCache(account.Uuid, skinUrlResult.skinUrl, avatarBytes);
-            account.AvatarBase64 = ToDataUri(avatarBytes);
+            account.AvatarBase64 = AccountAvatarCacheHelper.ToDataUri(avatarBytes);
             s_logger.Info($"微软账号 {account.Name} 的头像已更新并写入缓存");
             return true;
         }
@@ -159,7 +159,7 @@ internal static class AccountAvatarService
         Directory.CreateDirectory(s_cacheDirectory);
         File.WriteAllText(GetSkinUrlCachePath(uuid), skinUrl);
         File.WriteAllBytes(GetAvatarCachePath(uuid), avatarBytes);
-        s_logger.Info($"已写入头像缓存: {NormalizeUuid(uuid)}");
+        s_logger.Info($"已写入头像缓存: {AccountAvatarCacheHelper.NormalizeUuid(uuid)}");
     }
 
     private static string? ReadCachedSkinUrl(string uuid)
@@ -192,7 +192,7 @@ internal static class AccountAvatarService
 
         try
         {
-            base64 = ToDataUri(File.ReadAllBytes(path));
+            base64 = AccountAvatarCacheHelper.ToDataUri(File.ReadAllBytes(path));
             return true;
         }
         catch (Exception ex)
@@ -204,14 +204,8 @@ internal static class AccountAvatarService
     }
 
     private static string GetAvatarCachePath(string uuid) =>
-        Path.Combine(s_cacheDirectory, $"{NormalizeUuid(uuid)}.png");
+        AccountAvatarCacheHelper.GetAvatarCachePath(s_cacheDirectory, uuid);
 
     private static string GetSkinUrlCachePath(string uuid) =>
-        Path.Combine(s_cacheDirectory, $"{NormalizeUuid(uuid)}.url");
-
-    private static string NormalizeUuid(string uuid) =>
-        uuid.Replace("-", "", StringComparison.Ordinal).ToLowerInvariant();
-
-    private static string ToDataUri(byte[] pngBytes) =>
-        $"data:image/png;base64,{Convert.ToBase64String(pngBytes)}";
+        AccountAvatarCacheHelper.GetSkinUrlCachePath(s_cacheDirectory, uuid);
 }

@@ -1,4 +1,4 @@
-﻿// Copyright 2025-2026 LinearTeam
+// Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -22,243 +22,135 @@ using System.Text.RegularExpressions;
 
 public class LineFileParser
 {
-    //|Key|:|Value|
-    private const string Pattern = @"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|";
+    private static readonly Regex KeyValuePattern = new(@"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|", RegexOptions.Compiled);
 
     public List<string> GetKeySet(string path, string section)
     {
-        var res = new List<string>();
-        if (!File.Exists(path))
-        {
-            Directory.CreateDirectory(Directory.GetParent(path)?.FullName ?? throw new InvalidOperationException("Invalid path"));
-            File.Create(path).Close();
-            return res;
-        }
-
-        string startTag = $"|{section}|_start";
-        string endTag = $"|{section}|_end";
-        bool inSection = false;
-
-        var lines = File.ReadAllLines(path);
-
-        foreach (var line in lines)
-        {
-            if (line.Trim() == startTag)
-            {
-                inSection = true;
-                continue;
-            }
-
-            if (line.Trim() == endTag)
-            {
-                inSection = false;
-                continue;
-            }
-
-            if (inSection)
-            {
-                var match = Regex.Match(line, Pattern);
-                if (match.Success && !string.IsNullOrEmpty(match.Groups["key"].Value))
-                {
-                    res.Add(match.Groups["key"].Value);
-                }
-            }
-        }
-
-        return res;
+        return ReadSectionEntries(path, section)
+            .Select(entry => entry.Key)
+            .Where(key => !string.IsNullOrEmpty(key))
+            .ToList();
     }
 
     public List<string?> GetSections(string path)
     {
-        var lines = File.ReadAllLines(path);
-        List<string?> res = new List<string?>();
-        string? section = null;
-        foreach (string line in lines)
+        var lines = ReadLines(path);
+        var sections = new List<string?>();
+        string? currentSection = null;
+
+        foreach (var line in lines)
         {
-            if (line.StartsWith("|") && line.EndsWith("|_start"))
+            if (TryGetSectionMarker(line, "_start", out var startedSection))
             {
-                section = line.Substring(1).Replace("|_start", "");
+                currentSection = startedSection;
+                continue;
             }
 
-            if (line.StartsWith("|") && line.EndsWith("|_end"))
+            if (TryGetSectionMarker(line, "_end", out var endedSection) &&
+                string.Equals(currentSection, endedSection, StringComparison.Ordinal))
             {
-                if (line.Substring(1).Replace("|_end", "").Equals(section))
-                {
-                    res.Add(section);
-                    section = null;
-                }
+                sections.Add(currentSection);
+                currentSection = null;
             }
         }
 
-        return res;
+        return sections;
     }
 
     public void DeleteSection(string path, string section)
     {
-        var lines = File.ReadAllLines(path);
-        string[] totalLines = new string[lines.Length];
-        bool inSection = false;
-        int i = 0;
-        foreach (string line in lines)
-        {
-            if (line.StartsWith("|") && line.EndsWith("|_start"))
-            {
-                if (line.Substring(1).Replace("|_start", "") == section)
-                {
-                    inSection = true;
-                    continue;
-                }
-            }
-
-            if (line.StartsWith("|") && line.EndsWith("|_end"))
-            {
-                if (line.Substring(1).Replace("|_end", "").Equals(section))
-                {
-                    inSection = false;
-                    continue;
-                }
-            }
-
-            if (inSection)
-            {
-                continue;
-            }
-
-            totalLines[i] = line;
-            i++;
-        }
-
-        int length = 1;
-        foreach (var line in totalLines)
-        {
-            if (string.IsNullOrEmpty(line))
-            {
-                continue;
-            }
-
-            length++;
-        }
-
-        string[] reallyTotalLines = new string[length];
-        i = 0;
-        foreach (var line in totalLines)
-        {
-            if (string.IsNullOrEmpty(line))
-            {
-                continue;
-            }
-
-            reallyTotalLines[i] = line;
-            i++;
-        }
-
-        File.WriteAllLines(path, reallyTotalLines);
-
-    }
-
-    // ReadFile
-    public string? Read(string path, string key, string section)
-    {
-        if (!File.Exists(path))
-        {
-            Directory.CreateDirectory(Directory.GetParent(path)?.FullName ?? throw new InvalidOperationException("Invalid path"));
-            File.Create(path).Close();
-            return null;
-        }
-
-        string startTag = $"|{section}|_start";
-        string endTag = $"|{section}|_end";
-        bool inSection = false;
-        string? keyValue = null;
-
-        var lines = File.ReadAllLines(path);
+        var lines = ReadLines(path);
+        var filteredLines = new List<string>(lines.Count);
+        var startTag = GetSectionStartTag(section);
+        var endTag = GetSectionEndTag(section);
+        var inSection = false;
 
         foreach (var line in lines)
         {
-            if (line.Trim() == startTag)
+            var trimmed = line.Trim();
+            if (string.Equals(trimmed, startTag, StringComparison.Ordinal))
             {
                 inSection = true;
                 continue;
             }
 
-            if (line.Trim() == endTag)
+            if (string.Equals(trimmed, endTag, StringComparison.Ordinal))
             {
                 inSection = false;
                 continue;
             }
 
-            if (inSection)
+            if (!inSection)
             {
-                var match = Regex.Match(line, Pattern);
-                if (match.Success && match.Groups["key"].Value == key)
-                {
-                    keyValue = match.Groups["value"].Value;
-                    break;
-                }
+                filteredLines.Add(line);
             }
         }
 
-        return keyValue;
+        File.WriteAllLines(path, filteredLines.Where(line => !string.IsNullOrEmpty(line)));
     }
 
-    // WriteFile
+    public string? Read(string path, string key, string section)
+    {
+        foreach (var entry in ReadSectionEntries(path, section))
+        {
+            if (string.Equals(entry.Key, key, StringComparison.Ordinal))
+            {
+                return entry.Value;
+            }
+        }
+
+        return null;
+    }
 
     public void Write(string path, string key, string value, string section)
     {
-        if (value.Contains("|") || key.Contains("|") || section.Contains("|"))
-        {
-            throw new Exception("key/value/section contain '|'");
-        }
+        ValidateToken(nameof(key), key);
+        ValidateToken(nameof(value), value);
+        ValidateToken(nameof(section), section);
 
-        if (!File.Exists(path))
-        {
-            Directory.CreateDirectory(Directory.GetParent(path)?.FullName ?? throw new InvalidOperationException("Invalid path"));
-            File.Create(path).Close();
-        }
+        EnsureFileExists(path);
 
-        string startTag = $"|{section}|_start";
-        string endTag = $"|{section}|_end";
-        bool inSection = false;
-        bool sectionFound = false;
-        bool keyFound = false;
         var lines = File.ReadAllLines(path).ToList();
+        var startTag = GetSectionStartTag(section);
+        var endTag = GetSectionEndTag(section);
+        var inSection = false;
+        var sectionFound = false;
+        var keyFound = false;
 
-        for (int i = 0; i < lines.Count; i++)
+        for (var index = 0; index < lines.Count; index++)
         {
-            if (lines[i].Trim() == startTag)
+            var trimmed = lines[index].Trim();
+            if (string.Equals(trimmed, startTag, StringComparison.Ordinal))
             {
                 inSection = true;
                 sectionFound = true;
                 continue;
             }
 
-            if (lines[i].Trim() == endTag)
+            if (string.Equals(trimmed, endTag, StringComparison.Ordinal))
             {
                 inSection = false;
-                if (!keyFound) //If didn't find key, then create.
+                if (!keyFound)
                 {
-                    lines.Insert(i, $"|{key}|:|{value}|");
+                    lines.Insert(index, CreateEntryLine(key, value));
                     keyFound = true;
                 }
 
                 continue;
             }
 
-            if (inSection)
+            if (inSection && TryParseEntry(lines[index], out var existingKey, out _) &&
+                string.Equals(existingKey, key, StringComparison.Ordinal))
             {
-                if (lines[i].StartsWith($"|{key}|:|") && lines[i].EndsWith($"|"))
-                {
-                    //If found key, then update.    
-                    lines[i] = $"|{key}|:|{value}|";
-                    keyFound = true;
-                }
+                lines[index] = CreateEntryLine(key, value);
+                keyFound = true;
             }
         }
 
-        if (!sectionFound) //If didn't find section, then create new
+        if (!sectionFound)
         {
             lines.Add(startTag);
-            lines.Add($"|{key}|:|{value}|");
+            lines.Add(CreateEntryLine(key, value));
             lines.Add(endTag);
         }
 
@@ -272,36 +164,130 @@ public class LineFileParser
             return;
         }
 
-        string startTag = $"|{section}|_start";
-        string endTag = $"|{section}|_end";
-        bool inSection = false;
-        var lines = File.ReadAllLines(path).ToList();
+        var lines = File.ReadAllLines(path);
+        var filteredLines = new List<string>(lines.Length);
+        var startTag = GetSectionStartTag(section);
+        var endTag = GetSectionEndTag(section);
+        var inSection = false;
 
-        for (int i = 0; i < lines.Count; i++)
+        foreach (var line in lines)
         {
-            if (lines[i].Trim() == startTag)
+            var trimmed = line.Trim();
+            if (string.Equals(trimmed, startTag, StringComparison.Ordinal))
+            {
+                inSection = true;
+                filteredLines.Add(line);
+                continue;
+            }
+
+            if (string.Equals(trimmed, endTag, StringComparison.Ordinal))
+            {
+                inSection = false;
+                filteredLines.Add(line);
+                continue;
+            }
+
+            if (inSection && TryParseEntry(line, out var existingKey, out _) &&
+                string.Equals(existingKey, key, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            filteredLines.Add(line);
+        }
+
+        File.WriteAllLines(path, filteredLines);
+    }
+
+    private static List<string> ReadLines(string path)
+    {
+        EnsureFileExists(path);
+        return File.ReadAllLines(path).ToList();
+    }
+
+    private static void EnsureFileExists(string path)
+    {
+        if (File.Exists(path))
+        {
+            return;
+        }
+
+        var directory = Directory.GetParent(path)?.FullName
+                        ?? throw new InvalidOperationException("Invalid path");
+        Directory.CreateDirectory(directory);
+        File.Create(path).Close();
+    }
+
+    private static IEnumerable<(string Key, string Value)> ReadSectionEntries(string path, string section)
+    {
+        var lines = ReadLines(path);
+        var startTag = GetSectionStartTag(section);
+        var endTag = GetSectionEndTag(section);
+        var inSection = false;
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (string.Equals(trimmed, startTag, StringComparison.Ordinal))
             {
                 inSection = true;
                 continue;
             }
 
-            if (lines[i].Trim() == endTag)
+            if (string.Equals(trimmed, endTag, StringComparison.Ordinal))
             {
                 inSection = false;
                 continue;
             }
 
-            if (inSection)
+            if (inSection && TryParseEntry(line, out var key, out var value))
             {
-                var match = Regex.Match(lines[i], Pattern);
-                if (match.Success && match.Groups["key"].Value == key)
-                {
-                    lines.RemoveAt(i);
-                }
+                yield return (key, value);
             }
         }
-
-        File.WriteAllLines(path, lines);
     }
 
+    private static bool TryParseEntry(string line, out string key, out string value)
+    {
+        var match = KeyValuePattern.Match(line);
+        if (match.Success)
+        {
+            key = match.Groups["key"].Value;
+            value = match.Groups["value"].Value;
+            return true;
+        }
+
+        key = string.Empty;
+        value = string.Empty;
+        return false;
+    }
+
+    private static bool TryGetSectionMarker(string line, string suffix, out string? section)
+    {
+        section = null;
+        if (!line.StartsWith("|", StringComparison.Ordinal) || !line.EndsWith(suffix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var markerBody = line[1..^suffix.Length];
+        section = markerBody.EndsWith("|", StringComparison.Ordinal)
+            ? markerBody[..^1]
+            : markerBody;
+        return true;
+    }
+
+    private static string GetSectionStartTag(string section) => $"|{section}|_start";
+
+    private static string GetSectionEndTag(string section) => $"|{section}|_end";
+
+    private static string CreateEntryLine(string key, string value) => $"|{key}|:|{value}|";
+
+    private static void ValidateToken(string name, string value)
+    {
+        if (value.Contains('|'))
+        {
+            throw new ArgumentException($"{name} contain '|'", name);
+        }
+    }
 }

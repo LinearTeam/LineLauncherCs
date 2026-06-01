@@ -23,6 +23,7 @@ namespace LMCCore.Utils;
 public sealed class HttpUtils
 {
     private readonly static HttpClient s_httpClient = new HttpClient();
+    internal static IHttpRequestTransport Transport { get; set; } = new HttpClientRequestTransport(s_httpClient);
 
     static HttpUtils()
     {
@@ -31,12 +32,17 @@ public sealed class HttpUtils
 
     public static HttpRequestBuilder CreateRequest(string url) => new HttpRequestBuilder(url);
 
+    internal static void ResetTransportForTesting()
+    {
+        Transport = new HttpClientRequestTransport(s_httpClient);
+    }
+
     public sealed class HttpRequestBuilder
     {
         private readonly string _url;
         private HttpMethod _method = HttpMethod.Get;
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
-        private HttpContent? _content;
+        private HttpContentSnapshot? _contentSnapshot;
         private TimeSpan? _timeout;
         private int _retry = 1;
         private int _retryDelay = 1000; // milliseconds
@@ -83,7 +89,8 @@ public sealed class HttpUtils
 
         public HttpRequestBuilder WithContent(HttpContent content)
         {
-            _content = content ?? throw new ArgumentNullException(nameof(content));
+            ArgumentNullException.ThrowIfNull(content);
+            _contentSnapshot = HttpContentSnapshot.Create(content);
             return this;
         }
 
@@ -129,16 +136,10 @@ public sealed class HttpUtils
 
         public async Task<HttpResponseMessage> SendAsync(CancellationToken cancellationToken = default)
         {
-            using var request = new HttpRequestMessage(_method, _url);
-            request.Content = _content;
-            foreach (var header in _headers)
-            {
-                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
-            }
-
             Exception? lastException = null;
             for (int i = 0; i < _retry; i++)
             {
+                using var request = CreateHttpRequestMessage();
                 try
                 {
                     HttpResponseMessage response;
@@ -148,7 +149,7 @@ public sealed class HttpUtils
                         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
                         try
                         {
-                            response = await s_httpClient.SendAsync(request, linkedCts.Token);
+                            response = await Transport.SendAsync(request, linkedCts.Token);
                         }
                         catch (TaskCanceledException ex) when (cts.IsCancellationRequested)
                         {
@@ -157,7 +158,7 @@ public sealed class HttpUtils
                     }
                     else
                     {
-                        response = await s_httpClient.SendAsync(request, cancellationToken);
+                        response = await Transport.SendAsync(request, cancellationToken);
                     }
                     return response;
                 }
@@ -185,9 +186,51 @@ public sealed class HttpUtils
             throw lastException ?? new HttpRequestException("Request failed after retries");
         }
 
+        private HttpRequestMessage CreateHttpRequestMessage()
+        {
+            var request = new HttpRequestMessage(_method, _url)
+            {
+                Content = _contentSnapshot?.ToHttpContent()
+            };
+
+            foreach (var header in _headers)
+            {
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            return request;
+        }
+
         public Task<HttpResponseMessage> GetAsync(CancellationToken cancellationToken = default) => WithMethod(HttpMethod.Get).SendAsync(cancellationToken);
 
         public Task<HttpResponseMessage> PostAsync(CancellationToken cancellationToken = default) => WithMethod(HttpMethod.Post).SendAsync(cancellationToken);
+    }
+
+    internal sealed class HttpContentSnapshot(byte[] payload, Dictionary<string, string[]> headers)
+    {
+        private readonly byte[] _payload = payload;
+        private readonly Dictionary<string, string[]> _headers = headers;
+
+        public static HttpContentSnapshot Create(HttpContent content)
+        {
+            var payload = content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+            var headers = content.Headers.ToDictionary(
+                header => header.Key,
+                header => header.Value.ToArray(),
+                StringComparer.OrdinalIgnoreCase);
+            return new HttpContentSnapshot(payload, headers);
+        }
+
+        public HttpContent ToHttpContent()
+        {
+            var content = new ByteArrayContent(_payload);
+            foreach (var header in _headers)
+            {
+                content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            return content;
+        }
     }
 
     public static class ContentBuilder

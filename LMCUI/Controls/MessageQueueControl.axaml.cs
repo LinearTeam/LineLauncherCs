@@ -30,11 +30,10 @@ namespace LMCUI.Controls;
 public partial class MessageQueueControl : UserControl
 {
     private readonly static Logger s_logger = new Logger("MessageQueueControl");
-    private readonly Queue<IMessageItem> _messageQueue = new Queue<IMessageItem>();
+    private readonly MessageQueueState _queueState = new();
+    private readonly Dictionary<string, IMessageItem> _messages = new Dictionary<string, IMessageItem>();
     private readonly Dictionary<string, Timer> _messageTimers = new Dictionary<string, Timer>();
     private bool _isProcessing;
-    private int _currentInfoBarCount;
-    private int _currentTeachingTipCount;
     private readonly SemaphoreSlim _animationLock = new SemaphoreSlim(1, 1);
 
     public static MessageQueueControl Instance { get; private set; } = null!;
@@ -75,7 +74,8 @@ public partial class MessageQueueControl : UserControl
             Control = infoBar
         };
 
-        _messageQueue.Enqueue(messageItem);
+        _messages[messageId] = messageItem;
+        _queueState.Enqueue(new MessageQueueItemState(messageId, MessageQueueItemKind.InfoBar, duration));
         ProcessQueue();
 
         return messageId;
@@ -93,7 +93,8 @@ public partial class MessageQueueControl : UserControl
             Control = teachingTip
         };
 
-        _messageQueue.Enqueue(messageItem);
+        _messages[messageId] = messageItem;
+        _queueState.Enqueue(new MessageQueueItemState(messageId, MessageQueueItemKind.TeachingTip, duration));
         ProcessQueue();
 
         return messageId;
@@ -122,7 +123,8 @@ public partial class MessageQueueControl : UserControl
             Control = teachingTip
         };
 
-        _messageQueue.Enqueue(messageItem);
+        _messages[messageId] = messageItem;
+        _queueState.Enqueue(new MessageQueueItemState(messageId, MessageQueueItemKind.TeachingTip, duration));
         ProcessQueue();
 
         return messageId;
@@ -136,59 +138,35 @@ public partial class MessageQueueControl : UserControl
             _messageTimers.Remove(messageId);
         }
 
-        RemoveMessageFromUi(messageId);
+        if (_queueState.Remove(messageId))
+        {
+            RemoveMessageFromUi(messageId);
+        }
+
+        _messages.Remove(messageId);
+        ProcessQueue();
     }
 
     private void ProcessQueue()
     {
-        if (_isProcessing || _messageQueue.Count == 0)
+        if (_isProcessing)
             return;
 
         _isProcessing = true;
 
-        // 分开处理两种消息类型的限制
-        ProcessTeachingTips();
-        ProcessInfoBars();
+        foreach (var messageState in _queueState.DequeueDisplayable())
+        {
+            if (_messages.TryGetValue(messageState.Id, out var message))
+            {
+                AddMessageToUi(message);
+                _messageTimers[messageState.Id] = new Timer(_ =>
+                {
+                    Dispatcher.UIThread.Post(() => RemoveMessage(messageState.Id));
+                }, null, messageState.Duration, Timeout.Infinite);
+            }
+        }
 
         _isProcessing = false;
-    }
-
-    private void ProcessTeachingTips()
-    {
-        while (_messageQueue.Count > 0 && _messageQueue.Peek() is TeachingTipMessageItem)
-        {
-            if (_currentTeachingTipCount >= 1)
-                break;
-
-            var message = _messageQueue.Dequeue();
-            AddMessageToUi(message);
-
-            var timer = new Timer(_ => 
-            {
-                Dispatcher.UIThread.Post(() => RemoveMessage(message.Id));
-            }, null, message.Duration, Timeout.Infinite);
-
-            _messageTimers[message.Id] = timer;
-        }
-    }
-
-    private void ProcessInfoBars()
-    {
-        while (_messageQueue.Count > 0 && _messageQueue.Peek() is InfoBarMessageItem)
-        {
-            if (_currentInfoBarCount >= 3)
-                break;
-
-            var message = _messageQueue.Dequeue();
-            AddMessageToUi(message);
-
-            var timer = new Timer(_ => 
-            {
-                Dispatcher.UIThread.Post(() => RemoveMessage(message.Id));
-            }, null, message.Duration, Timeout.Infinite);
-
-            _messageTimers[message.Id] = timer;
-        }
     }
 
     private void AddMessageToUi(IMessageItem message)
@@ -196,7 +174,6 @@ public partial class MessageQueueControl : UserControl
         if (message is InfoBarMessageItem infoBarItem)
         {
             MessagePanel.Children.Add(infoBarItem.Control);
-            _currentInfoBarCount++;
             CreateFadeInAnimation(infoBarItem.Control);
         }
         else if (message is TeachingTipMessageItem teachingTipItem)
@@ -209,7 +186,6 @@ public partial class MessageQueueControl : UserControl
                 if (sender.Tag is string tag) RemoveMessage(tag);
             };
             MessagePanel.Children.Add(teachingTipItem.Control);
-            _currentTeachingTipCount++;
             CreateFadeInAnimation(teachingTipItem.Control);
         }
     }
@@ -302,12 +278,6 @@ public partial class MessageQueueControl : UserControl
             await Task.Delay(100);
             
             MessagePanel.Children.Remove(control);
-            
-            if (control is FAInfoBar)
-                _currentInfoBarCount--;
-            else if (control is FATeachingTip)
-                _currentTeachingTipCount--;
-            
             ProcessQueue();
         }
         finally

@@ -45,91 +45,24 @@ public static class MicrosoftOAuth
 
     public async static Task<MicrosoftAccount?> StartOAuth(Action<OAuthReport> reportAction)
     {
-        int total = 6;
-        int i = 1;
         s_cancellationTokenSource = new CancellationTokenSource();
         s_logger.Info("开始微软登录");
-        reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.WaitForCode.Message"));
-        s_logger.Info($"进度：{i}/{total}");
-        var codeResult = await GetAuthCode(s_cancellationTokenSource.Token);
-        if(codeResult.exception != null)
-        {
-            if (s_cancellationTokenSource.IsCancellationRequested)
+        var coordinator = new MicrosoftOAuthFlowCoordinator(
+            s_logger,
+            new OAuthProgressReporter(reportAction),
+            new MicrosoftOAuthFlowDependencies
             {
-                reportAction(new OAuthReport(-10, total, $"CANCEL: {codeResult.exception.Message}"));
-                return null;
-            }
-            reportAction(new OAuthReport(-1, total, $"WAIT_FOR_CODE: {codeResult.exception.Message}"));
-            s_logger.Error(codeResult.exception, $"获取授权码");
-            return null;
-        }
-        var code = codeResult.code;
-        SecretsManager.SensitiveData[code!] = "{OACode}";
-        reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.GetAccessToken.Message"));
-        s_logger.Info($"进度：{i}/{total}");
-        var tokenResult = await GetTokenByAuthCode(code!, s_cancellationTokenSource.Token);
-        if (tokenResult.exception != null)
-        {
-            reportAction(new OAuthReport(-1, total, $"GET_ACCESS_TOKEN: {tokenResult.exception.Message}"));
-            s_logger.Error(tokenResult.exception, $"获取访问令牌");
-            return null;
-        }
-        reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.XBLAuthorize.Message"));
-        s_logger.Info($"进度：{i}/{total}");
-        var xblResult = await GetXblToken(tokenResult.accessToken!, s_cancellationTokenSource.Token);
-        if (xblResult.exception != null)
-        {
-            reportAction(new OAuthReport(-1, total, $"XBL_AUTHORIZE: {xblResult.exception.Message}"));
-            s_logger.Error(xblResult.exception, $"获取XBL令牌");
-            return null;
-        }
-        SecretsManager.SensitiveData[xblResult.xblToken!] = "{XBLToken}";
-        reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.XSTSAuthorize.Message"));
-        var xstsResult = await GetXstsToken(xblResult.xblToken!, s_cancellationTokenSource.Token);
-        if (xstsResult.exception != null)
-        {
-            reportAction(new OAuthReport(-1, total, $"XSTS_AUTHORIZE: {xstsResult.exception.Message}"));
-            s_logger.Error(xstsResult.exception, $"获取XSTS令牌");
-            return null;
-        }
-        SecretsManager.SensitiveData[xstsResult.xstsToken!] = "{XSTSToken}";
-        SecretsManager.SensitiveData[xstsResult.userHash!] = "{UserHash}";
-        s_logger.Info($"进度：{i}/{total}");
-        reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.MinecraftAuthorize.Message"));
-        var mcResult = await GetMinecraftAccessToken(xstsResult.userHash!, xstsResult.xstsToken!, s_cancellationTokenSource.Token);
-        if (mcResult.exception != null)
-        {
-            reportAction(new OAuthReport(-1, total, $"MINECRAFT_AUTHORIZE: {mcResult.exception.Message}"));
-            s_logger.Error(mcResult.exception, $"获取Minecraft令牌");
-            return null;
-        }
-        SecretsManager.SensitiveData[mcResult.accessToken!] = "{MCAccessToken}";
-        s_logger.Info($"进度：{i}/{total}");
-        reportAction(new OAuthReport(i++, total, "Messages.AccountManager.OAuth.Steps.ValidateMinecraft.Message"));
-        var ownershipResult = await CheckMinecraftOwnership(mcResult.accessToken!);
-        if (ownershipResult.exception != null)
-        {
-            reportAction(new OAuthReport(-1, total, $"VALIDATE_MINECRAFT: {ownershipResult.exception.Message}"));
-            s_logger.Error(ownershipResult.exception, $"验证Minecraft拥有权");
-            return null;
-        }
-        if (!ownershipResult.haveMc)
-        {
-            reportAction(new OAuthReport(-2, total, "该账户不拥有Minecraft"));
-            s_logger.Info("该账户不拥有Minecraft");
-            return null;
-        }
-        return new MicrosoftAccount(){
-            AccessToken = tokenResult.accessToken!,
-            RefreshToken = tokenResult.refreshToken!,
-            ExpiresAt = DateTimeOffset.Now.AddSeconds(tokenResult.expiresIn),
-            Type = AccountType.Microsoft,
-            Name = ownershipResult.name!,
-            Uuid = ownershipResult.uuid!
-        };
+                GetAuthCodeAsync = GetAuthCode,
+                GetTokenByAuthCodeAsync = GetTokenByAuthCode,
+                GetXblTokenAsync = GetXblToken,
+                GetXstsTokenAsync = GetXstsToken,
+                GetMinecraftAccessTokenAsync = GetMinecraftAccessToken,
+                CheckMinecraftOwnershipAsync = CheckMinecraftOwnership
+            });
+        return await coordinator.StartAsync(s_cancellationTokenSource.Token);
     }
     
-    async private static Task<(bool haveMc, string? uuid, string? name, Exception? exception)> CheckMinecraftOwnership(string mcAccessToken)
+    internal static async Task<OAuthOperationResult<MinecraftOwnershipPayload>> CheckMinecraftOwnership(string mcAccessToken)
     {
         try
         {
@@ -143,20 +76,19 @@ public static class MicrosoftOAuth
             bool haveMc = items is { Count: > 0 };
             if (!haveMc)
             {
-                return (false, null, null, null);
+                return OAuthOperationResult<MinecraftOwnershipPayload>.Success(
+                    new MinecraftOwnershipPayload(false, null, null));
             }
             var profileResponse = await HttpUtils.CreateRequest("https://api.minecraftservices.com/minecraft/profile")
                 .WithHeader("Authorization", "Bearer " + mcAccessToken)
                 .GetAsync();
             var profileResponseString = await profileResponse.Content.ReadAsStringAsync();
             profileResponse.EnsureSuccessStatusCode();
-            var profileJson = JsonUtils.Parse(profileResponseString);
-            var uuid = Guid.Parse(profileJson.GetString("id")!);
-            var name = profileJson.GetString("name");
-            return (true, uuid.ToString(), name, null);
+            return OAuthOperationResult<MinecraftOwnershipPayload>.Success(
+                MicrosoftOAuthParser.ParseOwnership(responseString, profileResponseString));
         }catch (Exception ex)
         {
-            return (false, null, null, ex);
+            return OAuthOperationResult<MinecraftOwnershipPayload>.Failure(ex);
         }
     }
 
@@ -178,29 +110,15 @@ public static class MicrosoftOAuth
             var profileResponseString = await profileResponse.Content.ReadAsStringAsync(cancellationToken);
             profileResponse.EnsureSuccessStatusCode();
 
-            var profileJson = JsonUtils.Parse(profileResponseString);
-            var skins = profileJson.GetArray<object>("skins");
-            if (skins == null || skins.Count == 0)
+            var activeSkinUrl = MicrosoftOAuthParser.SelectActiveSkinUrl(profileResponseString);
+            if (string.IsNullOrWhiteSpace(activeSkinUrl))
             {
                 s_logger.Info($"微软账号没有可用皮肤记录: {account.Name}");
                 return (null, null);
             }
 
-            foreach (var skin in skins)
-            {
-                var skinJson = JsonUtils.Parse(System.Text.Json.JsonSerializer.Serialize(skin, JsonUtils.DefaultSerializerOptions));
-                if (string.Equals(skinJson.GetString("state"), "ACTIVE", StringComparison.OrdinalIgnoreCase))
-                {
-                    var activeSkinUrl = skinJson.GetString("url");
-                    s_logger.Info($"已获取微软账号活跃皮肤地址: {account.Name}");
-                    return (activeSkinUrl, null);
-                }
-            }
-
-            var firstSkinUrl = JsonUtils.Parse(System.Text.Json.JsonSerializer.Serialize(skins[0], JsonUtils.DefaultSerializerOptions))
-                .GetString("url");
-            s_logger.Info($"微软账号没有 ACTIVE 皮肤，回退到首个皮肤地址: {account.Name}");
-            return (firstSkinUrl, null);
+            s_logger.Info($"已获取微软账号活跃皮肤地址: {account.Name}");
+            return (activeSkinUrl, null);
         }
         catch (Exception ex)
         {
@@ -209,7 +127,7 @@ public static class MicrosoftOAuth
         }
     }
     
-    async private static Task<(string? accessToken, Exception? exception)> GetMinecraftAccessToken(string userHash, string xstsToken, CancellationToken cancellationToken)
+    internal static async Task<OAuthOperationResult<string>> GetMinecraftAccessToken(string userHash, string xstsToken, CancellationToken cancellationToken)
     {
         try
         {
@@ -223,10 +141,10 @@ public static class MicrosoftOAuth
             response.EnsureSuccessStatusCode();
             var json = JsonUtils.Parse(responseString);
             var token = json.GetString("access_token");
-            return (token, null);
+            return OAuthOperationResult<string>.Success(token!);
         }catch (Exception ex)
         {
-            return (null, ex);
+            return OAuthOperationResult<string>.Failure(ex);
         }
     }
 
@@ -236,57 +154,25 @@ public static class MicrosoftOAuth
         {
             if (!string.IsNullOrWhiteSpace(account.AccessToken) && account.ExpiresAt > DateTimeOffset.Now.AddMinutes(1))
             {
-                s_logger.Info($"微软账号使用现有 AccessToken 获取 Minecraft 服务令牌: {account.Name}");
-                var xblFromAccessToken = await GetXblToken(account.AccessToken, cancellationToken);
-                if (xblFromAccessToken.exception == null && !string.IsNullOrWhiteSpace(xblFromAccessToken.xblToken))
+                var existingTokenResult = await TryGetMinecraftServiceAccessTokenFromAccessTokenAsync(account, cancellationToken);
+                if (existingTokenResult.accessToken != null || existingTokenResult.exception == null)
                 {
-                    var xstsFromAccessToken = await GetXstsToken(xblFromAccessToken.xblToken!, cancellationToken);
-                    if (xstsFromAccessToken.exception == null &&
-                        !string.IsNullOrWhiteSpace(xstsFromAccessToken.xstsToken) &&
-                        !string.IsNullOrWhiteSpace(xstsFromAccessToken.userHash))
-                    {
-                        s_logger.Info($"微软账号现有 AccessToken 可用: {account.Name}");
-                        return await GetMinecraftAccessToken(xstsFromAccessToken.userHash!, xstsFromAccessToken.xstsToken!, cancellationToken);
-                    }
+                    return existingTokenResult;
                 }
 
                 s_logger.Warn($"微软账号现有 AccessToken 不可用，准备使用 RefreshToken: {account.Name}");
             }
 
             s_logger.Info($"微软账号开始使用 RefreshToken 刷新令牌: {account.Name}");
-            var tokenResult = await GetTokenByRefreshToken(account.RefreshToken, cancellationToken);
-            if (tokenResult.exception != null || string.IsNullOrWhiteSpace(tokenResult.accessToken))
+            var refreshResult = await RefreshMicrosoftAccountTokenAsync(account, cancellationToken);
+            if (refreshResult.exception != null)
             {
                 s_logger.Warn($"微软账号 RefreshToken 刷新失败: {account.Name}");
-                return (null, tokenResult.exception ?? new Exception("Failed to refresh microsoft access token"));
+                return refreshResult;
             }
 
-            account.AccessToken = tokenResult.accessToken!;
-            if (!string.IsNullOrWhiteSpace(tokenResult.refreshToken))
-            {
-                account.RefreshToken = tokenResult.refreshToken!;
-            }
-            account.ExpiresAt = DateTimeOffset.Now.AddSeconds(tokenResult.expiresIn);
             s_logger.Info($"微软账号令牌刷新成功: {account.Name}");
-
-            var xblResult = await GetXblToken(account.AccessToken, cancellationToken);
-            if (xblResult.exception != null || string.IsNullOrWhiteSpace(xblResult.xblToken))
-            {
-                s_logger.Warn($"微软账号获取 XBL Token 失败: {account.Name}");
-                return (null, xblResult.exception ?? new Exception("Failed to get xbl token"));
-            }
-
-            var xstsResult = await GetXstsToken(xblResult.xblToken!, cancellationToken);
-            if (xstsResult.exception != null ||
-                string.IsNullOrWhiteSpace(xstsResult.xstsToken) ||
-                string.IsNullOrWhiteSpace(xstsResult.userHash))
-            {
-                s_logger.Warn($"微软账号获取 XSTS Token 失败: {account.Name}");
-                return (null, xstsResult.exception ?? new Exception("Failed to get xsts token"));
-            }
-
-            s_logger.Info($"微软账号已获取 Minecraft 服务令牌: {account.Name}");
-            return await GetMinecraftAccessToken(xstsResult.userHash!, xstsResult.xstsToken!, cancellationToken);
+            return await TryGetMinecraftServiceAccessTokenFromAccessTokenAsync(account, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -294,8 +180,57 @@ public static class MicrosoftOAuth
             return (null, ex);
         }
     }
+
+    private static async Task<(string? accessToken, Exception? exception)> TryGetMinecraftServiceAccessTokenFromAccessTokenAsync(
+        MicrosoftAccount account,
+        CancellationToken cancellationToken)
+    {
+        s_logger.Info($"微软账号使用现有 AccessToken 获取 Minecraft 服务令牌: {account.Name}");
+        var xblResult = await GetXblToken(account.AccessToken, cancellationToken);
+        if (!xblResult.IsSuccess || string.IsNullOrWhiteSpace(xblResult.Value?.Token))
+        {
+            return (null, xblResult.Exception ?? new Exception("Failed to get xbl token"));
+        }
+
+        var xstsResult = await GetXstsToken(xblResult.Value.Token!, cancellationToken);
+        if (!xstsResult.IsSuccess ||
+            string.IsNullOrWhiteSpace(xstsResult.Value?.Token) ||
+            string.IsNullOrWhiteSpace(xstsResult.Value?.UserHash))
+        {
+            return (null, xstsResult.Exception ?? new Exception("Failed to get xsts token"));
+        }
+
+        s_logger.Info($"微软账号现有 AccessToken 可用: {account.Name}");
+        var minecraftAccessToken = await GetMinecraftAccessToken(
+            xstsResult.Value.UserHash!,
+            xstsResult.Value.Token!,
+            cancellationToken);
+        return minecraftAccessToken.IsSuccess
+            ? (minecraftAccessToken.Value, null)
+            : (null, minecraftAccessToken.Exception);
+    }
+
+    private static async Task<(string? accessToken, Exception? exception)> RefreshMicrosoftAccountTokenAsync(
+        MicrosoftAccount account,
+        CancellationToken cancellationToken)
+    {
+        var tokenResult = await GetTokenByRefreshToken(account.RefreshToken, cancellationToken);
+        if (!tokenResult.IsSuccess || string.IsNullOrWhiteSpace(tokenResult.Value?.AccessToken))
+        {
+            return (null, tokenResult.Exception ?? new Exception("Failed to refresh microsoft access token"));
+        }
+
+        account.AccessToken = tokenResult.Value.AccessToken!;
+        if (!string.IsNullOrWhiteSpace(tokenResult.Value.RefreshToken))
+        {
+            account.RefreshToken = tokenResult.Value.RefreshToken!;
+        }
+
+        account.ExpiresAt = DateTimeOffset.Now.AddSeconds(tokenResult.Value.ExpiresIn);
+        return (account.AccessToken, null);
+    }
     
-    async private static Task<(string? xstsToken, string? userHash, Exception? exception)> GetXstsToken(string xblToken, CancellationToken cancellationToken)
+    internal static async Task<OAuthOperationResult<XboxTokenPayload>> GetXstsToken(string xblToken, CancellationToken cancellationToken)
     {
         try
         {
@@ -314,17 +249,15 @@ public static class MicrosoftOAuth
                 .PostAsync(cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             response.EnsureSuccessStatusCode();
-            var json = JsonUtils.Parse(responseString);
-            var token = json.GetString("Token");
-            var userHash = json.GetString("DisplayClaims.xui[0].uhs");
-            return (token, userHash, null);
+            return OAuthOperationResult<XboxTokenPayload>.Success(
+                MicrosoftOAuthParser.ParseXboxTokenPayload(responseString));
         }catch (Exception ex)
         {
-            return (null, null, ex);
+            return OAuthOperationResult<XboxTokenPayload>.Failure(ex);
         }
     }
     
-    async private static Task<(string? xblToken, Exception? exception)> GetXblToken(string accessToken, CancellationToken cancellationToken)
+    internal static async Task<OAuthOperationResult<XboxTokenPayload>> GetXblToken(string accessToken, CancellationToken cancellationToken)
     {
         for (int attempt = 0; attempt < 2; attempt++)
         {
@@ -347,9 +280,8 @@ public static class MicrosoftOAuth
                     .PostAsync(cancellationToken);
                 var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
                 response.EnsureSuccessStatusCode();
-                var json = JsonUtils.Parse(responseString);
-                var token = json.GetString("Token");
-                return (token, null);
+                return OAuthOperationResult<XboxTokenPayload>.Success(
+                    MicrosoftOAuthParser.ParseXboxTokenPayload(responseString));
             }
             catch (Exception ex) when (attempt == 0 && ex.Message.Contains("400"))
             {
@@ -357,13 +289,13 @@ public static class MicrosoftOAuth
             }
             catch (Exception ex)
             {
-                return (null, ex);
+                return OAuthOperationResult<XboxTokenPayload>.Failure(ex);
             }
         }
-        return (null, new Exception("XBL token acquisition failed after retries"));
+        return OAuthOperationResult<XboxTokenPayload>.Failure(new Exception("XBL token acquisition failed after retries"));
     }
     
-    async private static Task<(string? accessToken, string? refreshToken, int expiresIn, Exception? exception)> GetTokenByAuthCode(string code, CancellationToken cancellationToken)
+    internal static async Task<OAuthOperationResult<OAuthTokenPayload>> GetTokenByAuthCode(string code, CancellationToken cancellationToken)
     {
         try
         {
@@ -389,18 +321,15 @@ public static class MicrosoftOAuth
                 }
                 throw;
             }
-            var json = JsonUtils.Parse(responseString);
-            var accessToken = json.GetString("access_token");
-            var refreshToken = json.GetString("refresh_token");
-            var expiresIn = json.GetOrDefault("expires_in", 3600);
-            return (accessToken, refreshToken, expiresIn, null);
+            return OAuthOperationResult<OAuthTokenPayload>.Success(
+                MicrosoftOAuthParser.ParseTokenPayload(responseString));
         }catch (Exception ex)
         {
-            return (null, null, 0, ex);
+            return OAuthOperationResult<OAuthTokenPayload>.Failure(ex);
         }
     }
 
-    async private static Task<(string? accessToken, string? refreshToken, int expiresIn, Exception? exception)> GetTokenByRefreshToken(string refreshToken, CancellationToken cancellationToken)
+    internal static async Task<OAuthOperationResult<OAuthTokenPayload>> GetTokenByRefreshToken(string refreshToken, CancellationToken cancellationToken)
     {
         try
         {
@@ -414,15 +343,12 @@ public static class MicrosoftOAuth
                 .PostAsync(cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
             response.EnsureSuccessStatusCode();
-            var json = JsonUtils.Parse(responseString);
-            var accessToken = json.GetString("access_token");
-            var newRefreshToken = json.GetString("refresh_token");
-            var expiresIn = json.GetOrDefault("expires_in", 3600);
-            return (accessToken, newRefreshToken, expiresIn, null);
+            return OAuthOperationResult<OAuthTokenPayload>.Success(
+                MicrosoftOAuthParser.ParseTokenPayload(responseString));
         }
         catch (Exception ex)
         {
-            return (null, null, 0, ex);
+            return OAuthOperationResult<OAuthTokenPayload>.Failure(ex);
         }
     }
     
@@ -432,32 +358,12 @@ public static class MicrosoftOAuth
     {
         try
         {
-            s_listener = new HttpListener();
-            s_listener.Prefixes.Add("http://localhost:40935/");
-            s_listener.Start();
-            var context = await s_listener.GetContextAsync().ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-            var request = context.Request;
-            var response = context.Response;
-            var code = request.QueryString["code"];
-            if (request.Url?.AbsolutePath == "/success" && !string.IsNullOrEmpty(code))
-            {
-                response.StatusCode = 200;
-            }
-            else
-            {
-                response.StatusCode = 400;
-            }
-            response.AddHeader("Access-Control-Allow-Origin", "https://blog.huangyu.win");
-            if (request.HttpMethod == "OPTIONS")
-            {
-                response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-                response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
-            }
-            response.Close();
+            s_listener = OAuthCallbackListener.Create();
+            var result = await OAuthCallbackListener.WaitForCodeAsync(s_listener, cancellationToken);
             s_listener.Stop();
-            return (code, null);
-        }catch (Exception ex)
+            return result;
+        }
+        catch (Exception ex)
         {
             return (null, ex);
         }

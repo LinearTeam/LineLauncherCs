@@ -58,31 +58,16 @@ public class GameArgumentConverter : JsonConverter<IGameArgument>
             {
                 using var document = JsonDocument.ParseValue(ref reader);
                 var jsonObject = document.RootElement;
-            
-                if (jsonObject.TryGetProperty("rules", out var rulesProp) &&
-                    jsonObject.TryGetProperty("value", out var valueProp))
+
+                if (jsonObject.TryGetProperty("value", out var valueProp))
                 {
-                    var argument = new ConditionGameArguments
+                    return new ConditionGameArguments
                     {
-                        Rules = JsonSerializer.Deserialize<List<CompatibilityRule>>(rulesProp.GetRawText(),
-                            options)!,
-                        Value = null!,
+                        Rules = jsonObject.TryGetProperty("rules", out var rulesProp)
+                            ? JsonSerializer.Deserialize<List<CompatibilityRule>>(rulesProp.GetRawText(), options)
+                            : null,
+                        Value = ParseConditionArgumentValue(valueProp, options)
                     };
-
-                    argument.Value = valueProp.ValueKind switch
-                    {
-                        JsonValueKind.String => new StringConditionArgumentValue
-                        {
-                            Value = valueProp.GetString()!
-                        },
-                        JsonValueKind.Array => new StringArrayConditionArgumentValue
-                        {
-                            Values = JsonSerializer.Deserialize<List<string>>(valueProp.GetRawText(), options)!
-                        },
-                        _ => argument.Value
-                    };
-
-                    return argument;
                 }
                 break;
             }
@@ -92,6 +77,22 @@ public class GameArgumentConverter : JsonConverter<IGameArgument>
         }
         
         throw new JsonException($"无法解析的参数类型: {reader.TokenType}");
+    }
+
+    private static IConditionArgumentValue ParseConditionArgumentValue(JsonElement valueProp, JsonSerializerOptions options)
+    {
+        return valueProp.ValueKind switch
+        {
+            JsonValueKind.String => new StringConditionArgumentValue
+            {
+                Value = valueProp.GetString()!
+            },
+            JsonValueKind.Array => new StringArrayConditionArgumentValue
+            {
+                Values = JsonSerializer.Deserialize<List<string>>(valueProp.GetRawText(), options)!
+            },
+            _ => throw new JsonException($"无法解析的参数值类型: {valueProp.ValueKind}")
+        };
     }
 
     public override void Write(Utf8JsonWriter writer, IGameArgument value, JsonSerializerOptions options)

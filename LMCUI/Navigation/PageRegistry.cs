@@ -46,25 +46,7 @@ public class PageRegistry
     /// </summary>
     private void RegisterBuiltInPages()
     {
-        // 直接导航页面 - 单例模式（默认）
-        Register<Pages.LaunchPage.LaunchPage>("LaunchPage");
-        Register<Pages.VersionManagePage.VersionManagePage>("VersionManagePage");
-        Register<Pages.DownloadMinecraftPage.DownloadMinecraftPage>("DownloadMinecraftPage");
-        Register(typeof(Pages.VersionManagePage.VersionDetailPage), "VersionDetailPage", PageStorageMode.Parameterized);
-        Register<Pages.AccountPage.AccountPage>("AccountPage");
-        Register<Pages.TaskPage.TaskPage>("TaskPage");
-        Register<Pages.SettingsPage.SettingsPage>("SettingsPage");
-        Register<Pages.Help.HelpPage>("HelpPage");
-
-        // 帮助内容页面 - 支持动态 Tag
-        RegisterDynamic(typeof(Pages.Help.HelpContentPage), "HelpPage");
-
-        // 设置子页面 - 单例模式（默认）
-        Register<Pages.SettingsPage.LauncherSettings.LauncherSettingsPage>("LauncherSettingsPage");
-        Register<Pages.SettingsPage.GameSettings.GameSettingsPage>("GameSettingsPage");
-        Register<AboutPage>("AboutPage");
-        Register<Pages.SettingsPage.About.CopyrightPage>("CopyrightPage");
-
+        PageRegistryBuiltIns.RegisterAll(this);
         _logger.Info("内置页面注册完成");
     }
 

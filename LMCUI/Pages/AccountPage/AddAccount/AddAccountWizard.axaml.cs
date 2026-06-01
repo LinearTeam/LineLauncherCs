@@ -33,7 +33,7 @@ public partial class AddAccountWizard : UserControl
     {
         if (contentFrm.Content is AddAccountStep step)
         {
-            _buttonStateChanged((state.hasPrev, state.hasNext, step.IsFinalStep()));
+            _buttonStateChanged(AddAccountWizardCoordinator.BuildDialogState(step, state));
         }
     }
     public AddAccountWizard(Action<(bool hasPrev, bool hasNext, bool isFinal)> buttonStateChanged)
@@ -53,22 +53,23 @@ public partial class AddAccountWizard : UserControl
     {
         if (contentFrm.Content is AddAccountStep step)
         {
-            var next = step.NextStep();
-            if (step.IsFinalStep())
+            var advance = AddAccountWizardCoordinator.Advance(step);
+            if (advance.IsFinalStep)
             {
-                var account = step.GetFinalAccount();
-                if(account != null) 
+                var submission = AddAccountWizardCoordinator.Submit(advance.Account, AccountManager.Add);
+                if (submission.Attempted && submission.Account != null)
                 {
-                    try
+                    var account = submission.Account;
+                    if (submission.Succeeded)
                     {
                         s_logger.Info($"添加账户: {account.Name} (类型: {account.Type})");
-                        AccountManager.Add(account);
                         s_logger.Info($"成功添加: {account.Name} (类型: {account.Type})");
                         var typeMsg = I18nManager.Instance.GetString("Enums.AccountType." + account.Type);
                         MessageQueueControl.Instance.AddInfoBar(I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Success.Title"), I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Success.Content", typeMsg, account.Name), FAInfoBarSeverity.Success);
                     }
-                    catch (Exception ex)
+                    else if (submission.Exception != null)
                     {
+                        var ex = submission.Exception;
                         s_logger.Error(ex, $"添加账户{account.Name} (类型: {account.Type})");
                         var translatedException = I18nManager.Instance.GetString(ex.Message);
                         MessageQueueControl.Instance.AddInfoBar(I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Failed.Title"), I18nManager.Instance.GetString("Messages.AccountManager.AddAccount.Failed.Content", translatedException), FAInfoBarSeverity.Error);
@@ -76,13 +77,13 @@ public partial class AddAccountWizard : UserControl
                 }
                 return;
             }
-            if (next.type != null)
+            if (advance.Transition.Type != null)
             {
-                contentFrm.Navigate(next.type, null, new FASlideNavigationTransitionInfo
+                contentFrm.Navigate(advance.Transition.Type, null, new FASlideNavigationTransitionInfo
                     { Effect = FASlideNavigationTransitionEffect.FromRight });
                 step = contentFrm.Content as AddAccountStep ?? throw new InvalidOperationException();
                 _stepButtonStateChanged((step.PreviousStep().type != null, step.NextStep().type != null));
-                step.Enter(next.data, _stepButtonStateChanged);
+                step.Enter(advance.Transition.Data, _stepButtonStateChanged);
             }
         }
     }
@@ -91,15 +92,15 @@ public partial class AddAccountWizard : UserControl
     {
         if (contentFrm.Content is AddAccountStep step)
         {
-            var prev = step.PreviousStep();
-            if (prev.type != null)
+            var previous = AddAccountWizardCoordinator.Retreat(step);
+            if (previous.Type != null)
             {
                 step.BackToPrevious();
-                contentFrm.Navigate(prev.type, null, new FASlideNavigationTransitionInfo
+                contentFrm.Navigate(previous.Type, null, new FASlideNavigationTransitionInfo
                     { Effect = FASlideNavigationTransitionEffect.FromLeft });
                 step = contentFrm.Content as AddAccountStep ?? throw new InvalidOperationException();
                 _stepButtonStateChanged((step.PreviousStep().type != null, step.NextStep().type != null));
-                step.Enter(prev.data, _stepButtonStateChanged);
+                step.Enter(previous.Data, _stepButtonStateChanged);
             }
         }
     }

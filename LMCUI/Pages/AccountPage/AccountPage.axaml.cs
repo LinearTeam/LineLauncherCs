@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
@@ -35,6 +36,8 @@ namespace LMCUI.Pages.AccountPage;
 public partial class AccountPage : PageBase
 {
     private static Logger s_logger = new Logger("AccountPage");
+    private CancellationTokenSource? _avatarRefreshCts;
+
     public AccountPage() : base("Pages.AccountPage.Title", "AccountPage")
     {
         InitializeComponent();
@@ -66,52 +69,45 @@ public partial class AccountPage : PageBase
             AccountAvatarService.ApplyCachedOrDefaultAvatar(account);
         }
         s_logger.Info("已为账号列表应用默认头像或本地缓存头像");
-        
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            acclist.Description = I18nManager.Instance.GetString(accounts.Count == 0 
-                ? "Pages.AccountPage.AccountListExpander.NoAccountsDescription"
-                : "Pages.AccountPage.AccountListExpander.Description");
-            return acclist.ItemsSource = new List<Account>(accounts);
-        });
+
+        await ApplyAccountListAsync(AccountPageSupport.BuildAccountListPresentation(accounts));
         s_logger.Info("账号列表已提交到 UI");
+
+        _avatarRefreshCts?.Cancel();
+        _avatarRefreshCts = new CancellationTokenSource();
+        var cancellationToken = _avatarRefreshCts.Token;
 
         _ = Task.Run(async () =>
         {
             s_logger.Info("开始后台刷新微软账号头像");
-            bool hasAvatarUpdate = false;
-            bool shouldSaveAccounts = false;
+            var summary = await AccountPageSupport.RefreshMicrosoftAvatarsAsync(
+                accounts.OfType<MicrosoftAccount>(),
+                async (account, token) =>
+                {
+                    s_logger.Info($"开始刷新微软账号头像: {account.Name} ({account.Uuid})");
+                    var avatarUpdated = await AccountAvatarService.TryUpdateMicrosoftAvatarAsync(account, token);
+                    s_logger.Info(avatarUpdated
+                        ? $"微软账号头像已更新: {account.Name}"
+                        : $"微软账号头像未更新，继续使用现有头像: {account.Name}");
+                    return avatarUpdated;
+                },
+                cancellationToken);
 
-            foreach (var account in accounts.OfType<MicrosoftAccount>())
-            {
-                s_logger.Info($"开始刷新微软账号头像: {account.Name} ({account.Uuid})");
-                var previousRefreshToken = account.RefreshToken;
-                var avatarUpdated = await AccountAvatarService.TryUpdateMicrosoftAvatarAsync(account);
-                hasAvatarUpdate |= avatarUpdated;
-                shouldSaveAccounts |= !string.Equals(previousRefreshToken, account.RefreshToken, StringComparison.Ordinal);
-                s_logger.Info(avatarUpdated
-                    ? $"微软账号头像已更新: {account.Name}"
-                    : $"微软账号头像未更新，继续使用现有头像: {account.Name}");
-            }
-
-            if (shouldSaveAccounts)
+            if (summary.ShouldSaveAccounts)
             {
                 s_logger.Info("检测到微软账号令牌更新，正在保存账号数据");
                 AccountManager.Save();
             }
 
-            if (!hasAvatarUpdate)
+            if (!summary.HasAvatarUpdate)
             {
                 s_logger.Info("后台头像刷新完成，没有需要回写到 UI 的头像变更");
                 return;
             }
 
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                acclist.ItemsSource = new List<Account>(accounts);
-            });
+            await ApplyAccountListAsync(AccountPageSupport.BuildAccountListPresentation(accounts));
             s_logger.Info("后台头像刷新完成，已将最新头像回写到 UI");
-        });
+        }, cancellationToken);
     }
     
     private void Button_CopyUuid(object? sender, RoutedEventArgs e)
@@ -188,6 +184,15 @@ public partial class AccountPage : PageBase
             {
                 await RefreshAccountList();
             });
+    }
+
+    private async Task ApplyAccountListAsync(AccountListPresentation presentation)
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            acclist.Description = I18nManager.Instance.GetString(presentation.DescriptionKey);
+            acclist.ItemsSource = presentation.Accounts.ToList();
+        });
     }
 }
 

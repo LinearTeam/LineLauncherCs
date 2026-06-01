@@ -30,7 +30,7 @@ public partial class DownloadMinecraftWizard : UserControl
     {
         if (contentFrm.Content is DownloadMinecraftStep step)
         {
-            _buttonStateChanged((state.hasPrev, state.hasNext, step.IsFinalStep()));
+            _buttonStateChanged(DownloadMinecraftWizardSupport.BuildDialogButtonState(step, state));
         }
     }
 

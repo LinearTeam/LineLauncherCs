@@ -20,6 +20,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
+using LMC.Basic.Logging;
 using LMCCore.Tasks;
 using LMCCore.Tasks.Model;
 
@@ -27,6 +28,7 @@ namespace LMCUI.Pages.TaskPage;
 
 public partial class TaskPage : PageBase
 {
+    private readonly Logger _logger = new("TaskPage");
     private readonly ObservableCollection<ParentTask> _taskList = [];
     private readonly Dictionary<Guid, ParentTaskControls> _parentControls = [];
     private readonly Dictionary<Guid, (FASettingsExpanderItem Item, StackPanel ContentPanel, StackPanel FooterPanel, ProgressBar ProgressBar)> _subTaskControls = [];
@@ -36,13 +38,6 @@ public partial class TaskPage : PageBase
     private readonly object _uiUpdateLock = new();
     private DispatcherTimer? _uiUpdateTimer;
 
-    private enum ParentActionButtonMode
-    {
-        None,
-        Cancel,
-        Confirm
-    }
-
     private sealed class ParentTaskControls
     {
         public required FASettingsExpander Expander { get; init; }
@@ -50,7 +45,7 @@ public partial class TaskPage : PageBase
         public required StackPanel FooterPanel { get; init; }
         public required TextBlock CountTextBlock { get; init; }
         public Button? ActionButton { get; set; }
-        public ParentActionButtonMode ActionButtonMode { get; set; }
+        public ParentTaskActionButtonMode ActionButtonMode { get; set; }
     }
 
     public TaskPage() : base("Pages.TaskPage.Title", "TaskPage")
@@ -140,11 +135,10 @@ public partial class TaskPage : PageBase
     private void RefreshTaskList()
     {
         var currentParents = TaskManager.Instance.GetParents();
+        var diff = TaskPagePresentation.DiffParents(_taskList, currentParents);
 
-        foreach (var parent in currentParents)
+        foreach (var parent in diff.AddedParents)
         {
-            if (_taskList.Any(t => t.Id == parent.Id))
-                continue;
             _taskList.Insert(0, parent);
             parent.PropertyChanged += Parent_PropertyChanged;
 
@@ -154,18 +148,14 @@ public partial class TaskPage : PageBase
             }
         }
 
-        for (var i = _taskList.Count - 1; i >= 0; i--)
+        foreach (var parent in diff.RemovedParents)
         {
-            var item = _taskList[i];
-            if (!currentParents.Contains(item))
+            parent.PropertyChanged -= Parent_PropertyChanged;
+            foreach (var sub in parent.SubTasks)
             {
-                item.PropertyChanged -= Parent_PropertyChanged;
-                foreach (var sub in item.SubTasks)
-                {
-                    sub.PropertyChanged -= SubTask_PropertyChanged;
-                }
-                _taskList.RemoveAt(i);
+                sub.PropertyChanged -= SubTask_PropertyChanged;
             }
+            _taskList.Remove(parent);
         }
 
         RebuildTaskList();
@@ -186,7 +176,7 @@ public partial class TaskPage : PageBase
                 case nameof(TaskBase.State):
                     UpdateParentStateIcon(controls.HeaderPanel, parent.State);
                     UpdateParentActionButton(controls, parent);
-                    if (ShouldRemoveParentTask(parent))
+                    if (TaskPagePresentation.ShouldRemoveParentTask(parent))
                     {
                         RemoveParentTask(parent);
                     }
@@ -218,7 +208,7 @@ public partial class TaskPage : PageBase
                     UpdateSubTaskStateIcon(c.Item, c.ContentPanel, subTask);
                     UpdateSubTaskProgress(c.Item, c.ProgressBar, subTask);
                     UpdateParentStateBasedOnSubTasks(subTask.Parent);
-                    if (ShouldRemoveParentTask(subTask.Parent))
+                    if (TaskPagePresentation.ShouldRemoveParentTask(subTask.Parent))
                     {
                         RemoveParentTask(subTask.Parent);
                     }
@@ -228,7 +218,7 @@ public partial class TaskPage : PageBase
             case nameof(TaskBase.IsExecuting):
                 QueueUiUpdate(() =>
                 {
-                    if (ShouldRemoveParentTask(subTask.Parent))
+                    if (TaskPagePresentation.ShouldRemoveParentTask(subTask.Parent))
                     {
                         RemoveParentTask(subTask.Parent);
                     }
@@ -261,33 +251,10 @@ public partial class TaskPage : PageBase
         if (!_parentControls.TryGetValue(parent.Id, out var controls))
             return;
 
-        var state = GetParentDisplayState(parent);
+        var state = TaskPagePresentation.GetParentDisplayState(parent);
         UpdateParentStateIcon(controls.HeaderPanel, state);
         controls.CountTextBlock.Text = $"{parent.CompletedCount} / {parent.TotalCount}";
         UpdateParentActionButton(controls, parent, state);
-    }
-
-    private TaskState GetParentDisplayState(ParentTask parent)
-    {
-        if (parent.SubTasks.Any(s => s.State == TaskState.Running))
-            return TaskState.Running;
-        if (parent.SubTasks.Any(s => s.State == TaskState.Faulted))
-            return TaskState.Faulted;
-        if (parent.SubTasks.All(s => s.State == TaskState.Completed))
-            return TaskState.Completed;
-        if (parent.SubTasks.Any(s => s.State == TaskState.Canceled))
-            return TaskState.Canceled;
-        return TaskState.Waiting;
-    }
-
-    private static bool ShouldRemoveParentTask(ParentTask parent)
-    {
-        return parent.State switch
-        {
-            TaskState.Canceled => parent.SubTasks.All(sub => !sub.IsExecuting),
-            TaskState.Completed => true,
-            _ => false
-        };
     }
 
     private void RebuildTaskList()
@@ -296,9 +263,8 @@ public partial class TaskPage : PageBase
         _parentControls.Clear();
         _subTaskControls.Clear();
 
-        foreach (var parent in _taskList)
+        foreach (var parent in TaskPagePresentation.BuildVisibleParents(_taskList))
         {
-            if(parent.State is TaskState.Canceled or TaskState.Completed) continue;
             var expander = CreateParentTaskExpander(parent);
             TaskList.Children.Add(expander);
         }
@@ -306,7 +272,7 @@ public partial class TaskPage : PageBase
 
     private FASettingsExpander CreateParentTaskExpander(ParentTask parent)
     {
-        var displayState = GetParentDisplayState(parent);
+        var displayState = TaskPagePresentation.GetParentDisplayState(parent);
         var headerPanel = TaskItemFactory.CreateHeaderPanel(parent, displayState);
 
         var expander = new FASettingsExpander
@@ -347,24 +313,14 @@ public partial class TaskPage : PageBase
         }
     }
 
-    private static ParentActionButtonMode GetParentActionButtonMode(TaskState state)
-    {
-        return state switch
-        {
-            TaskState.Waiting or TaskState.Running => ParentActionButtonMode.Cancel,
-            TaskState.Faulted or TaskState.Completed => ParentActionButtonMode.Confirm,
-            _ => ParentActionButtonMode.None
-        };
-    }
-
     private void UpdateParentActionButton(ParentTaskControls controls, ParentTask parent)
     {
-        UpdateParentActionButton(controls, parent, GetParentDisplayState(parent));
+        UpdateParentActionButton(controls, parent, TaskPagePresentation.GetParentDisplayState(parent));
     }
 
     private void UpdateParentActionButton(ParentTaskControls controls, ParentTask parent, TaskState state)
     {
-        var targetMode = GetParentActionButtonMode(state);
+        var targetMode = TaskPagePresentation.GetParentActionButtonMode(state);
         if (controls.ActionButtonMode == targetMode && controls.ActionButton?.Tag == parent)
         {
             return;
@@ -376,19 +332,19 @@ public partial class TaskPage : PageBase
             controls.ActionButton.Click -= DismissParentTask;
             controls.FooterPanel.Children.Remove(controls.ActionButton);
             controls.ActionButton = null;
-            controls.ActionButtonMode = ParentActionButtonMode.None;
+            controls.ActionButtonMode = ParentTaskActionButtonMode.None;
         }
 
-        if (targetMode == ParentActionButtonMode.None)
+        if (targetMode == ParentTaskActionButtonMode.None)
         {
             return;
         }
 
-        var actionButton = targetMode == ParentActionButtonMode.Cancel
+        var actionButton = targetMode == ParentTaskActionButtonMode.Cancel
             ? TaskItemFactory.CreateCancelButton(parent)
             : TaskItemFactory.CreateConfirmButton(parent);
 
-        if (targetMode == ParentActionButtonMode.Cancel)
+        if (targetMode == ParentTaskActionButtonMode.Cancel)
             actionButton.Click += CancelParentTask;
         else
             actionButton.Click += DismissParentTask;
@@ -402,6 +358,7 @@ public partial class TaskPage : PageBase
     {
         if (sender is Button { Tag: ParentTask parent } button)
         {
+            _logger.Info($"用户取消任务: {parent.Name}");
             button.IsEnabled = false;
             parent.Cancel();
         }
