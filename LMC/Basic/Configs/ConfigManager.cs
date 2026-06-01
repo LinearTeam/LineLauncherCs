@@ -77,7 +77,8 @@ public class ConfigRemovedAttribute(int sinceVersion) : Attribute {
 public static class ConfigManager {
     private const string VersionProperty = "$version";
     private readonly static ConcurrentDictionary<string, object> s_configLocks = new();
-    private static Logger s_logger = new Logger("ConfigManager");
+    private static readonly Logger s_logger = new("ConfigManager");
+    internal static string? ConfigDirectoryOverride { get; set; }
 
     private readonly static JsonSerializerOptions s_serializerOptions = new()
     {
@@ -110,12 +111,15 @@ public static class ConfigManager {
 
                 int targetVersion = GetConfigVersion(typeof(T));
                 if (configVersion != targetVersion) {
-                    MigrateConfiguration(jsonObject, configVersion, targetVersion);
+                    ConfigMigrationPipeline.Migrate(jsonObject, configVersion, targetVersion);
+                    jsonObject[VersionProperty] = targetVersion;
+                    File.WriteAllText(filePath, jsonObject.ToJsonString(s_serializerOptions));
                 }
 
                 jsonObject.Remove(VersionProperty);
                 return jsonObject.Deserialize<T>(s_serializerOptions) ?? new T();
-            } catch {
+            } catch (Exception ex) {
+                s_logger.Warn($"加载配置 {configName} 失败，已回退默认配置: {ex.Message}");
                 return new T();
             }
         }
@@ -142,113 +146,10 @@ public static class ConfigManager {
     }
 
     private static string GetConfigPath(string configName) {
-        return Path.Combine(Current.LMCPath, $"{configName}.config.json");
+        return Path.Combine(ConfigDirectoryOverride ?? Current.LMCPath, $"{configName}.config.json");
     }
 
     private static int GetConfigVersion(Type configType) {
-        var versionAttr = configType.GetCustomAttribute<ConfigVersionAttribute>();
-        return versionAttr?.Version ?? 1;
+        return ConfigMetadataRepository.GetConfigVersion(configType);
     }
-
-    private static void MigrateConfiguration(JsonObject config, int currentVersion, int targetVersion) {
-        if (currentVersion > targetVersion)
-        {
-            return;
-        }
-
-        while (currentVersion < targetVersion)
-        {
-            int nextVersion = currentVersion + 1;
-            MigrateToNextVersion(config, currentVersion, nextVersion);
-            currentVersion = nextVersion;
-        }
-
-        config[VersionProperty] = targetVersion;
-    }
-
-    private static void MigrateToNextVersion(JsonObject config, int fromVersion, int toVersion) {
-        ApplyAliasMapping(config, fromVersion, toVersion);
-
-        ApplyCustomMigration(config, fromVersion, toVersion);
-
-        CleanupRemovedFields(config, toVersion);
-    }
-
-    private static void ApplyAliasMapping(JsonObject config, int fromVersion, int toVersion) {
-        var aliasMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var type in AppDomain.CurrentDomain.GetAssemblies()
-                     .SelectMany(a => a.GetTypes())
-                     .Where(t => t.GetCustomAttribute<ConfigVersionAttribute>()?.Version == toVersion))
-        {
-            foreach (var prop in type.GetProperties())
-            {
-                var aliases = prop.GetCustomAttributes<ConfigAliasAttribute>()
-                    .Where(a => a.UntilVersion >= fromVersion)
-                    .Select(a => a.Alias);
-
-                foreach (string alias in aliases)
-                {
-                    aliasMappings[alias] = prop.Name;
-                }
-            }
-        }
-
-        foreach ((string alias, string newName) in aliasMappings)
-        {
-            if (config.TryGetPropertyValue(alias, out var value) &&
-                !config.ContainsKey(newName))
-            {
-                config[newName] = value;
-            }
-        }
-    }
-
-    private static void ApplyCustomMigration(JsonObject config, int fromVersion, int toVersion) {
-        var processors = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(a => a.GetTypes())
-            .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-            .Where(m => m.GetCustomAttribute<ConfigUpgradeProcessorAttribute>() != null)
-            .ToLookup(m => m.GetCustomAttribute<ConfigUpgradeProcessorAttribute>()!);
-
-        foreach (var method in processors)
-        {
-            var attr = method.Key;
-            if (attr.FromVersion == fromVersion && attr.ToVersion == toVersion)
-            {
-                var parameters = method.First().GetParameters();
-                if (parameters.Length == 1 && parameters[0].ParameterType == typeof(JsonObject))
-                {
-                    method.First().Invoke(null,
-                    [
-                        config
-                    ]);
-                }
-            }
-        }
-    }
-
-    private static void CleanupRemovedFields(JsonObject config, int currentVersion) {
-        var removedFields = new List<string>();
-
-        foreach (var type in AppDomain.CurrentDomain.GetAssemblies()
-                     .SelectMany(a => a.GetTypes()))
-        {
-            foreach (var prop in type.GetProperties())
-            {
-                var removedAttr = prop.GetCustomAttribute<ConfigRemovedAttribute>();
-                if (removedAttr != null && removedAttr.SinceVersion <= currentVersion)
-                {
-                    removedFields.Add(prop.Name);
-                }
-            }
-        }
-
-        foreach (string field in removedFields)
-        {
-            config.Remove(field);
-        }
-    }
-
-
 }

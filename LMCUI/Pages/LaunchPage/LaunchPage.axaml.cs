@@ -17,10 +17,12 @@ using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
+using LMC;
 using LMC.Basic.Logging;
 using LMCCore.Game.Download;
 using LMCCore.Tasks;
 using LMCCore.Tasks.Model;
+using LMCUI.I18n;
 using LMCUI.Navigation;
 using LMCUI.Utils;
 
@@ -37,11 +39,18 @@ public partial class LaunchPage : PageBase
     {
         try
         {
+            var gameRoot = Current.Config.SelectedGameRootPath;
+            if (string.IsNullOrWhiteSpace(gameRoot))
+            {
+                await MessageQueueHelper.ShowError(
+                    I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Errors.NoRootTitle"),
+                    I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Errors.NoRootContent"));
+                return;
+            }
+
             var downloadManager = new DownloadManager();
             var versionInfo = await downloadManager.GetVersionInfoAsync("1.21");
 
-            var gameRoot = Path.Combine(
-                Environment.CurrentDirectory, ".minecraft");
             var libraryRoot = gameRoot;
             var assetRoot = Path.Combine(gameRoot, "assets");
 

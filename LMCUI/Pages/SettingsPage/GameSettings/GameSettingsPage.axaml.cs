@@ -65,23 +65,23 @@ public partial class GameSettingsPage : PageBase {
     {
         try
         {
-            var list = new List<JavaItem>();
             var javas = new List<string>(Current.Config.JavaPaths);
+            var javaInfos = new List<LocalJava>(javas.Count);
             foreach (var path in javas)
             {
-                var lj = await JavaManager.GetJavaInfo(path);
-                list.Add(new JavaItem()
-                {
-                    Path = lj.Path,
-                    Header =
-                        $"{(lj.IsJdk ? "JDK" : "JRE")}-{lj.Version} {lj.Implementor} {(Current.Config.SelectedJavaPath.Equals(path) ? $"({I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.JavaListItem.Enabled")})" : "")}",
-                    IsSelected = Current.Config.SelectedJavaPath.Equals(path)
-                });
+                javaInfos.Add(await JavaManager.GetJavaInfo(path));
             }
-            
-            jle.Header = I18nManager.Instance.GetString(list.Count == 0 ? "Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.EmptyHeader" : "Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.Header");
-            list.ForEach(ji => ji.Foreground = (ji.IsSelected ? Brushes.LawnGreen : Foreground)!);
-            _javaItems = new ObservableCollection<JavaItem>(list);
+
+            var items = GameSettingsPagePresentation.BuildJavaItems(
+                GameSettingsPagePresentation.BuildJavaItemViewData(
+                    javaInfos,
+                    Current.Config.SelectedJavaPath,
+                    I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.JavaListItem.Enabled")),
+                Brushes.LawnGreen,
+                Foreground!);
+
+            jle.Header = I18nManager.Instance.GetString(GameSettingsPagePresentation.GetJavaListHeaderKey(items.Count));
+            _javaItems = new ObservableCollection<JavaItem>(items);
             jle.ItemsSource = _javaItems;
         }
         catch (Exception ex)
@@ -163,11 +163,7 @@ public partial class GameSettingsPage : PageBase {
             });
             var file = files.FirstOrDefault();
             if (file == null) { return; }
-            var root = Path.GetDirectoryName(file.Path.LocalPath);
-            if (root.EndsWith("bin"))
-            {
-                root = Path.GetDirectoryName(root);
-            }
+            var root = GameSettingsPagePresentation.ResolveJavaRootPath(file.Path.LocalPath);
 
             await Task.Run(() => JavaManager.AddJava(root));
 

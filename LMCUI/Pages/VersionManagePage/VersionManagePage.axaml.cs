@@ -45,41 +45,16 @@ public partial class VersionManagePage : PageBase
     private readonly ObservableCollection<VersionRenderData> _visibleVersions = [];
     private readonly Dictionary<string, LocalGameVersionEntry> _versionNameMap = [];
     private readonly FuncDataTemplate<VersionRenderData> _versionItemTemplate;
+    private readonly VersionManagePageRefreshState _refreshState = new();
 
     private CancellationTokenSource? _refreshCts;
     private FileSystemWatcher? _versionsWatcher;
     private DispatcherTimer? _refreshDebounceTimer;
-    private bool _pendingExternalRefresh;
     private bool _isPageLoaded;
     private string? _watchedRootPath;
     private string _lastInvalidVersionSignature = string.Empty;
-    private DateTime _lastRefreshUtc = DateTime.MinValue;
+    private int _pendingRefreshToken;
     private readonly static TimeSpan MinimumLoadingDuration = TimeSpan.FromMilliseconds(500);
-
-    private enum VersionDisplayType
-    {
-        Release,
-        Snapshot,
-        AprilFools,
-        Old,
-        Error
-    }
-
-    private enum VersionIconKind
-    {
-        Asset,
-        File,
-        Symbol
-    }
-
-    private sealed class VersionRenderData
-    {
-        public required LocalGameVersionEntry Version { get; init; }
-        public required VersionDisplayType DisplayType { get; init; }
-        public required string Description { get; init; }
-        public required VersionIconKind IconKind { get; init; }
-        public string? IconPath { get; init; }
-    }
 
     public VersionManagePage() : base("Pages.VersionManagePage.Title", "VersionManagePage")
     {
@@ -256,6 +231,7 @@ public partial class VersionManagePage : PageBase
         {
             DisposeWatcher();
             _lastInvalidVersionSignature = string.Empty;
+            _refreshState.ClearPendingExternalRefresh();
             RenderEmptyState(I18nManager.Instance.GetString("Pages.VersionManagePage.EmptyState.NoRootVersions"));
             return;
         }
@@ -310,8 +286,7 @@ public partial class VersionManagePage : PageBase
             return;
         }
 
-        _lastRefreshUtc = DateTime.UtcNow;
-        _pendingExternalRefresh = false;
+        _refreshState.MarkRefreshed(DateTime.UtcNow);
         UpdateCurrentRootDisplay(selectedRoot, versions.Count);
         RenderVersions(renderData);
         NotifyInvalidVersions(versions, forceInvalidNotification);
@@ -330,7 +305,9 @@ public partial class VersionManagePage : PageBase
         CurrentRootExpander.Header = I18nManager.Instance.GetString("Pages.VersionManagePage.CurrentRoot.Header");
         CurrentRootExpander.Description = versionCount == null
             ? selectedRoot.RootPath
-            : $"{selectedRoot.RootPath} | {I18nManager.Instance.GetString("Pages.VersionManagePage.CurrentRoot.VersionCount", versionCount.Value)}";
+            : VersionManagePagePresentation.BuildCurrentRootDescription(
+                selectedRoot,
+                I18nManager.Instance.GetString("Pages.VersionManagePage.CurrentRoot.VersionCount", versionCount.Value));
     }
 
     private void ShowVersionLoadingState()
@@ -450,10 +427,11 @@ public partial class VersionManagePage : PageBase
 
     private void RefreshRootList(ListBox rootList)
     {
-        var roots = _versionManager.GetManagedRoots().ToList();
-        var items = roots.Select(root => new ListBoxItem
+        var rootItems = VersionManagePagePresentation.BuildRootListItems(_versionManager.GetManagedRoots());
+        var items = rootItems
+            .Select(item => new ListBoxItem
         {
-            Tag = root,
+            Tag = item.Root,
             Content = new StackPanel
             {
                 Orientation = Orientation.Vertical,
@@ -461,12 +439,12 @@ public partial class VersionManagePage : PageBase
                 {
                     new TextBlock
                     {
-                        Text = Path.GetFileName(root.RootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
+                        Text = item.Header,
                         FontWeight = FontWeight.SemiBold
                     },
                     new TextBlock
                     {
-                        Text = root.RootPath,
+                        Text = item.Description,
                         TextWrapping = TextWrapping.Wrap,
                         Opacity = 0.8
                     }
@@ -475,17 +453,7 @@ public partial class VersionManagePage : PageBase
         }).ToList();
 
         rootList.ItemsSource = items;
-
-        var selectedRoot = _versionManager.GetSelectedRoot();
-        if (selectedRoot == null)
-        {
-            rootList.SelectedIndex = items.Count > 0 ? 0 : -1;
-            return;
-        }
-
-        rootList.SelectedItem = items.FirstOrDefault(item =>
-            item.Tag is ManagedGameRoot root &&
-            string.Equals(root.RootPath, selectedRoot.RootPath, StringComparison.OrdinalIgnoreCase));
+        rootList.SelectedIndex = VersionManagePagePresentation.GetSelectedRootIndex(rootItems, _versionManager.GetSelectedRoot());
     }
 
     async private Task AddRootAsync(ListBox rootList)
@@ -567,36 +535,6 @@ public partial class VersionManagePage : PageBase
         }
     }
 
-    private VersionDisplayType GetDisplayType(LocalGameVersionEntry version)
-    {
-        if (version.Status != VersionStatus.Valid)
-        {
-            return VersionDisplayType.Error;
-        }
-
-        var displayType = version.VersionInfo == null
-            ? GameVersionDisplayType.Release
-            : GameVersionTypeClassifier.ClassifyManifestVersion(
-                version.VersionInfo.Id,
-                version.VersionInfo.Type,
-                version.VersionInfo.ReleaseTime,
-                version.VersionName,
-                version.ClientVersionId);
-
-        return displayType switch
-        {
-            GameVersionDisplayType.Snapshot => VersionDisplayType.Snapshot,
-            GameVersionDisplayType.AprilFools => VersionDisplayType.AprilFools,
-            GameVersionDisplayType.Old => VersionDisplayType.Old,
-            _ => VersionDisplayType.Release
-        };
-    }
-
-    private string GetVersionDescription(LocalGameVersionEntry version, VersionDisplayType displayType)
-    {
-        return $"{GetDisplayTypeText(displayType)} - {GetClientVersionIdText(version.ClientVersionId)}";
-    }
-
     private string GetDisplayTypeText(VersionDisplayType displayType)
     {
         return displayType switch
@@ -607,13 +545,6 @@ public partial class VersionManagePage : PageBase
             VersionDisplayType.Error => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.Error"),
             _ => I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.Release")
         };
-    }
-
-    private string GetClientVersionIdText(string clientVersionId)
-    {
-        return string.Equals(clientVersionId, "未知版本", StringComparison.Ordinal)
-            ? I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.UnknownClientVersion")
-            : clientVersionId;
     }
 
     private string GetStatusText(VersionStatus status)
@@ -647,16 +578,11 @@ public partial class VersionManagePage : PageBase
 
     private VersionRenderData BuildVersionRenderData(LocalGameVersionEntry version)
     {
-        var displayType = GetDisplayType(version);
-        var (iconKind, iconPath) = ResolveVersionIcon(displayType, version);
-        return new VersionRenderData
-        {
-            Version = version,
-            DisplayType = displayType,
-            Description = GetVersionDescription(version, displayType),
-            IconKind = iconKind,
-            IconPath = iconPath
-        };
+        return VersionManagePagePresentation.BuildVersionRenderData(
+            version,
+            GetDisplayTypeText,
+            I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.UnknownClientVersion"),
+            ResolveVersionIcon);
     }
 
     private FAIconSource CreateVersionIconSource(VersionRenderData renderData)
@@ -676,7 +602,7 @@ public partial class VersionManagePage : PageBase
                 _ => CreateFallbackIconSource(renderData.DisplayType)
             };
         }
-        catch (FileNotFoundException ex) when (Logger.DebugMode && IsMissingBuiltInVersionIcon(renderData, ex))
+        catch (FileNotFoundException ex) when (IsMissingBuiltInVersionIcon(renderData, ex))
         {
             _logger.Debug($"忽略缺失的内置版本图标资源: {renderData.IconPath}");
             return CreateFallbackIconSource(renderData.DisplayType);
@@ -693,52 +619,17 @@ public partial class VersionManagePage : PageBase
 
     private string GetBuiltInIconResourcePath(VersionDisplayType displayType)
     {
-        return displayType switch
-        {
-            VersionDisplayType.Snapshot => "/Assets/VersionIcons/snapshot.png",
-            VersionDisplayType.AprilFools => "/Assets/VersionIcons/aprilfools.png",
-            VersionDisplayType.Old => "/Assets/VersionIcons/old.png",
-            VersionDisplayType.Error => "/Assets/VersionIcons/error.png",
-            _ => "/Assets/VersionIcons/release.png"
-        };
+        return VersionManagePagePresentation.GetBuiltInIconResourcePath(displayType);
     }
 
     private (VersionIconKind IconKind, string? IconPath) ResolveVersionIcon(
         VersionDisplayType displayType,
         LocalGameVersionEntry version)
     {
-        if (displayType != VersionDisplayType.Error)
-        {
-            var customIconPath = _versionConfigManager.GetValue<string>(version, "iconPath");
-            if (!string.IsNullOrWhiteSpace(customIconPath) && TryIsValidIconFile(customIconPath))
-            {
-                return (VersionIconKind.File, customIconPath);
-            }
-        }
-
-        var assetPath = GetBuiltInIconResourcePath(displayType);
-        return !string.IsNullOrWhiteSpace(assetPath)
-            ? (VersionIconKind.Asset, assetPath)
-            : (VersionIconKind.Symbol, null);
-    }
-
-    private bool TryIsValidIconFile(string path)
-    {
-        try
-        {
-            if (!File.Exists(path))
-            {
-                return false;
-            }
-
-            _ = new Uri(path);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.Warn($"Loading version icon failed: {ex.Message}");
-            return false;
-        }
+        var customIconPath = displayType == VersionDisplayType.Error
+            ? null
+            : _versionConfigManager.GetValue<string>(version, "iconPath");
+        return VersionManagePagePresentation.ResolveVersionIcon(displayType, customIconPath);
     }
 
     private static bool IsMissingBuiltInVersionIcon(VersionRenderData renderData, FileNotFoundException exception)
@@ -750,27 +641,22 @@ public partial class VersionManagePage : PageBase
 
     private void NotifyInvalidVersions(IReadOnlyList<LocalGameVersionEntry> versions, bool forceInvalidNotification)
     {
-        var invalidVersions = versions
-            .Where(version => version.Status != VersionStatus.Valid)
-            .Select(version => $"{version.VersionName} ({GetStatusText(version.Status)})")
-            .ToList();
-
-        if (invalidVersions.Count == 0)
+        var notification = VersionManagePagePresentation.BuildInvalidVersionNotification(versions, GetStatusText);
+        if (notification == null)
         {
             _lastInvalidVersionSignature = string.Empty;
             return;
         }
 
-        var signature = string.Join("|", invalidVersions);
-        if (!forceInvalidNotification && string.Equals(signature, _lastInvalidVersionSignature, StringComparison.Ordinal))
+        if (!forceInvalidNotification && string.Equals(notification.Signature, _lastInvalidVersionSignature, StringComparison.Ordinal))
         {
             return;
         }
 
-        _lastInvalidVersionSignature = signature;
+        _lastInvalidVersionSignature = notification.Signature;
         _ = MessageQueueHelper.ShowWarning(
             I18nManager.Instance.GetString("Pages.VersionManagePage.InvalidVersions.Title"),
-            I18nManager.Instance.GetString("Pages.VersionManagePage.InvalidVersions.Content", string.Join("，", invalidVersions)));
+            I18nManager.Instance.GetString("Pages.VersionManagePage.InvalidVersions.Content", string.Join("，", notification.Items)));
     }
 
     private void EnsureRefreshDebounceTimer()
@@ -786,7 +672,7 @@ public partial class VersionManagePage : PageBase
     private void RefreshDebounceTimer_OnTick(object? sender, EventArgs e)
     {
         _refreshDebounceTimer?.Stop();
-        if (_isPageLoaded)
+        if (_refreshState.TryConsumeDebouncedRefresh(_pendingRefreshToken, _isPageLoaded))
         {
             RefreshPage();
         }
@@ -794,12 +680,7 @@ public partial class VersionManagePage : PageBase
 
     private void MainWindow_OnActivated(object? sender, EventArgs e)
     {
-        if (!_isPageLoaded)
-        {
-            return;
-        }
-
-        if (_pendingExternalRefresh || DateTime.UtcNow - _lastRefreshUtc > TimeSpan.FromSeconds(2))
+        if (_refreshState.ShouldRefreshOnActivation(_isPageLoaded, DateTime.UtcNow))
         {
             RefreshPage();
         }
@@ -807,8 +688,7 @@ public partial class VersionManagePage : PageBase
 
     private void ConfigureWatcher(string rootPath)
     {
-        var normalizedRootPath = Path.GetFullPath(rootPath)
-            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var normalizedRootPath = VersionManagePagePresentation.NormalizeRootPath(rootPath);
 
         if (string.Equals(_watchedRootPath, normalizedRootPath, StringComparison.OrdinalIgnoreCase))
         {
@@ -840,7 +720,7 @@ public partial class VersionManagePage : PageBase
 
     private void VersionsWatcher_OnChanged(object sender, FileSystemEventArgs e)
     {
-        _pendingExternalRefresh = true;
+        _pendingRefreshToken = _refreshState.QueueExternalRefresh();
         Dispatcher.UIThread.Post(() =>
         {
             EnsureRefreshDebounceTimer();

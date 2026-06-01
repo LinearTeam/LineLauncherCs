@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMCCore.Tasks.Model;
+using LMC.Basic.Logging;
 
 namespace LMCCore.Tasks;
 
@@ -25,6 +26,7 @@ using System.Threading.Tasks;
 public class TaskManager(int maxConcurrency) : IDisposable
 {
     private static TaskManager? s_instance;
+    private static readonly Logger s_logger = new("TaskManager");
     public static TaskManager Instance => s_instance ??= new TaskManager(4);
 
     private readonly PriorityQueue<SubTaskBase, int> _queue = new();
@@ -50,6 +52,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
             return;
         }
 
+        s_logger.Info("任务调度器已启动");
         _schedulerTask = Task.Run(SchedulerLoopAsync, _managerCts.Token);
     }
 
@@ -141,6 +144,8 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     internal void OnSubTaskAdded(SubTaskBase subTask)
     {
+        Start();
+
         lock (_syncRoot)
         {
             if (_isStopping || _resourcesDisposed)
@@ -157,7 +162,9 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     public ParentTask CreateParent(string name)
     {
-        var parent = new ParentTask(name);
+        Start();
+
+        var parent = new ParentTask(name, this);
         lock (_syncRoot)
         {
             if (_isStopping || _resourcesDisposed)

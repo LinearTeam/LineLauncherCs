@@ -14,8 +14,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -32,61 +31,107 @@ namespace LMCUI.Pages.Help;
 
 public partial class HelpPage : HelpContentPage
 {
-    private HelpFile? _helpFile;
     private readonly static Logger s_logger = new("HelpPage");
+    private bool _isLoaded;
 
     public HelpPage() : base(new HelpContentPageParam(I18nManager.Instance.GetString("Pages.HelpPage.Title"), "HelpPage", []))
     {
         Loaded += OnLoaded;
         InitializeComponent();
     }
+
     async private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        await LoadHelpFile(Path.GetFullPath(Path.Combine("Assets","help.yaml")));
-        LoadUi();
+        if (_isLoaded)
+        {
+            return;
+        }
+
+        _isLoaded = true;
+        var helpFilePath = HelpPageSupport.GetHelpFilePath(AppContext.BaseDirectory);
+        var loadResult = await HelpPageSupport.LoadHelpFileAsync(helpFilePath);
+        if (!loadResult.Success)
+        {
+            var exception = loadResult.Exception!;
+            s_logger.Error(exception, "Loading help file");
+            ShowEmptyState(GetLoadFailedText());
+            _ = MessageQueueHelper.ShowTeachingTip(
+                I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Title"),
+                I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Content") +
+                I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.ErrorPrefix") +
+                exception.Message,
+                15000);
+            return;
+        }
+
+        s_logger.Info("帮助文件已加载。");
+        SetHelpContent(new HelpContentPageParam(Title, Tag, loadResult.HelpFile.Helps));
     }
 
-    public async Task LoadHelpFile(string path)
+    private static string GetLoadFailedText()
     {
-        try
-        {
-            _helpFile = await LMC.Help.HelpParser.ParseYamlFile(path);
-            s_logger.Info("帮助文件已加载。");
-        }
-        catch (Exception ex)
-        {
-            s_logger.Error(ex, "Loading help file");
-            _ = MessageQueueHelper.ShowTeachingTip(I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Title"), I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Content") + I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.ErrorPrefix") + ex.Message, 15000);
-        }
+        return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("zh", StringComparison.OrdinalIgnoreCase)
+            ? "帮助内容不可用"
+            : "Help content unavailable.";
     }
-
-    public void LoadUi()
-    {
-        try
-        {
-            HelpItems = _helpFile!.Helps;
-            OnLoaded();
-        }
-        catch(Exception ex)
-        {
-            s_logger.Error(ex, "Loading help UI");
-            _ = MessageQueueHelper.ShowTeachingTip(I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Title"), I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.Content") + I18nManager.Instance.GetString("Pages.HelpPage.LoadingFailedTip.ErrorPrefix") + ex.Message, 15000);
-        }
-    }
-
 }
 
 public class HelpContentPage : PageBase
 {
-    protected List<BaseHelpItem> HelpItems;
+    protected IReadOnlyList<BaseHelpItem> HelpItems = [];
+
     public HelpContentPage(HelpContentPageParam hcpp) : base(hcpp.Title, hcpp.Tag)
     {
-        HelpItems = hcpp.HelpItems;
-        Loaded += OnLoaded;
+        SetHelpContent(hcpp);
     }
-    public HelpContentPage() : base("",""){}
-    public void OnLoaded()
+
+    public HelpContentPage() : base("", "")
     {
+    }
+
+    protected void SetHelpContent(HelpContentPageParam param)
+    {
+        Title = param.Title;
+        Tag = param.Tag;
+        HelpItems = param.HelpItems;
+        RenderContent();
+    }
+
+    protected void ShowEmptyState(string text)
+    {
+        Content = new Grid
+        {
+            Margin = new Thickness(60, 30),
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = text,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Opacity = 0.75
+                }
+            }
+        };
+    }
+
+    public override void ProcessParameter(object? param)
+    {
+        if (param is HelpContentPageParam hcpp)
+        {
+            SetHelpContent(hcpp);
+        }
+    }
+
+    private void RenderContent()
+    {
+        var renderItems = HelpPageSupport.BuildRenderItems(Tag, HelpItems);
+        if (renderItems.Count == 0)
+        {
+            ShowEmptyState(GetEmptyContentText());
+            return;
+        }
+
         var scrollViewer = new ScrollViewer
         {
             Margin = new Thickness(60, 30),
@@ -98,48 +143,33 @@ public class HelpContentPage : PageBase
             Spacing = 0
         };
         scrollViewer.Content = stackPanel;
-        foreach (var helpItem in HelpItems)
+        foreach (var helpItem in renderItems)
         {
-            switch (helpItem)
+            switch (helpItem.Kind)
             {
-                case MarkdownHelpItem mhi:
+                case HelpItemRenderKind.Markdown:
                 {
                     var settingsExpander = new FASettingsExpander
                     {
                         Header = helpItem.Title,
                         IsExpanded = false,
                         Margin = new Thickness(0, 0, 0, 10),
-                        Description = mhi.Description,
+                        Description = helpItem.Description,
+                        IconSource = CreateIconSource(helpItem.Icon)
                     };
                     settingsExpander.Items.Add(new FASettingsExpanderItem
                     {
                         Content = new MarkdownScrollViewer
                         {
-                            Markdown = mhi.Text,
+                            Markdown = helpItem.Markdown ?? string.Empty,
                             Margin = new Thickness(3),
                         }
                     });
-                    settingsExpander.IconSource = mhi.Icon.Type switch
-                    {
-                        IconType.BuiltIn => new FASymbolIconSource
-                        {
-                            Symbol = (FASymbol)Enum.Parse(typeof(FASymbol), mhi.Icon.Content ?? "Help")
-                        },
-                        IconType.Url => new FABitmapIconSource
-                        {
-                            UriSource = new Uri(mhi.Icon.Content ?? string.Empty)
-                        },
-                        IconType.Assets => new FABitmapIconSource
-                        {
-                            UriSource = new Uri("avares://LMCUI/" + (mhi.Icon.Content ?? string.Empty))
-                        },
-                        _ => settingsExpander.IconSource
-                    };
                     stackPanel.Children.Add(settingsExpander);
                     break;
                 }
 
-                case SectionHelpItem shi:
+                case HelpItemRenderKind.Section:
                 {
                     var settingsCard = new FASettingsExpander
                     {
@@ -148,60 +178,60 @@ public class HelpContentPage : PageBase
                         {
                             Symbol = FASymbol.ChevronRight,
                         },
-                        Header = shi.Title,
-                        Description = shi.Description,
-                    };
-                    settingsCard.IconSource = shi.Icon.Type switch
-                    {
-                        IconType.BuiltIn => new FASymbolIconSource
-                        {
-                            Symbol = (FASymbol)Enum.Parse(typeof(FASymbol), shi.Icon.Content ?? "Help")
-                        },
-                        IconType.Url => new FABitmapIconSource
-                        {
-                            UriSource = new Uri(shi.Icon.Content ?? string.Empty)
-                        },
-                        IconType.Assets => new FABitmapIconSource
-                        {
-                            UriSource = new Uri("avares://LMCUI/" + (shi.Icon.Content ?? string.Empty))
-                        },
-                        _ => settingsCard.IconSource
+                        Header = helpItem.Title,
+                        Description = helpItem.Description,
+                        IconSource = CreateIconSource(helpItem.Icon)
                     };
                     settingsCard.Click += (_, _) =>
                     {
-                        var param = new HelpContentPageParam(shi.Title, Tag + "." + shi.Key, shi.Helps);
+                        if (helpItem.NavigationTarget == null)
+                        {
+                            return;
+                        }
+
                         MainWindow.NavigatePage(
                             new PageNavigateWay(
-                                typeof(HelpContentPage), 
-                                param,
-                                (FANavigationViewItem) MainWindow.Instance.mnv.SelectedItem,
+                                typeof(HelpContentPage),
+                                helpItem.NavigationTarget,
+                                (FANavigationViewItem)MainWindow.Instance.mnv.SelectedItem,
                                 directlySet: true),
                             NavigateType.Append);
                     };
                     stackPanel.Children.Add(settingsCard);
                     break;
                 }
-                
             }
         }
+
         Content = scrollViewer;
     }
-    private void OnLoaded(object? sender, RoutedEventArgs e)
+
+    private static FAIconSource? CreateIconSource(HelpIconRenderData icon)
     {
-        OnLoaded();
+        return icon.Kind switch
+        {
+            HelpIconRenderKind.BuiltIn => new FASymbolIconSource
+            {
+                Symbol = (FASymbol)Enum.Parse(typeof(FASymbol), icon.Value ?? "Help")
+            },
+            HelpIconRenderKind.Url => new FABitmapIconSource
+            {
+                UriSource = new Uri(icon.Value ?? string.Empty)
+            },
+            HelpIconRenderKind.Assets => new FABitmapIconSource
+            {
+                UriSource = new Uri("avares://LMCUI/" + (icon.Value ?? string.Empty))
+            },
+            _ => null
+        };
     }
 
-    public override void ProcessParameter(object? param)
+    private static string GetEmptyContentText()
     {
-        if (param is HelpContentPageParam hcpp)
-        {
-            Title = hcpp.Title;
-            Tag  = hcpp.Tag;
-            HelpItems = hcpp.HelpItems;
-            Loaded += OnLoaded;
-        }
+        return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("zh", StringComparison.OrdinalIgnoreCase)
+            ? "暂无帮助内容"
+            : "No help content available.";
     }
 }
 
-
-public record HelpContentPageParam(string Title, string Tag, List<BaseHelpItem> HelpItems);
+public record HelpContentPageParam(string Title, string Tag, IReadOnlyList<BaseHelpItem> HelpItems);

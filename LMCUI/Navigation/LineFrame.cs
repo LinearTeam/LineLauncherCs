@@ -135,15 +135,7 @@ public class LineFrame : ContentControl
     /// </summary>
     public bool Navigate(Type pageType, object? param = null)
     {
-        if (_isNavigating)
-        {
-            s_logger.Warn("导航正在进行，已忽略重复导航");
-            return false;
-        }
-
-        _isNavigating = true;
-        _isNavigatingBack = false;
-        try
+        return ExecuteNavigation(false, () =>
         {
             var registration = PageRegistry.Instance.GetByType(pageType);
             if (registration == null)
@@ -154,11 +146,7 @@ public class LineFrame : ContentControl
             }
 
             return NavigateInternal(registration, param, recordHistory: true);
-        }
-        finally
-        {
-            _isNavigating = false;
-        }
+        });
     }
 
     /// <summary>
@@ -166,28 +154,18 @@ public class LineFrame : ContentControl
     /// </summary>
     public bool Navigate(PageRegistration registration, object? param = null)
     {
-        if (_isNavigating)
-        {
-            s_logger.Warn("导航正在进行，已忽略重复导航");
-            return false;
-        }
-
-        _isNavigating = true;
-        _isNavigatingBack = false;
-        try
-        {
-            return NavigateInternal(registration, param, recordHistory: true);
-        }
-        finally
-        {
-            _isNavigating = false;
-        }
+        return ExecuteNavigation(false, () => NavigateInternal(registration, param, recordHistory: true));
     }
 
     /// <summary>
     /// 导航到页面（不记录历史，用于返回操作）
     /// </summary>
     public bool NavigateWithoutHistory(PageRegistration registration, object? param = null)
+    {
+        return ExecuteNavigation(true, () => NavigateInternal(registration, param, recordHistory: false));
+    }
+
+    private bool ExecuteNavigation(bool isNavigatingBack, Func<bool> navigate)
     {
         if (_isNavigating)
         {
@@ -196,10 +174,10 @@ public class LineFrame : ContentControl
         }
 
         _isNavigating = true;
-        _isNavigatingBack = true;
+        _isNavigatingBack = isNavigatingBack;
         try
         {
-            return NavigateInternal(registration, param, recordHistory: false);
+            return navigate();
         }
         finally
         {

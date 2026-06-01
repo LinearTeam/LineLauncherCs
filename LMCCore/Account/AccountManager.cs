@@ -92,38 +92,9 @@ public static class AccountManager
 
     public static void Add(Model.Account account)
     {
-        // 检查是否已存在相同账户
         lock (s_accountsLock)
         {
-            bool isDuplicate = s_accounts.Any(existingAccount =>
-            {
-                if (existingAccount.Type != account.Type)
-                    return false;
-
-                switch (account.Type)
-                {
-                    case AccountType.Offline:
-                        return existingAccount.Name == account.Name;
-
-                    case AccountType.Microsoft:
-                        string normalizedExistingUuid = existingAccount.Uuid.Replace("-", "").ToLowerInvariant();
-                        string normalizedNewUuid = account.Uuid.Replace("-", "").ToLowerInvariant();
-                        return normalizedExistingUuid == normalizedNewUuid;
-
-                    case AccountType.Authlib:
-                        if (existingAccount is AuthlibAccount authlibAccount && account is AuthlibAccount addAuthlibAccount)
-                        {
-                            return authlibAccount.Username.Equals(addAuthlibAccount.Username, StringComparison.OrdinalIgnoreCase);
-                        }
-
-                        throw new Exception($"Account type is not Authlib (exist: {existingAccount is AuthlibAccount}, add: {account is AuthlibAccount})");
-
-                    default:
-                        return false;
-                }
-            });
-
-            if (isDuplicate)
+            if (AccountDuplicateDetector.IsDuplicate(s_accounts, account))
             {
                 throw new ArgumentException("Messages.AccountManager.AddAccount.Duplicate");
             }

@@ -24,13 +24,6 @@ using LMCUI.Controls;
 using LMCUI.I18n;
 using LMCUI.Navigation;
 using LMCUI.Pages;
-using LMCUI.Pages.AccountPage;
-using LMCUI.Pages.DownloadMinecraftPage;
-using LMCUI.Pages.Help;
-using LMCUI.Pages.LaunchPage;
-using LMCUI.Pages.SettingsPage;
-using LMCUI.Pages.TaskPage;
-using LMCUI.Pages.VersionManagePage;
 
 namespace LMCUI;
 
@@ -64,13 +57,11 @@ public partial class MainWindow : FAAppWindow
 
     private void InitializeNavigationMapping()
     {
-        _navItemTagToPageType["LaunchPage"] = typeof(LaunchPage);
-        _navItemTagToPageType["VersionManagePage"] = typeof(VersionManagePage);
-        _navItemTagToPageType["DownloadMinecraftPage"] = typeof(DownloadMinecraftPage);
-        _navItemTagToPageType["AccountPage"] = typeof(AccountPage);
-        _navItemTagToPageType["TaskPage"] = typeof(TaskPage);
-        _navItemTagToPageType["SettingsPage"] = typeof(SettingsPage);
-        _navItemTagToPageType["HelpPage"] = typeof(HelpPage);
+        _navItemTagToPageType.Clear();
+        foreach (var pair in MainWindowNavigationMap.CreateDefault())
+        {
+            _navItemTagToPageType[pair.Key] = pair.Value;
+        }
     }
 
     private void ConfigureTitleBar()

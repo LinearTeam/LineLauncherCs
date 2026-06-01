@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -28,30 +27,20 @@ public partial class DownloadMinecraftPage : PageBase
 {
     private readonly Logger _logger = new("DownloadMinecraftPage");
     private readonly DownloadManager _downloadManager = new();
-    private readonly ObservableCollection<ManifestVersionViewModel> _visibleVersions = [];
+    private readonly ObservableCollection<ManifestVersionListItem> _visibleVersions = [];
     private readonly ObservableCollection<string> _searchCandidates = [];
-    private readonly Dictionary<string, ManifestVersionViewModel> _versionIdMap = [];
-    private readonly FuncDataTemplate<ManifestVersionViewModel> _versionItemTemplate;
-    private IReadOnlyList<ManifestVersionViewModel> _allVersions = [];
-    private ManifestVersionViewModel? _latestRelease;
-    private ManifestVersionViewModel? _latestSnapshot;
+    private readonly Dictionary<string, ManifestVersionListItem> _versionIdMap = [];
+    private readonly FuncDataTemplate<ManifestVersionListItem> _versionItemTemplate;
+    private IReadOnlyList<ManifestVersionListItem> _allVersions = [];
+    private ManifestVersionListItem? _latestRelease;
+    private ManifestVersionListItem? _latestSnapshot;
     private CancellationTokenSource? _loadCts;
     private bool _hasManifestLoaded;
     private bool _isManifestLoading;
 
-    private sealed class ManifestVersionViewModel
-    {
-        public required string Id { get; init; }
-        public required GameVersionDisplayType DisplayType { get; init; }
-        public required string DisplayTypeText { get; init; }
-        public required string LocalReleaseTimeText { get; init; }
-        public required string Description { get; init; }
-        public required VersionEntry Source { get; init; }
-    }
-
     public DownloadMinecraftPage() : base("Pages.DownloadMinecraftPage.Title", "DownloadMinecraftPage")
     {
-        _versionItemTemplate = new FuncDataTemplate<ManifestVersionViewModel>((version, _) => CreateVersionExpander(version), true);
+        _versionItemTemplate = new FuncDataTemplate<ManifestVersionListItem>((version, _) => CreateVersionExpander(version), true);
         InitializeComponent();
         SearchBox.ItemsSource = _searchCandidates;
         VersionListBox.ItemTemplate = _versionItemTemplate;
@@ -121,14 +110,10 @@ public partial class DownloadMinecraftPage : PageBase
                 return;
             }
 
-            var viewModels = manifest.Versions
-                .Select(CreateVersionViewModel)
-                .OrderByDescending(item => item.Source.ReleaseTime)
-                .ToList();
-
-            _allVersions = viewModels;
-            _latestRelease = viewModels.FirstOrDefault(item => string.Equals(item.Id, manifest.Latest.Release, StringComparison.OrdinalIgnoreCase));
-            _latestSnapshot = viewModels.FirstOrDefault(item => string.Equals(item.Id, manifest.Latest.Snapshot, StringComparison.OrdinalIgnoreCase));
+            var manifestState = DownloadMinecraftPagePresentation.BuildManifestState(manifest, GetDisplayTypeText);
+            _allVersions = manifestState.Versions;
+            _latestRelease = manifestState.LatestRelease;
+            _latestSnapshot = manifestState.LatestSnapshot;
             _hasManifestLoaded = true;
 
             UpdateLatestExpanders();
@@ -139,22 +124,6 @@ public partial class DownloadMinecraftPage : PageBase
         {
             _isManifestLoading = false;
         }
-    }
-
-    private ManifestVersionViewModel CreateVersionViewModel(VersionEntry version)
-    {
-        var displayType = GameVersionTypeClassifier.ClassifyManifestVersion(version);
-        var displayTypeText = GetDisplayTypeText(displayType);
-        var localReleaseTimeText = version.ReleaseTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.CurrentCulture);
-        return new ManifestVersionViewModel
-        {
-            Id = version.Id,
-            DisplayType = displayType,
-            DisplayTypeText = displayTypeText,
-            LocalReleaseTimeText = localReleaseTimeText,
-            Description = $"{displayTypeText} | {localReleaseTimeText}",
-            Source = version
-        };
     }
 
     private void SetLatestLoadingState()
@@ -199,7 +168,7 @@ public partial class DownloadMinecraftPage : PageBase
         string contentText,
         string description,
         bool isClickable,
-        ManifestVersionViewModel? version)
+        ManifestVersionListItem? version)
     {
         expander.Header = header;
         expander.Description = description;
@@ -214,33 +183,23 @@ public partial class DownloadMinecraftPage : PageBase
         };
     }
 
-    private IReadOnlyList<ManifestVersionViewModel> GetFilteredVersions(string searchText)
+    private DownloadMinecraftFilterOptions GetFilterOptions()
     {
-        var normalizedSearch = searchText.Trim();
-        return _allVersions
-            .Where(IsVisibleByFilter)
-            .Where(item => string.IsNullOrWhiteSpace(normalizedSearch) ||
-                           item.Id.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        return new DownloadMinecraftFilterOptions(
+            ReleaseFilterCheckBox.IsChecked == true,
+            SnapshotFilterCheckBox.IsChecked == true,
+            AprilFoolsFilterCheckBox.IsChecked == true,
+            OldFilterCheckBox.IsChecked == true);
     }
 
-    private IReadOnlyList<ManifestVersionViewModel> GetCandidateVersions()
+    private IReadOnlyList<ManifestVersionListItem> GetFilteredVersions(string searchText)
     {
-        return _allVersions
-            .Where(IsVisibleByFilter)
-            .ToList();
+        return DownloadMinecraftPagePresentation.FilterVersions(_allVersions, GetFilterOptions(), searchText);
     }
 
-    private bool IsVisibleByFilter(ManifestVersionViewModel item)
+    private IReadOnlyList<ManifestVersionListItem> GetCandidateVersions()
     {
-        return item.DisplayType switch
-        {
-            GameVersionDisplayType.Release => ReleaseFilterCheckBox.IsChecked == true,
-            GameVersionDisplayType.Snapshot => SnapshotFilterCheckBox.IsChecked == true,
-            GameVersionDisplayType.AprilFools => AprilFoolsFilterCheckBox.IsChecked == true,
-            GameVersionDisplayType.Old => OldFilterCheckBox.IsChecked == true,
-            _ => true
-        };
+        return DownloadMinecraftPagePresentation.FilterVersions(_allVersions, GetFilterOptions(), null);
     }
 
     private void FilterCheckBox_OnChanged(object? sender, RoutedEventArgs e)
@@ -256,21 +215,16 @@ public partial class DownloadMinecraftPage : PageBase
         RenderVersions(filteredVersions);
     }
 
-    private void UpdateSearchCandidates(IReadOnlyList<ManifestVersionViewModel> filteredVersions)
+    private void UpdateSearchCandidates(IReadOnlyList<ManifestVersionListItem> filteredVersions)
     {
-        var candidateIds = filteredVersions
-            .Select(item => item.Id)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
         _searchCandidates.Clear();
-        foreach (var candidateId in candidateIds)
+        foreach (var candidateId in DownloadMinecraftPagePresentation.BuildSearchCandidates(filteredVersions))
         {
             _searchCandidates.Add(candidateId);
         }
     }
 
-    private void RenderVersions(IReadOnlyList<ManifestVersionViewModel> versions)
+    private void RenderVersions(IReadOnlyList<ManifestVersionListItem> versions)
     {
         _visibleVersions.Clear();
         _versionIdMap.Clear();
@@ -291,7 +245,7 @@ public partial class DownloadMinecraftPage : PageBase
         }
     }
 
-    private FASettingsExpander CreateVersionExpander(ManifestVersionViewModel version)
+    private FASettingsExpander CreateVersionExpander(ManifestVersionListItem version)
     {
         var expander = new FASettingsExpander
         {
@@ -324,9 +278,10 @@ public partial class DownloadMinecraftPage : PageBase
         VersionExpander_OnClick(sender, e);
     }
 
-    private void ShowVersionDialog(ManifestVersionViewModel version)
+    private void ShowVersionDialog(ManifestVersionListItem version)
     {
-        if (string.IsNullOrWhiteSpace(Current.Config.SelectedGameRootPath))
+        var wizardContext = DownloadMinecraftPagePresentation.TryCreateWizardContext(Current.Config.SelectedGameRootPath, version.Id);
+        if (wizardContext == null)
         {
             _ = MessageQueueHelper.ShowError(
                 I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Errors.NoRootTitle"),
@@ -346,7 +301,7 @@ public partial class DownloadMinecraftPage : PageBase
         };
 
         var wizard = new DownloadMinecraft.DownloadMinecraftWizard(
-            new DownloadMinecraftWizardContext(Current.Config.SelectedGameRootPath, version.Id),
+            wizardContext,
             state =>
             {
                 dialog.IsPrimaryButtonEnabled = state.hasPrev;
@@ -389,7 +344,7 @@ public partial class DownloadMinecraftPage : PageBase
 
     private FAIconSource CreateVersionIconSource(GameVersionDisplayType displayType)
     {
-        var assetPath = GetBuiltInIconResourcePath(displayType);
+        var assetPath = DownloadMinecraftPagePresentation.GetBuiltInIconResourcePath(displayType);
 
         try
         {
@@ -398,22 +353,11 @@ public partial class DownloadMinecraftPage : PageBase
                 UriSource = new Uri($"avares://LMCUI{assetPath}")
             };
         }
-        catch (FileNotFoundException ex) when (Logger.DebugMode && IsMissingBuiltInVersionIcon(assetPath, ex))
+        catch (FileNotFoundException ex) when (IsMissingBuiltInVersionIcon(assetPath, ex))
         {
             _logger.Debug($"Ignored missing built-in version icon resource: {assetPath}");
             return CreateFallbackIconSource();
         }
-    }
-
-    private static string GetBuiltInIconResourcePath(GameVersionDisplayType displayType)
-    {
-        return displayType switch
-        {
-            GameVersionDisplayType.Snapshot => "/Assets/VersionIcons/snapshot.png",
-            GameVersionDisplayType.AprilFools => "/Assets/VersionIcons/aprilfools.png",
-            GameVersionDisplayType.Old => "/Assets/VersionIcons/old.png",
-            _ => "/Assets/VersionIcons/release.png"
-        };
     }
 
     private static FAIconSource CreateFallbackIconSource()
