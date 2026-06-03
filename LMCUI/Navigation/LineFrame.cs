@@ -22,6 +22,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Styling;
 using LMC.Basic.Logging;
+using LMCUI.Navigation.Model;
 using LMCUI.Pages;
 
 namespace LMCUI.Navigation;

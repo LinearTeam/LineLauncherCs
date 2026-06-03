@@ -6,6 +6,8 @@ This is its C# version repository. For the Visual Basic version, please refer to
 
 The term "LMC" mentioned below refers to the C# version repository.
 
+~~This project contains a lot AI Generated codes because I am the only developer basicly and I am lazy~~
+
 ## Introduction
 ### History
 The current `main` branch you are viewing is developed based on [Avalonia](https://docs.avaloniaui.net/). This UI framework differs from WPF, enabling native .NET cross-platform capabilities while maintaining UI design patterns similar to WPF.

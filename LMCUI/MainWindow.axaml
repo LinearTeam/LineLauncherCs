@@ -10,6 +10,7 @@
         xmlns:controls="clr-namespace:LMCUI.Controls"
         xmlns:nav="clr-namespace:LMCUI.Navigation"
         xmlns:windowing="clr-namespace:FluentAvalonia.UI.Windowing;assembly=FluentAvalonia"
+        xmlns:model="clr-namespace:LMCUI.Navigation.Model"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LMCUI.MainWindow"
         Height="468"
@@ -41,10 +42,10 @@
             <ui:FANavigationView.Header>
                 <ui:FABreadcrumbBar Name="mainBcb" ItemClicked="MainBcb_OnItemClicked">
                     <ui:FABreadcrumbBar.ItemTemplate>
-                        <DataTemplate DataType="nav:BreadCrumbBarItem">
+                        <DataTemplate DataType="model:BreadCrumbBarItem">
                             <ui:FABreadcrumbBarItem Content="{Binding}" AutomationProperties.Name="{Binding Title}">
                                 <ui:FABreadcrumbBarItem.ContentTemplate>
-                                    <DataTemplate DataType="nav:BreadCrumbBarItem">
+                                    <DataTemplate DataType="model:BreadCrumbBarItem">
                                         <TextBlock FontSize="20" Text="{Binding Title}" LineHeight="30"/>
                                     </DataTemplate>
                                 </ui:FABreadcrumbBarItem.ContentTemplate>

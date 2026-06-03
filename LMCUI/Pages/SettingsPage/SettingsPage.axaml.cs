@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMCUI.Navigation;
+using LMCUI.Navigation.Model;
 using LMCUI.Pages.SettingsPage.LauncherSettings;
 
 namespace LMCUI.Pages.SettingsPage;

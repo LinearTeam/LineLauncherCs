@@ -24,6 +24,7 @@ using LMC.Basic.Logging;
 using LMC.Help.Models;
 using LMCUI.I18n;
 using LMCUI.Navigation;
+using LMCUI.Navigation.Model;
 using LMCUI.Utils;
 using Markdown.Avalonia;
 

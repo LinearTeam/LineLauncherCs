@@ -16,6 +16,7 @@ using Avalonia.Interactivity;
 using LMC;
 using LMCUI.I18n;
 using LMCUI.Navigation;
+using LMCUI.Navigation.Model;
 
 namespace LMCUI.Pages.SettingsPage.About;
 

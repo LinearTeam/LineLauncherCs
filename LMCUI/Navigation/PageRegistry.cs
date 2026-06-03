@@ -17,6 +17,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using LMC.Basic.Logging;
+using LMCUI.Navigation.Model;
 using LMCUI.Pages;
 using LMCUI.Pages.SettingsPage.About;
 

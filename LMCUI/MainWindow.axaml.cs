@@ -23,6 +23,7 @@ using LMC.Basic.Logging;
 using LMCUI.Controls;
 using LMCUI.I18n;
 using LMCUI.Navigation;
+using LMCUI.Navigation.Model;
 using LMCUI.Pages;
 
 namespace LMCUI;

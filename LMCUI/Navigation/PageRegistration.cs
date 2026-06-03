@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using System;
+using LMCUI.Navigation.Model;
 using LMCUI.Pages;
 
 namespace LMCUI.Navigation;

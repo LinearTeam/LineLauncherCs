@@ -1,3 +1,4 @@
+using LMCUI.Navigation.Model;
 using LMCUI.Pages.SettingsPage.About;
 
 namespace LMCUI.Navigation;

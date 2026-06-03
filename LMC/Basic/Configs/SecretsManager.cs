@@ -26,9 +26,9 @@ public static class SecretsManager
 {
     private readonly static string s_secretsPath = Path.Combine(Current.LMCPath, "secrets.json.enc");
     private readonly static string s_keyPath = Path.Combine(Current.LMCPath, "secrets.key");
-    private readonly static object s_ioLock = new();
+    private readonly static Lock s_ioLock = new();
     private static Secrets s_instance = null!;
-    private readonly static object s_instanceLock = new();
+    private readonly static Lock s_instanceLock = new();
     public readonly static ConcurrentDictionary<string, string> SensitiveData = new();
     
     public static Secrets Instance
@@ -36,12 +36,11 @@ public static class SecretsManager
         get
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            if (s_instance == null)
+            if (s_instance != null)
+                return s_instance;
+            lock (s_instanceLock)
             {
-                lock (s_instanceLock)
-                {
-                    s_instance ??= LoadInternal();
-                }
+                s_instance ??= LoadInternal();
             }
             return s_instance;
         }

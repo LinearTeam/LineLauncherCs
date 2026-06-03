@@ -33,6 +33,7 @@ using LMCCore.Game.Model;
 using LMCCore.Game.Versioning;
 using LMCUI.I18n;
 using LMCUI.Navigation;
+using LMCUI.Navigation.Model;
 using LMCUI.Utils;
 
 namespace LMCUI.Pages.VersionManagePage;

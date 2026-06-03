@@ -1,5 +1,6 @@
 using LMC;
 using LMCCore.Game.Model;
+using LMCCore.Game.Versioning.Configuration;
 using LMCCore.Utils;
 
 namespace LMCCore.Game.Versioning;

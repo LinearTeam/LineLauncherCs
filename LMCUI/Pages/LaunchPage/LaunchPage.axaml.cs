@@ -24,6 +24,7 @@ using LMCCore.Tasks;
 using LMCCore.Tasks.Model;
 using LMCUI.I18n;
 using LMCUI.Navigation;
+using LMCUI.Navigation.Model;
 using LMCUI.Utils;
 
 namespace LMCUI.Pages.LaunchPage;
