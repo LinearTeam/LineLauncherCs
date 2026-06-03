@@ -1,9 +1,10 @@
 using System.Text.Json.Nodes;
 using LMC;
 using LMCCore.Game.Model;
+using LMCCore.Game.Versioning;
 using LMCCore.Utils;
 
-namespace LMCCore.Game.Versioning;
+namespace LMCCore.Game.Versioning.Configuration;
 
 public class LMCDataDirectoryConfigSource : IVersionConfigSource
 {
