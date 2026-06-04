@@ -75,7 +75,7 @@ public static class PlatformDetector
                 => Architecture.X86,
 
             "ppc64" or "powerpc64"
-                => "little".Equals(Environment.GetEnvironmentVariable("sun.cpu.endian")) ? Architecture.Ppc64le : null,
+                => BitConverter.IsLittleEndian ? Architecture.Ppc64le : null,
 
             "ppc64le" or "powerpc64le"
                 => Architecture.Ppc64le,
