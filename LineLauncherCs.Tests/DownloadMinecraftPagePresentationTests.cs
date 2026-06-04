@@ -1,5 +1,6 @@
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Versioning;
+using LMCCore.Game.Versioning.Discovery;
 using LMCUI.Pages.DownloadMinecraftPage;
 using LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 

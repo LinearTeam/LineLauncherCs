@@ -1,4 +1,4 @@
-namespace LMCCore.Java;
+namespace LMCCore.Java.Discovery;
 
 internal static class JavaInstallationInfoParser
 {

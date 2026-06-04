@@ -9,6 +9,7 @@ using LMCCore.Game.Model.LocalVersion.Arguments;
 using LMCCore.Game.Model.LocalVersion.Compatibility;
 using LMCCore.Game.Model.LocalVersion.Libraries;
 using LMCCore.Game.Versioning;
+using LMCCore.Game.Versioning.Discovery;
 using LMC.Basic.Logging;
 
 namespace LineLauncherCs.Tests;

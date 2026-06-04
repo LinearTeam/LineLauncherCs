@@ -14,7 +14,7 @@
 
 using System.Collections.Concurrent;
 
-namespace LMC.Basic.Configs;
+namespace LMC.Basic.Configs.Security;
 
 using System;
 using System.IO;

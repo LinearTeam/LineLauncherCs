@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using LMC;
 using LMC.Basic.Configs;
 using LMCCore.Java;
+using LMCCore.Java.Discovery;
 
 namespace LineLauncherCs.Tests;
 

@@ -4,6 +4,8 @@ using LMC.Basic.Logging;
 using LMCCore.Game.Download;
 using LMCCore.Game.Model;
 using LMCCore.Game.Model.LocalVersion;
+using LMCCore.Game.Model.Validation;
+using LMCCore.Game.Versioning.Discovery;
 using LMCCore.Game.Versioning.Validation;
 
 namespace LMCCore.Game.Versioning;

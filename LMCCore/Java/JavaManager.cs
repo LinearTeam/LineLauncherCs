@@ -19,6 +19,7 @@ using LMC;
 using LMC.Basic;
 using LMC.Basic.Configs;
 using LMC.Basic.Logging;
+using LMCCore.Java.Discovery;
 using Microsoft.Win32;
 
 public static class JavaManager {

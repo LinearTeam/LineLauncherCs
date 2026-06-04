@@ -3,7 +3,7 @@ using LMCCore.Game.Download;
 using LMCCore.Game.Model;
 using LMCCore.Game.Model.LocalVersion;
 
-namespace LMCCore.Game.Versioning;
+namespace LMCCore.Game.Versioning.Discovery;
 
 internal sealed class LocalVersionScanner(
     DownloadManager downloadManager,

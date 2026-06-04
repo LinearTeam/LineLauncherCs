@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using LMC;
 using LMCCore.Game.Model;
 using LMCCore.Game.Versioning;
+using LMCCore.Game.Versioning.Configuration.Support;
 using LMCCore.Utils;
 
 namespace LMCCore.Game.Versioning.Configuration;

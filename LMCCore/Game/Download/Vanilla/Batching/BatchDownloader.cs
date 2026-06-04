@@ -15,7 +15,7 @@
 using LMCCore.Utils;
 using LMC.Basic.Logging;
 
-namespace LMCCore.Game.Download.Vanilla;
+namespace LMCCore.Game.Download.Vanilla.Batching;
 
 /// <summary>
 /// 批量下载结果

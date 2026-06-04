@@ -1,4 +1,4 @@
-namespace LMCCore.Game.Model;
+namespace LMCCore.Game.Model.Validation;
 
 public class VersionValidationResult
 {

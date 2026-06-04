@@ -15,6 +15,7 @@
 using System;
 using LMCCore.Game.Model;
 using LMCCore.Game.Versioning;
+using LMCCore.Game.Versioning.Discovery;
 using LMCUI.I18n;
 
 namespace LMCUI.Pages.VersionManagePage;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Globalization;
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Versioning;
+using LMCCore.Game.Versioning.Discovery;
 using LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 
 namespace LMCUI.Pages.DownloadMinecraftPage;

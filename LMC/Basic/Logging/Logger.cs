@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMC.Basic.Configs;
+using LMC.Basic.Configs.Security;
 
 namespace LMC.Basic.Logging;
 

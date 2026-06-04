@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using LMCCore.Game.Download.Vanilla;
+using LMCCore.Game.Download.Vanilla.Batching;
 using LMCCore.Utils;
 
 namespace LineLauncherCs.Tests;

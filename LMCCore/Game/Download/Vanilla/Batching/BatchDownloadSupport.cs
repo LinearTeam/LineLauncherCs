@@ -1,6 +1,6 @@
 using LMC.Basic.Logging;
 
-namespace LMCCore.Game.Download.Vanilla;
+namespace LMCCore.Game.Download.Vanilla.Batching;
 
 internal sealed record PreparedBatchFile<TFile>(
     TFile Source,

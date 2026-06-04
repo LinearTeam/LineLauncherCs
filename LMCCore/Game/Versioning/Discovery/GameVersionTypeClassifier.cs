@@ -2,7 +2,7 @@ using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Model;
 using LMCCore.Game.Model.LocalVersion;
 
-namespace LMCCore.Game.Versioning;
+namespace LMCCore.Game.Versioning.Discovery;
 
 public enum GameVersionDisplayType
 {

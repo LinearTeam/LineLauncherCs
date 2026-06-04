@@ -1,6 +1,6 @@
 using LMC.Basic.Logging;
 
-namespace LMCCore.Java;
+namespace LMCCore.Java.Discovery;
 
 internal sealed class JavaDirectoryScanner(
     Func<string, Task<bool>> validateJavaRootAsync,

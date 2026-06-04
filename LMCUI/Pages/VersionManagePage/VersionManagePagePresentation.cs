@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using LMCCore.Game.Model;
 using LMCCore.Game.Versioning;
+using LMCCore.Game.Versioning.Discovery;
 
 namespace LMCUI.Pages.VersionManagePage;
 

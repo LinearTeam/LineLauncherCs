@@ -4,6 +4,7 @@ using LMCCore.Account.Model;
 using System.Text.Json;
 using System.Security.Cryptography;
 using LMC.Basic.Configs;
+using LMC.Basic.Configs.Security;
 // Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");

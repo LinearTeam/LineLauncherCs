@@ -17,6 +17,7 @@ using LMC;
 using LMCCore.Game.Download;
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Versioning;
+using LMCCore.Game.Versioning.Discovery;
 using LMCUI.I18n;
 using LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 using LMCUI.Utils;

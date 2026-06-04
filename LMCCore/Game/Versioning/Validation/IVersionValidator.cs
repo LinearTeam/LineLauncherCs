@@ -1,4 +1,5 @@
 using LMCCore.Game.Model;
+using LMCCore.Game.Model.Validation;
 
 namespace LMCCore.Game.Versioning.Validation;
 

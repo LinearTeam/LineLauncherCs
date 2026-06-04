@@ -14,6 +14,7 @@
 
 using LMCCore.Tasks.Model;
 using LMC.Basic.Logging;
+using LMCCore.Game.Download.Vanilla.Batching;
 using LMCCore.Game.Model.LocalVersion;
 
 namespace LMCCore.Game.Download.Vanilla;

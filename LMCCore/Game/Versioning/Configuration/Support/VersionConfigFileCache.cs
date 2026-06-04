@@ -1,7 +1,7 @@
 using LMCCore.Game.Versioning;
 using LMCCore.Utils;
 
-namespace LMCCore.Game.Versioning.Configuration;
+namespace LMCCore.Game.Versioning.Configuration.Support;
 
 public sealed class VersionConfigFileCache
 {
