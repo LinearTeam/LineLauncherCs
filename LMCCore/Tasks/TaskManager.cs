@@ -14,6 +14,8 @@
 
 using LMCCore.Tasks.Model;
 using LMC.Basic.Logging;
+using LMC.Extensions.Hooks.Context;
+using LMC.Extensions.Runtime;
 
 namespace LMCCore.Tasks;
 
@@ -177,6 +179,10 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
         Signal();
         ParentTaskAdded?.Invoke(parent);
+        LMCExtensionHost.Current.AfterParentTaskAdded(new TaskExtensionContext
+        {
+            ParentName = parent.Name
+        });
         return parent;
     }
 
@@ -324,14 +330,14 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     private void EnqueueReadyTasksUnsafe()
     {
-        foreach (var parent in _parents)
+        foreach (var parent in _parents.ToArray())
         {
             if (parent.State != TaskState.Waiting)
             {
                 continue;
             }
 
-            foreach (var subTask in parent.SubTasks)
+            foreach (var subTask in parent.SubTasks.ToArray())
             {
                 RegisterDependencyHandlersUnsafe(subTask);
                 TryEnqueueUnsafe(subTask);

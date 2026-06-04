@@ -5,6 +5,8 @@ using LMCCore.Game.Download;
 using LMCCore.Game.Model;
 using LMCCore.Game.Model.LocalVersion;
 using LMCCore.Game.Versioning.Validation;
+using LMC.Extensions.Hooks.Context;
+using LMC.Extensions.Runtime;
 
 namespace LMCCore.Game.Versioning;
 
@@ -22,7 +24,19 @@ public class VersionManager(DownloadManager? downloadManager = null, IEnumerable
 
     public void AddManagedRoot(string path)
     {
-        CreateRootService().AddManagedRoot(path);
+        var normalizedPath = ManagedGameRootService.EnsureExistingDirectory(path);
+        var context = new ManagedRootExtensionContext
+        {
+            RootPath = normalizedPath
+        };
+
+        if (!LMCExtensionHost.Current.BeforeManagedRootAdd(context))
+        {
+            throw new InvalidOperationException("Messages.Extensions.ManagedRootAdd.Cancelled");
+        }
+
+        CreateRootService().AddManagedRoot(normalizedPath);
+        LMCExtensionHost.Current.AfterManagedRootAdded(context);
     }
 
     public bool RemoveManagedRoot(string path)
@@ -32,7 +46,12 @@ public class VersionManager(DownloadManager? downloadManager = null, IEnumerable
 
     public void SetSelectedRoot(string path)
     {
-        CreateRootService().SetSelectedRoot(path);
+        var normalizedPath = ManagedGameRootService.EnsureExistingDirectory(path);
+        CreateRootService().SetSelectedRoot(normalizedPath);
+        LMCExtensionHost.Current.AfterSelectedRootChanged(new ManagedRootExtensionContext
+        {
+            RootPath = normalizedPath
+        });
     }
 
     public ManagedGameRoot? GetSelectedRoot()
@@ -42,7 +61,13 @@ public class VersionManager(DownloadManager? downloadManager = null, IEnumerable
 
     public async Task<IReadOnlyList<LocalGameVersionEntry>> ScanVersionsAsync(string rootPath, CancellationToken cancellationToken = default)
     {
-        return await GetVersionScanner().ScanVersionsAsync(rootPath, cancellationToken);
+        var versions = await GetVersionScanner().ScanVersionsAsync(rootPath, cancellationToken);
+        LMCExtensionHost.Current.AfterVersionsScanned(new VersionScanExtensionContext
+        {
+            RootPath = rootPath,
+            VersionIds = versions.Select(version => version.VersionName).ToList().AsReadOnly()
+        });
+        return versions;
     }
 
     public Task<IReadOnlyList<LocalGameVersionEntry>> ScanSelectedRootVersionsAsync(CancellationToken cancellationToken = default)

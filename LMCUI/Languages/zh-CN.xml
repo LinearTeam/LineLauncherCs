@@ -12,10 +12,37 @@
             <AccountPage>账号管理</AccountPage>
             <SettingsPage>设置</SettingsPage>
             <HelpPage>帮助</HelpPage>
+            <LMCExampleExtension>扩展示例</LMCExampleExtension>
         </NavItems>
     </MainWindow>
     
     <Pages>
+        <LMCExampleExtension>
+            <Title>扩展示例</Title>
+            <Header>扩展状态示例</Header>
+            <Description>这个示例扩展会记录宿主在启动、账号、版本管理和任务流程中的扩展钩子调用情况。</Description>
+            <Fields>
+                <ExtensionVersion>扩展版本</ExtensionVersion>
+                <HostVersion>启动器版本</HostVersion>
+                <LastEvent>最近事件</LastEvent>
+                <HookCounts>钩子计数</HookCounts>
+            </Fields>
+            <Events>
+                <None>尚无事件</None>
+                <Initialize>扩展初始化</Initialize>
+                <HostInitializing>宿主初始化开始</HostInitializing>
+                <HostInitialized>宿主初始化完成</HostInitialized>
+                <BeforeAccountAdd>添加账号前</BeforeAccountAdd>
+                <AfterAccountAdd>添加账号后</AfterAccountAdd>
+                <AfterAccountRemove>移除账号后</AfterAccountRemove>
+                <AfterAccountsLoaded>账号列表加载后</AfterAccountsLoaded>
+                <BeforeManagedRootAdd>添加游戏目录前</BeforeManagedRootAdd>
+                <AfterManagedRootAdded>添加游戏目录后</AfterManagedRootAdded>
+                <AfterSelectedRootChanged>切换当前游戏目录后</AfterSelectedRootChanged>
+                <AfterVersionsScanned>扫描版本后</AfterVersionsScanned>
+                <AfterParentTaskAdded>添加父任务后</AfterParentTaskAdded>
+            </Events>
+        </LMCExampleExtension>
         <AccountPage>
             <Title>账户管理</Title>
             <AccountListExpander>
@@ -505,6 +532,14 @@
                 </Steps>
             </OAuth>
         </AccountManager>
+        <Extensions>
+            <AccountAdd>
+                <Cancelled>扩展取消了添加账户操作。</Cancelled>
+            </AccountAdd>
+            <ManagedRootAdd>
+                <Cancelled>扩展取消了添加游戏目录操作。</Cancelled>
+            </ManagedRootAdd>
+        </Extensions>
         <AccountPage>
             <Errors>
                 <FailedToRefreshAccountList>

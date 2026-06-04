@@ -30,7 +30,7 @@ public class AppConfig {
 
     public bool AutoSelectJava { get; set; } = true;
     public string SelectedLanguage { get; set; } = "zh-CN";
-    
-    
+
+    public List<string> DisabledExtensionIds { get; set; } = [];
 }
 

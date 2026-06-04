@@ -19,6 +19,8 @@ using LMC.Basic.Configs;
 //    limitations under the License.
 
 using LMCCore.Utils;
+using LMC.Extensions.Hooks.Context;
+using LMC.Extensions.Runtime;
 
 namespace LMCCore.Account;
 
@@ -76,6 +78,11 @@ public static class AccountManager
             s_accounts = parsedAccounts;
             Accounts = s_accounts.AsReadOnly();
         }
+
+        LMCExtensionHost.Current.AfterAccountsLoaded(new AccountCollectionExtensionContext
+        {
+            Accounts = Accounts.Select(CreateAccountInfo).ToList().AsReadOnly()
+        });
     }
 
     public static void Save()
@@ -92,6 +99,16 @@ public static class AccountManager
 
     public static void Add(Model.Account account)
     {
+        var context = new AccountExtensionContext
+        {
+            Account = CreateAccountInfo(account)
+        };
+
+        if (!LMCExtensionHost.Current.BeforeAccountAdd(context))
+        {
+            throw new InvalidOperationException("Messages.Extensions.AccountAdd.Cancelled");
+        }
+
         lock (s_accountsLock)
         {
             if (AccountDuplicateDetector.IsDuplicate(s_accounts, account))
@@ -103,15 +120,35 @@ public static class AccountManager
         }
 
         Save();
+        LMCExtensionHost.Current.AfterAccountAdd(context);
     }
 
     public static void Remove(Model.Account account)
     {
+        var context = new AccountExtensionContext
+        {
+            Account = CreateAccountInfo(account)
+        };
+
         lock (s_accountsLock)
         {
             s_accounts.Remove(account);
         }
         Save();
+        LMCExtensionHost.Current.AfterAccountRemove(context);
+    }
+
+    private static ExtensionAccountInfo CreateAccountInfo(Model.Account account)
+    {
+        return new ExtensionAccountInfo
+        {
+            Type = account.Type.ToString(),
+            Name = account.Name,
+            Uuid = string.IsNullOrWhiteSpace(account.Uuid) ? null : account.Uuid,
+            Username = account is Model.AuthlibAccount authlibAccount && !string.IsNullOrWhiteSpace(authlibAccount.Username)
+                ? authlibAccount.Username
+                : null
+        };
     }
 }
 public class AccountJsonConverter : JsonConverter<Model.Account>

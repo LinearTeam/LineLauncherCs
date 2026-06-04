@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -20,7 +21,9 @@ using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
 using FluentAvalonia.UI.Windowing;
 using LMC.Basic.Logging;
+using LMC.Extensions.UI;
 using LMCUI.Controls;
+using LMCUI.Extensions;
 using LMCUI.I18n;
 using LMCUI.Navigation;
 using LMCUI.Navigation.Model;
@@ -87,6 +90,7 @@ public partial class MainWindow : FAAppWindow
     {
         mnv.SettingsItem.Tag = "SettingsPage";
         mnv.SettingsItem.Content = I18nManager.Instance.GetString("MainWindow.NavItems.SettingsPage");
+        AddExtensionNavigationItems();
         mainFrm.Navigated += OnFrameNavigated;
     }
 
@@ -257,6 +261,33 @@ public partial class MainWindow : FAAppWindow
         }
 
         return null;
+    }
+
+    private void AddExtensionNavigationItems()
+    {
+        foreach (var navigationItem in LMCExtensionUIRegistry.GetNavigationItems())
+        {
+            var menuItem = new FANavigationViewItem
+            {
+                Tag = navigationItem.Tag,
+                Content = navigationItem.Title
+            };
+
+            if (!string.IsNullOrWhiteSpace(navigationItem.ParentTag))
+            {
+                var parent = FindNavigationItemByTag(navigationItem.ParentTag);
+                if (parent?.MenuItems is IList parentItems)
+                {
+                    parentItems.Add(menuItem);
+                    continue;
+                }
+            }
+
+            var targetItems = navigationItem.Location == UIExtensionNavigationLocation.Footer
+                ? mnv.FooterMenuItems as IList
+                : mnv.MenuItems as IList;
+            targetItems?.Add(menuItem);
+        }
     }
 
     private static void HandleBreadcrumb(NavigateType type, PageBase page, FANavigationViewItem item, object? param)
