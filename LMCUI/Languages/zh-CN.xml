@@ -202,13 +202,13 @@
                     </LoaderSelectionStep>
                     <VersionNameStep>
                         <Title>设置版本名称</Title>
-                        <Description>请输入要安装到当前 .minecraft/versions 目录中的版本名称。</Description>
-                        <SelectedVersion>目标版本：{0} | 当前目录：{1} | 加载器：{2}</SelectedVersion>
+                        <Description>请输入要安装的版本名称。</Description>
+                        <SelectedVersion>目标版本：{0}</SelectedVersion>
                         <Watermark>输入版本名称...</Watermark>
                         <Validation>
                             <Empty>请输入版本名称。</Empty>
                             <InvalidPath>版本名称不是合法的路径名称。</InvalidPath>
-                            <AlreadyExists>当前 versions 目录中已存在同名版本。</AlreadyExists>
+                            <AlreadyExists>当前 versions 目录中已存在同名版本/文件夹。</AlreadyExists>
                         </Validation>
                     </VersionNameStep>
                 </Steps>

@@ -73,6 +73,8 @@ internal sealed record VersionNameValidationResult(
 
 internal static class DownloadMinecraftWizardSupport
 {
+    private const string OptiFineDisplayPrefix = "HD_U_";
+
     public static async Task<DownloadMinecraftCatalogLoadResult> LoadCatalogAsync(
         string mcVersion,
         CancellationToken cancellationToken,
@@ -124,7 +126,11 @@ internal static class DownloadMinecraftWizardSupport
                     var patch = item.GetProperty("patch").GetString();
                     if (!string.IsNullOrWhiteSpace(patch))
                     {
-                        catalog.OptiFineVersions.Insert(0, patch);
+                        var displayPatch = FormatOptiFineVersionForDisplay(patch);
+                        if (!string.IsNullOrWhiteSpace(displayPatch))
+                        {
+                            catalog.OptiFineVersions.Insert(0, displayPatch);
+                        }
                     }
                 }
             }
@@ -162,7 +168,7 @@ internal static class DownloadMinecraftWizardSupport
                 context.ManifestVersionId,
                 fabricChosen ? selectedFabric : null,
                 forgeChosen ? selectedForge : null,
-                optiFineChosen ? selectedOptiFine : null),
+                optiFineChosen ? NormalizeOptiFineVersionFromDisplay(selectedOptiFine) : null),
             validationMessage,
             !string.IsNullOrWhiteSpace(validationMessage),
             false,
@@ -226,7 +232,31 @@ internal static class DownloadMinecraftWizardSupport
             return string.Empty;
         }
 
-        return $"{context.FabricVersion ?? "-"} | {context.ForgeVersion ?? "-"} | {context.OptiFineVersion ?? "-"}";
+        return $"{context.FabricVersion ?? "-"} | {context.ForgeVersion ?? "-"} | {FormatOptiFineVersionForDisplay(context.OptiFineVersion) ?? "-"}";
+    }
+
+    public static string? FormatOptiFineVersionForDisplay(string? optiFineVersion)
+    {
+        if (string.IsNullOrWhiteSpace(optiFineVersion))
+        {
+            return optiFineVersion;
+        }
+
+        return optiFineVersion.StartsWith(OptiFineDisplayPrefix, StringComparison.OrdinalIgnoreCase)
+            ? optiFineVersion
+            : $"{OptiFineDisplayPrefix}{optiFineVersion}";
+    }
+
+    public static string? NormalizeOptiFineVersionFromDisplay(string? optiFineVersion)
+    {
+        if (string.IsNullOrWhiteSpace(optiFineVersion))
+        {
+            return optiFineVersion;
+        }
+
+        return optiFineVersion.StartsWith(OptiFineDisplayPrefix, StringComparison.OrdinalIgnoreCase)
+            ? optiFineVersion[OptiFineDisplayPrefix.Length..]
+            : optiFineVersion;
     }
 
     public static DownloadMinecraftWizardContext CreatePreviousContext(DownloadMinecraftSelectionContext context)

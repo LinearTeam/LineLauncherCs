@@ -268,9 +268,13 @@ public partial class DownloadMinecraftPage : PageBase
 
     private void VersionExpander_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not FASettingsExpander { Tag: string versionId } || !_versionIdMap.TryGetValue(versionId, out var version))
+        if (sender is not FASettingsExpander { Tag: string versionId }) return;
+        if(!_versionIdMap.TryGetValue(versionId, out var version))
+        {
+            if(_latestSnapshot?.Id == versionId) ShowVersionDialog(_latestSnapshot);
             return;
-
+        }
+        
         ShowVersionDialog(version);
     }
 

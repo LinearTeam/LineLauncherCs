@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Avalonia.Controls;
 using LMCUI.I18n;
 
@@ -23,6 +24,19 @@ public partial class VersionNameStep : DownloadMinecraftStep
         _context = data as DownloadMinecraftSelectionContext
             ?? throw new InvalidOperationException("Download wizard context is required.");
 
+        var finalName = _context.ManifestVersionId;
+        if (!string.IsNullOrEmpty(_context.FabricVersion))
+        {
+            finalName += $"-Fabric_{_context.FabricVersion}";
+        }
+        if (!string.IsNullOrEmpty(_context.ForgeVersion))
+        {
+            finalName += $"-Forge_{_context.ForgeVersion}";
+        }
+        if (!string.IsNullOrEmpty(_context.OptiFineVersion))
+        {
+            finalName += $"-OptiFine_{DownloadMinecraftWizardSupport.FormatOptiFineVersionForDisplay(_context.OptiFineVersion)}";
+        }
         SelectedVersionText.Text = I18nManager.Instance.GetString(
             "Pages.DownloadMinecraftPage.Wizard.Steps.VersionNameStep.SelectedVersion",
             _context.ManifestVersionId,
@@ -31,7 +45,7 @@ public partial class VersionNameStep : DownloadMinecraftStep
 
         if (string.IsNullOrWhiteSpace(VersionNameBox.Text))
         {
-            VersionNameBox.Text = _context.ManifestVersionId;
+            VersionNameBox.Text = finalName;
         }
 
         Validate();
