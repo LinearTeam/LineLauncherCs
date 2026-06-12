@@ -26,6 +26,7 @@ using LMCCore.Game.Model.LocalVersion.Libraries;
 using LMCCore.Game.Versioning;
 using LMCCore.Game.Versioning.Discovery;
 using LMC.Basic.Logging;
+using LMCCore.Game.Model.Loaders;
 
 namespace LineLauncherCs.Tests;
 
@@ -228,7 +229,11 @@ public class VersioningTests
             },
             Game = new GameVersionGameConfig
             {
-                Fullscreen = true
+                VersionId = "1.20.1",
+                ModLoaders = [new ModLoader
+                {
+                    Type = ModLoaderType.Fabric, VersionId = "0.18.0"
+                }]
             },
             Launcher = new GameVersionLauncherConfig
             {
@@ -243,7 +248,9 @@ public class VersioningTests
 
         Assert.NotNull(loaded);
         Assert.Equal(6144, loaded!.Java!.MaxMemoryMb);
-        Assert.True(loaded.Game!.Fullscreen);
+        Assert.Equal("1.20.1", loaded.Game!.VersionId);
+        Assert.Equal("0.18.0", loaded.Game!.ModLoaders![0].VersionId);
+        Assert.Equal(ModLoaderType.Fabric, loaded.Game!.ModLoaders![0].Type);
         Assert.True(loaded.Launcher!.ShowLog);
         Assert.Equal(@"E:\icons\grass.png", loaded.IconPath);
     }

@@ -99,7 +99,13 @@ public class DownloadManagerTests : IDisposable
             (_, _) =>
             {
                 Interlocked.Increment(ref resolverCalls);
-                return Task.FromResult(CreateVersionJson("1.20.6"));
+                return Task.FromResult("""
+                {
+                  "id": "1.20.6",
+                  "mainClass": "net.minecraft.client.main.Main",
+                  "libraries": []
+                }
+                """);
             });
 
         var createPlanTask = manager.CreateDownloadPlanAsync(request);
