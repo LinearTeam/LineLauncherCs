@@ -255,6 +255,21 @@
             <Title>任务管理</Title>
             <CancelButton>取消</CancelButton>
             <ConfirmButton>确定</ConfirmButton>
+            <Tasks>
+                <GameInstall>
+                    <Parent>安装 Minecraft {0}</Parent>
+                    <Finalize>结束安装</Finalize>
+                    <Fabric>
+                        <GetVersionInfo>获取 Fabric 版本信息</GetVersionInfo>
+                    </Fabric>
+                    <Vanilla>
+                        <GetVersionInfo>获取版本信息</GetVersionInfo>
+                        <DownloadClientFile>下载客户端文件</DownloadClientFile>
+                        <DownloadLibraries>下载原版依赖库</DownloadLibraries>
+                        <DownloadAssets>下载原版资源文件</DownloadAssets>
+                    </Vanilla>
+                </GameInstall>
+            </Tasks>
         </TaskPage>
 
         <VersionManagePage>

@@ -1,3 +1,16 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 using System.Text.Json.Nodes;
 using LMC.Basic.Configs;
 
@@ -50,6 +63,40 @@ public class ConfigManagerTests
             var config = ConfigManager.Load<MigrationTestConfig>("invalid");
 
             Assert.Equal("default", config.CurrentName);
+        }
+        finally
+        {
+            ConfigManager.ConfigDirectoryOverride = null;
+        }
+    }
+
+    [Fact]
+    public void AppConfig_DefaultVersionConfigSourceForNewInstalls_DefaultsToVersionJson()
+    {
+        var config = new AppConfig();
+
+        Assert.Equal(NewVersionConfigSource.VersionJson, config.DefaultVersionConfigSourceForNewInstalls);
+    }
+
+    [Fact]
+    public void Load_AppConfig_PreservesDefaultVersionConfigSourceForNewInstalls()
+    {
+        using var scope = new TestFileSystemScope();
+        ConfigManager.ConfigDirectoryOverride = scope.RootPath;
+
+        try
+        {
+            var config = new AppConfig
+            {
+                DefaultVersionConfigSourceForNewInstalls = NewVersionConfigSource.VersionFolder
+            };
+            ConfigManager.Save("app", config);
+
+            var loaded = ConfigManager.Load<AppConfig>("app");
+
+            Assert.Equal(
+                NewVersionConfigSource.VersionFolder,
+                loaded.DefaultVersionConfigSourceForNewInstalls);
         }
         finally
         {

@@ -23,6 +23,47 @@ public static class VanillaGameSubTaskFactory
 {
     private readonly static Logger s_logger = new("Download.Vanilla");
 
+    public async static Task DownloadSingleFileAsync(
+        string downloadUrl,
+        string savePath,
+        string? sha1,
+        long? size,
+        CancellationToken cancellationToken,
+        IProgress<int>? progress = null,
+        int maxRetries = 3)
+    {
+        var result = await BatchDownloader.DownloadAsync(
+            new BatchDownloadOptions<DownloadableFileInfo>
+            {
+                Files =
+                [
+                    new DownloadableFileInfo
+                    {
+                        Url = downloadUrl,
+                        Path = Path.GetFileName(savePath),
+                        Sha1 = sha1,
+                        Size = size
+                    }
+                ],
+                MaxConcurrency = 1,
+                MaxRetries = maxRetries,
+                GetSavePath = _ => savePath,
+                GetDownloadUrl = file => file.Url!,
+                GetFileSize = file => file.Size,
+                GetHash = file => file.Sha1,
+                GetDisplayName = file => file.Path ?? savePath,
+                SkipIfSizeMatches = true,
+                SkipIfHashMatches = true
+            },
+            cancellationToken,
+            progress);
+
+        if (result.FailedCount > 0)
+        {
+            throw new InvalidOperationException($"Failed to download file: {downloadUrl}");
+        }
+    }
+
     /// <summary>
     /// 创建依赖库下载子任务执行器
     /// </summary>

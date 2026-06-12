@@ -13,15 +13,13 @@
 //    limitations under the License.
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
 using LMC;
 using LMC.Basic.Logging;
 using LMCCore.Game.Download;
-using LMCCore.Tasks;
-using LMCCore.Tasks.Model;
+using LMCCore.Game.Download.Model;
 using LMCUI.I18n;
 using LMCUI.Navigation;
 using LMCUI.Navigation.Model;
@@ -31,7 +29,7 @@ namespace LMCUI.Pages.LaunchPage;
 
 public partial class LaunchPage : PageBase
 {
-    public LaunchPage() : base("Pages.LaunchPage.Title","LaunchPage")
+    public LaunchPage() : base("Pages.LaunchPage.Title", "LaunchPage")
     {
         InitializeComponent();
     }
@@ -50,28 +48,23 @@ public partial class LaunchPage : PageBase
             }
 
             var downloadManager = new DownloadManager();
-            var versionInfo = await downloadManager.GetVersionInfoAsync("1.21");
-
-            var libraryRoot = gameRoot;
-            var assetRoot = Path.Combine(gameRoot, "assets");
-
-            var parent = TaskManager.Instance.CreateParent($"安装 Minecraft {versionInfo.Id}");
-
-            parent.CreateSubTask($"获取版本信息 ({versionInfo.Id})", 0, async (_, _, progress) =>
+            var request = new DownloadableGameVersion
             {
-                progress.Report(100);
-                await Task.CompletedTask;
-                return 100;
-            });
+                RootPath = gameRoot,
+                VersionId = "1.21",
+                VersionName = "1.21",
+                Loaders = []
+            };
 
-            downloadManager.CreateVanillaGameSubTasks(parent, versionInfo, libraryRoot, assetRoot);
-
-            MessageQueueHelper.ShowInfo("任务已创建", $"安装 Minecraft {versionInfo.Id} 的任务已创建，请前往任务页面查看。");
+            await downloadManager.CreateDownloadPlanAsync(request);
+            NavigateToTaskPageButton_Click(sender, e);
         }
         catch (Exception ex)
         {
             new Logger("LP").Error(ex, "Creating Task");
-            MessageQueueHelper.ShowError("创建任务失败", $"无法创建安装任务：{ex.Message}");
+            await MessageQueueHelper.ShowError(
+                I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Errors.LoadFailedTitle"),
+                ex.Message);
         }
     }
 

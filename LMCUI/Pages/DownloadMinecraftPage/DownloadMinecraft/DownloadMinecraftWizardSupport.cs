@@ -1,9 +1,25 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LMCCore.Game.Download.Model;
+using LMCCore.Game.Model.Loaders;
 using LMCCore.Utils;
 
 namespace LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
@@ -75,7 +91,7 @@ internal static class DownloadMinecraftWizardSupport
 {
     private const string OptiFineDisplayPrefix = "HD_U_";
 
-    public static async Task<DownloadMinecraftCatalogLoadResult> LoadCatalogAsync(
+    public async static Task<DownloadMinecraftCatalogLoadResult> LoadCatalogAsync(
         string mcVersion,
         CancellationToken cancellationToken,
         IDownloadMinecraftCatalogClient? client = null)
@@ -225,6 +241,39 @@ internal static class DownloadMinecraftWizardSupport
             true);
     }
 
+    public static DownloadableGameVersion CreateDownloadRequest(DownloadableVersionSelection selection)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+
+        var loaders = new List<ModLoader>();
+        if (!string.IsNullOrWhiteSpace(selection.FabricVersion))
+        {
+            loaders.Add(new ModLoader
+            {
+                Type = ModLoaderType.Fabric,
+                VersionId = selection.FabricVersion
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(selection.ForgeVersion))
+        {
+            loaders.Add(new ModLoader
+            {
+                Type = ModLoaderType.Forge,
+                VersionId = selection.ForgeVersion
+            });
+        }
+
+        return new DownloadableGameVersion
+        {
+            RootPath = selection.SelectedRootPath,
+            VersionId = selection.ManifestVersionId,
+            VersionName = selection.VersionName,
+            Loaders = [..loaders],
+            OptiFine = selection.OptiFineVersion
+        };
+    }
+
     public static string BuildLoaderSummary(DownloadMinecraftSelectionContext? context)
     {
         if (context == null)
@@ -267,6 +316,11 @@ internal static class DownloadMinecraftWizardSupport
     public static (bool hasPrev, bool hasNext, bool isFinal) BuildDialogButtonState(DownloadMinecraftStep step, (bool hasPrev, bool hasNext) state)
     {
         return (state.hasPrev, state.hasNext, step.IsFinalStep());
+    }
+
+    public static bool ShouldCancelDialogClose(bool isDialogBusy, bool allowProgrammaticClose)
+    {
+        return isDialogBusy && !allowProgrammaticClose;
     }
 
     private static bool IsNone(string? value, string noneText)

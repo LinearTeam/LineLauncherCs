@@ -30,7 +30,8 @@ public class AppConfig {
 
     public bool AutoSelectJava { get; set; } = true;
     public string SelectedLanguage { get; set; } = "zh-CN";
-    
-    
+
+    public NewVersionConfigSource DefaultVersionConfigSourceForNewInstalls { get; set; } =
+        NewVersionConfigSource.VersionJson;
 }
 

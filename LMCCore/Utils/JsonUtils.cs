@@ -26,8 +26,8 @@ using System.Text.Json.Nodes;
 
 public class JsonUtils
 {
-    public static readonly JsonSerializerOptions DefaultSerializerOptions = CreateDefaultSerializerOptions();
-    public static readonly JsonSerializerOptions AccountSerializerOptions = CreateAccountSerializerOptions();
+    public readonly static JsonSerializerOptions DefaultSerializerOptions = CreateDefaultSerializerOptions();
+    public readonly static JsonSerializerOptions AccountSerializerOptions = CreateAccountSerializerOptions();
     public JsonNode? Node { get; }
     public bool IsValid { get; }
 
@@ -174,6 +174,76 @@ public class JsonUtils
         return GetNode(path).Node != null;
     }
 
+    public bool Set<T>(string path, T? value)
+    {
+        if (value is JsonUtils jsonUtils)
+        {
+            return Set(path, jsonUtils.Node);
+        }
+
+        if (value is JsonNode jsonNode)
+        {
+            return Set(path, jsonNode);
+        }
+
+        return Set(path, JsonSerializer.SerializeToNode(value, DefaultSerializerOptions));
+    }
+
+    public bool Set(string path, JsonNode? value)
+    {
+        if (!TryParsePath(path, out var segments) || !IsValid || Node == null)
+        {
+            return false;
+        }
+
+        if (segments.Count == 0)
+        {
+            return false;
+        }
+
+        var parentNode = Node;
+        for (var i = 0; i < segments.Count - 1; i++)
+        {
+            var nextSegment = segments[i + 1];
+            var resolvedNode = ResolveSegment(parentNode, segments[i], createMissing: true, nextSegment);
+            if (resolvedNode == null)
+            {
+                return false;
+            }
+
+            parentNode = resolvedNode;
+        }
+
+        return SetSegmentValue(parentNode, segments[^1], value?.DeepClone());
+    }
+
+    public bool Delete(string path)
+    {
+        if (!TryParsePath(path, out var segments) || !IsValid || Node == null)
+        {
+            return false;
+        }
+
+        if (segments.Count == 0)
+        {
+            return false;
+        }
+
+        var parentNode = Node;
+        for (var i = 0; i < segments.Count - 1; i++)
+        {
+            var resolvedNode = ResolveSegment(parentNode, segments[i], createMissing: false);
+            if (resolvedNode == null)
+            {
+                return false;
+            }
+
+            parentNode = resolvedNode;
+        }
+
+        return DeleteSegmentValue(parentNode, segments[^1]);
+    }
+
     public JsonUtils Clone()
     {
         return new JsonUtils(Node?.DeepClone(), IsValid);
@@ -257,50 +327,315 @@ public class JsonUtils
 
     private JsonUtils GetNode(string path)
     {
-        if (!IsValid || Node == null) return new JsonUtils(null, false);
+        if (!IsValid || Node == null || !TryParsePath(path, out var segments))
+        {
+            return new JsonUtils(null, false);
+        }
 
         JsonNode? currentNode = Node;
-        var segments = path.Split('.');
-
         foreach (var segment in segments)
         {
-            if (currentNode == null) break;
-
-            if (segment.Contains('['))
+            if (currentNode == null)
             {
-                var parts = segment.Split('[');
-                var prop = parts[0];
-                var indexes = parts.Skip(1).Select(p => int.Parse(p.TrimEnd(']'))).ToArray();
+                break;
+            }
 
-                currentNode = GetArrayElement(currentNode, prop, indexes);
-            }
-            else
-            {
-                currentNode = currentNode[segment];
-            }
+            currentNode = ResolveSegment(currentNode, segment, createMissing: false);
         }
 
         return new JsonUtils(currentNode, currentNode != null);
     }
 
-    private JsonNode? GetArrayElement(JsonNode? node, string prop, int[] indexes)
+    private static JsonNode? ResolveSegment(
+        JsonNode? node,
+        JsonPathSegment segment,
+        bool createMissing,
+        JsonPathSegment? nextSegment = null)
     {
-        if (node is JsonObject obj && obj.TryGetPropertyValue(prop, out var value))
+        if (node == null)
         {
-            node = value;
+            return null;
         }
 
-        foreach (var index in indexes)
+        if (!string.IsNullOrEmpty(segment.PropertyName))
         {
-            if (node is JsonArray array && index < array.Count)
-            {
-                node = array[index];
-            }
-            else
+            if (node is not JsonObject obj)
             {
                 return null;
             }
+
+            if (!obj.TryGetPropertyValue(segment.PropertyName, out node) || node == null)
+            {
+                if (!createMissing)
+                {
+                    return null;
+                }
+
+                node = CreateContainerForSegment(segment, nextSegment);
+                obj[segment.PropertyName] = node;
+            }
         }
+
+        if (segment.Indexes.Length == 0)
+        {
+            return node;
+        }
+
+        for (var i = 0; i < segment.Indexes.Length; i++)
+        {
+            var index = segment.Indexes[i];
+            if (index < 0 || node is not JsonArray array)
+            {
+                return null;
+            }
+
+            if (!createMissing && index >= array.Count)
+            {
+                return null;
+            }
+
+            EnsureArraySize(array, index);
+
+            var element = array[index];
+            if (element == null)
+            {
+                if (!createMissing)
+                {
+                    return null;
+                }
+
+                element = CreateContainerForIndex(segment, i, nextSegment);
+                array[index] = element;
+            }
+
+            node = element;
+        }
+
         return node;
+    }
+
+    private static bool SetSegmentValue(JsonNode parentNode, JsonPathSegment segment, JsonNode? value)
+    {
+        if (segment.Indexes.Length == 0)
+        {
+            if (parentNode is not JsonObject parentObject || string.IsNullOrEmpty(segment.PropertyName))
+            {
+                return false;
+            }
+
+            parentObject[segment.PropertyName] = value;
+            return true;
+        }
+
+        JsonNode? targetNode = parentNode;
+        if (!string.IsNullOrEmpty(segment.PropertyName))
+        {
+            if (parentNode is not JsonObject parentObject)
+            {
+                return false;
+            }
+
+            if (!parentObject.TryGetPropertyValue(segment.PropertyName, out targetNode) || targetNode == null)
+            {
+                targetNode = new JsonArray();
+                parentObject[segment.PropertyName] = targetNode;
+            }
+        }
+
+        return SetArrayElement(targetNode, segment.Indexes, value);
+    }
+
+    private static bool DeleteSegmentValue(JsonNode parentNode, JsonPathSegment segment)
+    {
+        if (segment.Indexes.Length == 0)
+        {
+            return parentNode is JsonObject parentObject
+                   && !string.IsNullOrEmpty(segment.PropertyName)
+                   && parentObject.Remove(segment.PropertyName);
+        }
+
+        JsonNode? targetNode = parentNode;
+        if (!string.IsNullOrEmpty(segment.PropertyName))
+        {
+            if (parentNode is not JsonObject parentObject
+                || !parentObject.TryGetPropertyValue(segment.PropertyName, out targetNode)
+                || targetNode == null)
+            {
+                return false;
+            }
+        }
+
+        return RemoveArrayElement(targetNode, segment.Indexes);
+    }
+
+    private static bool SetArrayElement(JsonNode? node, IReadOnlyList<int> indexes, JsonNode? value)
+    {
+        if (node is not JsonArray array || indexes.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < indexes.Count - 1; i++)
+        {
+            var index = indexes[i];
+            if (index < 0)
+            {
+                return false;
+            }
+
+            EnsureArraySize(array, index);
+
+            var element = array[index];
+            if (element == null)
+            {
+                element = new JsonArray();
+                array[index] = element;
+            }
+
+            if (element is not JsonArray nestedArray)
+            {
+                return false;
+            }
+
+            array = nestedArray;
+        }
+
+        var lastIndex = indexes[^1];
+        if (lastIndex < 0)
+        {
+            return false;
+        }
+
+        EnsureArraySize(array, lastIndex);
+        array[lastIndex] = value;
+        return true;
+    }
+
+    private static bool RemoveArrayElement(JsonNode? node, IReadOnlyList<int> indexes)
+    {
+        if (node is not JsonArray array || indexes.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < indexes.Count - 1; i++)
+        {
+            var index = indexes[i];
+            if (index < 0 || index >= array.Count || array[index] is not JsonArray nestedArray)
+            {
+                return false;
+            }
+
+            array = nestedArray;
+        }
+
+        var lastIndex = indexes[^1];
+        if (lastIndex < 0 || lastIndex >= array.Count)
+        {
+            return false;
+        }
+
+        array.RemoveAt(lastIndex);
+        return true;
+    }
+
+    private static JsonNode CreateContainerForSegment(JsonPathSegment segment, JsonPathSegment? nextSegment)
+    {
+        return segment.Indexes.Length > 0
+            ? new JsonArray()
+            : CreateContainerForNextSegment(nextSegment);
+    }
+
+    private static JsonNode CreateContainerForIndex(JsonPathSegment segment, int currentIndexPosition, JsonPathSegment? nextSegment)
+    {
+        return currentIndexPosition < segment.Indexes.Length - 1
+            ? new JsonArray()
+            : CreateContainerForNextSegment(nextSegment);
+    }
+
+    private static JsonNode CreateContainerForNextSegment(JsonPathSegment? nextSegment)
+    {
+        if (nextSegment is { PropertyName: "", Indexes.Length: > 0 })
+        {
+            return new JsonArray();
+        }
+
+        return new JsonObject();
+    }
+
+    private static void EnsureArraySize(JsonArray array, int index)
+    {
+        while (array.Count <= index)
+        {
+            array.Add(null);
+        }
+    }
+
+    private static bool TryParsePath(string path, out List<JsonPathSegment> segments)
+    {
+        segments = [];
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            foreach (var part in path.Split('.', StringSplitOptions.RemoveEmptyEntries))
+            {
+                segments.Add(ParsePathSegment(part));
+            }
+
+            return segments.Count > 0;
+        }
+        catch
+        {
+            segments.Clear();
+            return false;
+        }
+    }
+
+    private static JsonPathSegment ParsePathSegment(string segment)
+    {
+        if (string.IsNullOrWhiteSpace(segment))
+        {
+            throw new FormatException("JSON path segment cannot be empty.");
+        }
+
+        var firstBracketIndex = segment.IndexOf('[');
+        if (firstBracketIndex < 0)
+        {
+            return new JsonPathSegment(segment, Array.Empty<int>());
+        }
+
+        var propertyName = firstBracketIndex == 0 ? string.Empty : segment[..firstBracketIndex];
+        var indexes = new List<int>();
+        var position = firstBracketIndex;
+
+        while (position < segment.Length)
+        {
+            if (segment[position] != '[')
+            {
+                throw new FormatException("Invalid JSON array path segment.");
+            }
+
+            var endBracketIndex = segment.IndexOf(']', position + 1);
+            if (endBracketIndex <= position + 1)
+            {
+                throw new FormatException("Invalid JSON array index.");
+            }
+
+            indexes.Add(int.Parse(segment[(position + 1)..endBracketIndex]));
+            position = endBracketIndex + 1;
+        }
+
+        return new JsonPathSegment(propertyName, indexes);
+    }
+
+    private sealed record JsonPathSegment(string PropertyName, int[] Indexes)
+    {
+        public JsonPathSegment(string propertyName, List<int> indexes) : this(propertyName, indexes.ToArray())
+        {
+        }
     }
 }

@@ -1,6 +1,21 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LMCCore.Tasks.Model;
+using LMCUI.I18n;
 
 namespace LMCUI.Pages.TaskPage;
 
@@ -17,6 +32,18 @@ internal readonly record struct TaskPageDiff(
 
 internal static class TaskPagePresentation
 {
+    public static string GetTaskDisplayName(TaskBase task)
+    {
+        ArgumentNullException.ThrowIfNull(task);
+
+        if (string.IsNullOrWhiteSpace(task.TranslationKey))
+        {
+            return task.Name;
+        }
+
+        return I18nManager.Instance.GetString(task.TranslationKey, [.. task.TranslationArgs]);
+    }
+
     public static TaskState GetParentDisplayState(ParentTask parent)
     {
         return GetParentDisplayState(parent.SubTasks);
@@ -25,14 +52,14 @@ internal static class TaskPagePresentation
     public static TaskState GetParentDisplayState(IEnumerable<SubTaskBase> subTasks)
     {
         var subTaskList = subTasks.ToList();
-        if (subTaskList.Any(s => s.State == TaskState.Running))
-        {
-            return TaskState.Running;
-        }
-
         if (subTaskList.Any(s => s.State == TaskState.Faulted))
         {
             return TaskState.Faulted;
+        }
+
+        if (subTaskList.Any(s => s.State == TaskState.Running))
+        {
+            return TaskState.Running;
         }
 
         if (subTaskList.Count > 0 && subTaskList.All(s => s.State == TaskState.Completed))

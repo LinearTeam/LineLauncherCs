@@ -186,7 +186,7 @@ public partial class AccountPage : PageBase
             });
     }
 
-    private async Task ApplyAccountListAsync(AccountListPresentation presentation)
+    async private Task ApplyAccountListAsync(AccountListPresentation presentation)
     {
         await Dispatcher.UIThread.InvokeAsync(() =>
         {

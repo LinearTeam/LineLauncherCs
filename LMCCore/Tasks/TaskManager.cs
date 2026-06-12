@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 public class TaskManager(int maxConcurrency) : IDisposable
 {
     private static TaskManager? s_instance;
-    private static readonly Logger s_logger = new("TaskManager");
+    private readonly static Logger s_logger = new("TaskManager");
     public static TaskManager Instance => s_instance ??= new TaskManager(4);
 
     private readonly PriorityQueue<SubTaskBase, int> _queue = new();
@@ -160,11 +160,14 @@ public class TaskManager(int maxConcurrency) : IDisposable
         Signal();
     }
 
-    public ParentTask CreateParent(string name)
+    public ParentTask CreateParent(
+        string name,
+        string? translationKey = null,
+        IReadOnlyList<object?>? translationArgs = null)
     {
         Start();
 
-        var parent = new ParentTask(name, this);
+        var parent = new ParentTask(name, this, translationKey, translationArgs);
         lock (_syncRoot)
         {
             if (_isStopping || _resourcesDisposed)
@@ -196,7 +199,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
         }
     }
 
-    private async Task SchedulerLoopAsync()
+    async private Task SchedulerLoopAsync()
     {
         while (!_managerCts.IsCancellationRequested)
         {
@@ -273,7 +276,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
         return execution;
     }
 
-    private async Task ExecuteTaskAsync(SubTaskBase task)
+    async private Task ExecuteTaskAsync(SubTaskBase task)
     {
         try
         {
@@ -309,7 +312,7 @@ public class TaskManager(int maxConcurrency) : IDisposable
             }
         }
 
-        return AreDependenciesSatisfied(task);
+        return AreDependenciesSatisfied(task) && AreSiblingExecutionConstraintsSatisfied(task);
     }
 
     private void DependencyCompleted(SubTaskBase _)
@@ -324,14 +327,14 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     private void EnqueueReadyTasksUnsafe()
     {
-        foreach (var parent in _parents)
+        foreach (var parent in _parents.ToArray())
         {
             if (parent.State != TaskState.Waiting)
             {
                 continue;
             }
 
-            foreach (var subTask in parent.SubTasks)
+            foreach (var subTask in parent.SubTasks.ToArray())
             {
                 RegisterDependencyHandlersUnsafe(subTask);
                 TryEnqueueUnsafe(subTask);
@@ -371,6 +374,18 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
     private static bool AreDependenciesSatisfied(SubTaskBase subTask) =>
         subTask.Dependencies.All(dependency => dependency.State == TaskState.Completed);
+
+    private static bool AreSiblingExecutionConstraintsSatisfied(SubTaskBase subTask)
+    {
+        if (!subTask.WaitForSiblingTasksToComplete)
+        {
+            return true;
+        }
+
+        return subTask.Parent.SubTasks
+            .Where(sibling => sibling.Id != subTask.Id)
+            .All(sibling => sibling.IsFinished);
+    }
 
     public void Dispose()
     {

@@ -73,7 +73,7 @@ public static class JavaManager {
         
     }
 
-    public static async Task AddJavasAsync(IEnumerable<string> javaPaths)
+    public async static Task AddJavasAsync(IEnumerable<string> javaPaths)
     {
         var normalizedPaths = JavaPathNormalizer.DistinctNormalizedRoots(javaPaths);
 

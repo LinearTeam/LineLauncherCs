@@ -77,7 +77,7 @@ public class ConfigRemovedAttribute(int sinceVersion) : Attribute {
 public static class ConfigManager {
     private const string VersionProperty = "$version";
     private readonly static ConcurrentDictionary<string, object> s_configLocks = new();
-    private static readonly Logger s_logger = new("ConfigManager");
+    private readonly static Logger s_logger = new("ConfigManager");
     internal static string? ConfigDirectoryOverride { get; set; }
 
     private readonly static JsonSerializerOptions s_serializerOptions = new()

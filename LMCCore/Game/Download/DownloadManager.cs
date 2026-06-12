@@ -1,4 +1,4 @@
-﻿// Copyright 2025-2026 LinearTeam
+// Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,76 +12,95 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using LMCCore.Game.Download.Installation;
+using LMCCore.Game.Download.Installation.Caching;
+using LMCCore.Game.Download.Installation.Providers;
+using LMCCore.Game.Download.Model;
 using LMCCore.Game.Download.Model.Vanilla;
+using LMCCore.Game.Download.Planning;
 using LMCCore.Game.Download.Vanilla;
+using LMCCore.Game.Model.Loaders;
 using LMCCore.Game.Model.LocalVersion;
-using LMCCore.Tasks.Model;
 
 namespace LMCCore.Game.Download;
 
 public class DownloadManager
 {
-    private DownloadSourceManager _downloadSourceManager = DownloadSourceManager.CreateDefault();
+    private readonly DownloadSourceManager _downloadSourceManager;
+    private readonly IReadOnlyList<IGameInstallationTaskProvider> _installationTaskProviders;
+    private readonly Func<string, CancellationToken, Task<string>> _versionJsonResolver;
+    private readonly DownloadGameTaskPlanner _taskPlanner = new();
     private VanillaGameDownloader? _vanillaDownloader;
 
-    public DownloadManager()
+    public DownloadManager() : this(DownloadSourceManager.CreateDefault())
     {
     }
 
     public DownloadManager(DownloadSourceManager sourceManager)
+        : this(sourceManager, CreateDefaultInstallationTaskProviders(), null)
+    {
+    }
+
+    internal DownloadManager(
+        DownloadSourceManager sourceManager,
+        IEnumerable<IGameInstallationTaskProvider> installationTaskProviders,
+        Func<string, CancellationToken, Task<string>>? versionJsonResolver)
     {
         _downloadSourceManager = sourceManager ?? throw new ArgumentNullException(nameof(sourceManager));
+        _installationTaskProviders = NormalizeInstallationTaskProviders(installationTaskProviders);
+        _versionJsonResolver = versionJsonResolver ?? ((versionId, cancellationToken) =>
+            VanillaDownloader.GetVersionJsonAsync(versionId, cancellationToken));
     }
 
     private VanillaGameDownloader VanillaDownloader =>
         _vanillaDownloader ??= new VanillaGameDownloader(_downloadSourceManager);
 
-    public (SubTask<List<DownloadableFileInfo>> LibrariesTask, SubTask<Dictionary<string, AssetInfo>> AssetsTask)
-        CreateVanillaGameSubTasks(
-            ParentTask parent,
-            LocalVersionInfo versionInfo,
-            string libraryRoot,
-            string assetRoot,
-            int librariesPriority = 50,
-            int assetsPriority = 50)
+    public async Task<DownloadGamePlan> CreateDownloadPlanAsync(
+        DownloadableGameVersion request,
+        CancellationToken cancellationToken = default)
     {
-        var librariesTask = CreateLibrariesSubTask(
-            parent, VanillaGameDownloader.GetLibrariesForDownload(versionInfo), libraryRoot, librariesPriority);
+        ArgumentNullException.ThrowIfNull(request);
+        EnsureRequestIsSupported(request);
 
-        var assetsTask = CreateAssetsSubTask(
-            parent, versionInfo, assetRoot, assetsPriority);
+        var plan = _taskPlanner.CreatePlan(request);
+        var cacheManager = new GameInstallationCacheManager(plan.ParentTask);
+        var runtimeState = new GameInstallationRuntimeState
+        {
+            CacheDirectory = cacheManager.CacheDirectory,
+            CachedVersionJsonPath = cacheManager.CachedVersionJsonPath,
+            CachedClientJarPath = cacheManager.CachedClientJarPath
+        };
+        var context = new DownloadInstallationContext
+        {
+            DownloadManager = this,
+            DownloadSourceManager = _downloadSourceManager,
+            VanillaDownloader = VanillaDownloader,
+            Plan = plan,
+            RuntimeState = runtimeState,
+            CacheManager = cacheManager,
+            Tasks = new DownloadInstallationTaskRegistry()
+        };
 
-        return (librariesTask, assetsTask);
-    }
+        var applicableProviders = _installationTaskProviders
+            .Where(provider => provider.ShouldApply(context))
+            .OrderBy(GetProviderPlanningOrder)
+            .ToList();
+        context.VersionJsonModifiers = applicableProviders
+            .OfType<IGameInstallationVersionJsonModifier>()
+            .ToList()
+            .AsReadOnly();
 
-    public SubTask<List<DownloadableFileInfo>> CreateLibrariesSubTask(
-        ParentTask parent,
-        List<DownloadableFileInfo> libraries,
-        string libraryRoot,
-        int priority = 100)
-    {
-        var name = $"下载原版依赖库";
-        var executor = VanillaGameSubTaskFactory.CreateLibrariesExecutor(
-            VanillaDownloader,libraries , libraryRoot);
+        foreach (var provider in applicableProviders)
+        {
+            provider.AddTasks(context);
+        }
 
-        return parent.CreateSubTask(name, priority, executor);
-    }
-
-    public SubTask<Dictionary<string, AssetInfo>> CreateAssetsSubTask(
-        ParentTask parent,
-        LocalVersionInfo versionInfo,
-        string assetRoot,
-        int priority = 50)
-    {
-        var name = $"下载原版资源文件";
-        var executor = VanillaGameSubTaskFactory.CreateAssetsExecutor(
-            VanillaDownloader, versionInfo.Id, versionInfo.AssetIndex, assetRoot);
-
-        return parent.CreateSubTask(name, priority, executor);
+        context.CacheManager.RegisterCleanupOnTaskCompletion(context.Tasks.GetAllTasks());
+        return plan;
     }
 
     /// <summary>
-    /// 获取版本列表
+    /// Get the version manifest.
     /// </summary>
     public async Task<VersionManifestInfo> GetVersionManifestAsync(CancellationToken cancellationToken = default)
     {
@@ -89,18 +108,91 @@ public class DownloadManager
     }
 
     /// <summary>
-    /// 获取指定版本的版本信息
+    /// Get the version info for the specified version id.
     /// </summary>
     public async Task<LocalVersionInfo?> GetVersionInfoAsync(string versionId, CancellationToken cancellationToken = default)
     {
         return await VanillaDownloader.GetVersionInfoAsync(versionId, cancellationToken);
     }
 
-    /// <summary>
-    /// 解析版本JSON为版本信息
-    /// </summary>
     public LocalVersionInfo? ParseVersionJson(string json)
     {
         return VanillaGameDownloader.ParseVersionJson(json);
+    }
+
+    internal Task<string> ResolveVersionJsonAsync(string versionId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(versionId);
+        return _versionJsonResolver(versionId, cancellationToken);
+    }
+
+    private void EnsureRequestIsSupported(DownloadableGameVersion request)
+    {
+        foreach (var component in GetRequestedComponents(request))
+        {
+            if (_installationTaskProviders.Any(provider => provider.Component == component))
+            {
+                continue;
+            }
+
+            throw new NotSupportedException($"No installation task provider is registered for '{component}'.");
+        }
+    }
+
+    private static IReadOnlyList<IGameInstallationTaskProvider> CreateDefaultInstallationTaskProviders()
+    {
+        return
+        [
+            new VanillaInstallationTaskProvider(),
+            new FabricInstallationTaskProvider(),
+            new ForgeInstallationTaskProvider(),
+            new OptiFineInstallationTaskProvider(),
+            new GameInstallationFinalizationTaskProvider()
+        ];
+    }
+
+    private static IReadOnlyList<IGameInstallationTaskProvider> NormalizeInstallationTaskProviders(
+        IEnumerable<IGameInstallationTaskProvider> installationTaskProviders)
+    {
+        ArgumentNullException.ThrowIfNull(installationTaskProviders);
+
+        var providers = installationTaskProviders.ToList();
+        if (providers.All(provider => provider.Component != DownloadInstallationComponent.Finalization))
+        {
+            providers.Add(new GameInstallationFinalizationTaskProvider());
+        }
+
+        return providers;
+    }
+
+    private static int GetProviderPlanningOrder(IGameInstallationTaskProvider provider)
+    {
+        return provider.Component switch
+        {
+            DownloadInstallationComponent.Finalization => 300,
+            DownloadInstallationComponent.Vanilla => 100,
+            _ when provider is IGameInstallationVersionJsonModifier => 0,
+            _ => 200
+        };
+    }
+
+    private static IEnumerable<DownloadInstallationComponent> GetRequestedComponents(DownloadableGameVersion request)
+    {
+        yield return DownloadInstallationComponent.Vanilla;
+
+        foreach (var loader in request.Loaders)
+        {
+            yield return loader.Type switch
+            {
+                ModLoaderType.Fabric => DownloadInstallationComponent.Fabric,
+                ModLoaderType.Forge => DownloadInstallationComponent.Forge,
+                _ => throw new NotSupportedException($"Unsupported loader type '{loader.Type}'.")
+            };
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.OptiFine))
+        {
+            yield return DownloadInstallationComponent.OptiFine;
+        }
     }
 }

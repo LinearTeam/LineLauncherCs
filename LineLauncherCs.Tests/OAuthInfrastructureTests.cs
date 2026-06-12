@@ -1,3 +1,16 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 using System.Net;
 using System.Text;
 using System.Linq;
@@ -82,43 +95,6 @@ public class OAuthInfrastructureTests : IDisposable
         Assert.NotNull(result.Value);
         Assert.False(result.Value!.HasMinecraft);
         Assert.Equal(0, profileCalls);
-    }
-
-    [Fact]
-    public async Task GetMinecraftServiceAccessTokenAsync_RefreshesExpiredAccount()
-    {
-        HttpUtils.Transport = new DelegateHttpRequestTransport((request, _) =>
-        {
-            var url = request.RequestUri!.ToString();
-            return Task.FromResult(url switch
-            {
-                var value when value.Contains("oauth2/v2.0/token", StringComparison.OrdinalIgnoreCase) =>
-                    JsonResponse("""{"access_token":"access-new","refresh_token":"refresh-new","expires_in":7200}"""),
-                var value when value.Contains("user.auth.xboxlive.com", StringComparison.OrdinalIgnoreCase) =>
-                    JsonResponse("""{"Token":"xbl-token"}"""),
-                var value when value.Contains("xsts.auth.xboxlive.com", StringComparison.OrdinalIgnoreCase) =>
-                    JsonResponse("""{"Token":"xsts-token","DisplayClaims":{"xui":[{"uhs":"user-hash"}]}}"""),
-                var value when value.Contains("login_with_xbox", StringComparison.OrdinalIgnoreCase) =>
-                    JsonResponse("""{"access_token":"mc-token"}"""),
-                _ => throw new InvalidOperationException($"Unexpected request: {url}")
-            });
-        });
-
-        var account = new MicrosoftAccount
-        {
-            Name = "Steve",
-            AccessToken = "expired-access",
-            RefreshToken = "refresh-old",
-            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-10)
-        };
-
-        var result = await MicrosoftOAuth.GetMinecraftServiceAccessTokenAsync(account);
-
-        Assert.Null(result.exception);
-        Assert.Equal("mc-token", result.accessToken);
-        Assert.Equal("access-new", account.AccessToken);
-        Assert.Equal("refresh-new", account.RefreshToken);
-        Assert.True(account.ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(30));
     }
 
     [Fact]

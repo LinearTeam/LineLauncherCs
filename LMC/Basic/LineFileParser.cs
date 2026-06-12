@@ -22,7 +22,7 @@ using System.Text.RegularExpressions;
 
 public class LineFileParser
 {
-    private static readonly Regex KeyValuePattern = new(@"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|", RegexOptions.Compiled);
+    private readonly static Regex KeyValuePattern = new(@"\|(?<key>[^|]+)\|:\|(?<value>[^|]+)\|", RegexOptions.Compiled);
 
     public List<string> GetKeySet(string path, string section)
     {

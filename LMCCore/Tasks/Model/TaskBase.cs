@@ -20,13 +20,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using LMC.Basic.Logging;
 
-public abstract class TaskBase(string name) : INotifyPropertyChanged, IDisposable
+public abstract class TaskBase(
+    string name,
+    string? translationKey = null,
+    IReadOnlyList<object?>? translationArgs = null)
+    : INotifyPropertyChanged, IDisposable
 {
     private readonly static Logger s_logger = new("TaskSystem");
     public event PropertyChangedEventHandler? PropertyChanged;
     
     public Guid Id { get; } = Guid.NewGuid();
     public string Name { get; } = name;
+    public string? TranslationKey { get; } = translationKey;
+    public IReadOnlyList<object?> TranslationArgs { get; } = translationArgs ?? Array.Empty<object?>();
+    public Exception? FailureException { get; protected set; }
+    public string? CancellationReason { get; protected set; }
 
     private TaskState _state = TaskState.Waiting;
     public TaskState State 
@@ -41,6 +49,8 @@ public abstract class TaskBase(string name) : INotifyPropertyChanged, IDisposabl
                 s_logger.Info($"[{Name}] 任务状态: {oldState} -> {value}");
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(State)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFinished)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FailureException)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CancellationReason)));
             }
         }
     }
@@ -67,9 +77,10 @@ public abstract class TaskBase(string name) : INotifyPropertyChanged, IDisposabl
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public void Cancel()
+    public void Cancel(string? reason = null)
     {
         if (IsFinished) return;
+        CancellationReason = reason;
         State = TaskState.Canceled;
         OnCancel();
         Cts.Cancel();

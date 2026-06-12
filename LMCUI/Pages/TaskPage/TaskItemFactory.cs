@@ -48,7 +48,7 @@ public static class TaskItemFactory
             },
             TaskState.Canceled => new FASymbolIcon
             {
-                Symbol = FASymbol.Clear,
+                Symbol = FASymbol.Remove,
                 Foreground = new SolidColorBrush(Color.Parse("#9E9E9E"))
             },
             _ => throw new ArgumentOutOfRangeException(nameof(state))
@@ -64,7 +64,11 @@ public static class TaskItemFactory
         };
 
         headerPanel.Children.Add(CreateStateControl(displayState));
-        headerPanel.Children.Add(new TextBlock { Text = parent.Name, VerticalAlignment = VerticalAlignment.Center });
+        headerPanel.Children.Add(new TextBlock
+        {
+            Text = TaskPagePresentation.GetTaskDisplayName(parent),
+            VerticalAlignment = VerticalAlignment.Center
+        });
 
         return headerPanel;
     }
@@ -118,7 +122,7 @@ public static class TaskItemFactory
         };
 
         contentPanel.Children.Add(CreateStateControl(subTask.State));
-        contentPanel.Children.Add(new TextBlock { Text = subTask.Name });
+        contentPanel.Children.Add(new TextBlock { Text = TaskPagePresentation.GetTaskDisplayName(subTask) });
 
         return contentPanel;
     }

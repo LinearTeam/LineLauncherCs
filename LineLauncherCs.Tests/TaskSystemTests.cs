@@ -1,3 +1,16 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 using LMCCore.Tasks;
 using LMCCore.Tasks.Model;
 using LMCUI.Pages.TaskPage;
@@ -85,7 +98,9 @@ public class TaskSystemTests
 
         Assert.Equal(TaskState.Faulted, parent.State);
         Assert.Equal(TaskState.Faulted, faulted.State);
+        Assert.IsType<InvalidOperationException>(faulted.FailureException);
         Assert.Equal(TaskState.Canceled, dependent.State);
+        Assert.Equal("Canceled because another subtask failed.", dependent.CancellationReason);
     }
 
     [Fact]
@@ -146,7 +161,7 @@ public class TaskSystemTests
         Assert.Equal(added.Id, diff.AddedParents[0].Id);
     }
 
-    private static async Task WaitForConditionAsync(Func<bool> predicate, int timeoutMs = 3000)
+    async private static Task WaitForConditionAsync(Func<bool> predicate, int timeoutMs = 3000)
     {
         var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
         while (!predicate())
@@ -162,8 +177,16 @@ public class TaskSystemTests
 
     private sealed class TestSubTask : SubTaskBase
     {
-        public TestSubTask(ParentTask parent, TaskState state, bool isExecuting = false) : base("test", 0, parent, null)
+        public TestSubTask(
+            ParentTask parent,
+            TaskState state,
+            bool isExecuting = false,
+            Exception? failureException = null,
+            string? cancellationReason = null)
+            : base("test", 0, parent, null)
         {
+            FailureException = failureException;
+            CancellationReason = cancellationReason;
             State = state;
             IsExecuting = isExecuting;
         }

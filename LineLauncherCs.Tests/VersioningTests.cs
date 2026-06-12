@@ -1,9 +1,24 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 using System.Runtime.InteropServices;
+using System.Text.Json.Nodes;
 using LMC.Basic.Configs;
 using LMCCore.Game.Download;
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Download.Vanilla;
 using LMCCore.Game.Model;
+using LMCCore.Game.Model.Configuration;
 using LMCCore.Game.Model.LocalVersion;
 using LMCCore.Game.Model.LocalVersion.Arguments;
 using LMCCore.Game.Model.LocalVersion.Compatibility;
@@ -182,6 +197,93 @@ public class VersioningTests
         Assert.False(CompatibilityRuleEvaluator.CheckRulesApply([nonMatchingRule]));
     }
 
+    [Fact]
+    public void VersionConfigManager_WriteIndependentConfig_WritesToVersionJson()
+    {
+        using var scope = new TestFileSystemScope();
+        var version = CreateLocalGameVersionEntry(scope, "jsonConfig");
+        var manager = new VersionConfigManager();
+
+        manager.WriteIndependentConfig(
+            version,
+            JsonNode.Parse("""{"java":{"maxMemoryMb":4096}}""")!,
+            VersionConfigSourceType.VersionJson);
+
+        var rootObject = JsonNode.Parse(File.ReadAllText(version.JsonPath!))!.AsObject();
+        Assert.NotNull(rootObject["LMCConfig"]);
+        Assert.Equal(4096, rootObject["LMCConfig"]!["java"]!["maxMemoryMb"]!.GetValue<int>());
+    }
+
+    [Fact]
+    public void VersionConfigManager_WriteIndependentConfigModel_PersistsAndReadsUnifiedModel()
+    {
+        using var scope = new TestFileSystemScope();
+        var version = CreateLocalGameVersionEntry(scope, "modelConfig");
+        var manager = new VersionConfigManager();
+        var config = new GameVersionConfig
+        {
+            Java = new GameVersionJavaConfig
+            {
+                MaxMemoryMb = 6144
+            },
+            Game = new GameVersionGameConfig
+            {
+                Fullscreen = true
+            },
+            Launcher = new GameVersionLauncherConfig
+            {
+                ShowLog = true
+            },
+            IconPath = @"E:\icons\grass.png"
+        };
+
+        manager.WriteIndependentConfig(version, config, VersionConfigSourceType.VersionJson);
+
+        var loaded = manager.GetIndependentConfigModel(version);
+
+        Assert.NotNull(loaded);
+        Assert.Equal(6144, loaded!.Java!.MaxMemoryMb);
+        Assert.True(loaded.Game!.Fullscreen);
+        Assert.True(loaded.Launcher!.ShowLog);
+        Assert.Equal(@"E:\icons\grass.png", loaded.IconPath);
+    }
+
+    [Fact]
+    public void VersionConfigManager_WriteIndependentConfig_WritesToVersionFolder()
+    {
+        using var scope = new TestFileSystemScope();
+        var version = CreateLocalGameVersionEntry(scope, "folderConfig");
+        var manager = new VersionConfigManager();
+
+        manager.WriteIndependentConfig(
+            version,
+            JsonNode.Parse("""{"game":{"fullscreen":true}}""")!,
+            NewVersionConfigSource.VersionFolder);
+
+        var configPath = Path.Combine(version.VersionDirectory, "LMC", "version_config.json");
+        var rootObject = JsonNode.Parse(File.ReadAllText(configPath))!.AsObject();
+        Assert.True(rootObject["game"]!["fullscreen"]!.GetValue<bool>());
+    }
+
+    [Fact]
+    public void VersionConfigManager_WriteIndependentConfig_WritesToLmcDataDirectory()
+    {
+        using var scope = new TestFileSystemScope();
+        var version = CreateLocalGameVersionEntry(scope, "dataConfig");
+        var versionConfigsPath = scope.GetPath("version_configs.json");
+        var manager = new VersionConfigManager(versionConfigsPath: versionConfigsPath);
+
+        manager.WriteIndependentConfig(
+            version,
+            JsonNode.Parse("""{"launcher":{"showLog":true}}""")!,
+            VersionConfigSourceType.LMCDataDirectory);
+
+        var rootObject = JsonNode.Parse(File.ReadAllText(versionConfigsPath))!.AsObject();
+        var normalizedVersionDirectory = Path.GetFullPath(version.VersionDirectory)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        Assert.True(rootObject[normalizedVersionDirectory]!["launcher"]!["showLog"]!.GetValue<bool>());
+    }
+
     private static LocalVersionInfo CreateVersionInfo(
         string? clientVersion = null,
         string? patchVersion = null,
@@ -222,6 +324,33 @@ public class VersioningTests
                 ],
             Arguments = arguments,
             ReleaseTime = releaseTime
+        };
+    }
+
+    private static LocalGameVersionEntry CreateLocalGameVersionEntry(TestFileSystemScope scope, string versionName)
+    {
+        var rootPath = scope.CreateDirectory("gameRoot");
+        var versionDirectory = scope.CreateDirectory(Path.Combine("gameRoot", "versions", versionName));
+        var jsonPath = Path.Combine(versionDirectory, $"{versionName}.json");
+        var jarPath = Path.Combine(versionDirectory, $"{versionName}.jar");
+
+        File.WriteAllText(jsonPath, $$"""
+        {
+          "id": "{{versionName}}",
+          "mainClass": "main",
+          "libraries": []
+        }
+        """);
+        File.WriteAllText(jarPath, string.Empty);
+
+        return new LocalGameVersionEntry
+        {
+            RootPath = rootPath,
+            VersionName = versionName,
+            VersionDirectory = versionDirectory,
+            JsonPath = jsonPath,
+            JarPath = jarPath,
+            Status = VersionStatus.Valid
         };
     }
 }

@@ -22,12 +22,22 @@ using System.Threading.Tasks;
 public class ParentTask : TaskBase
 {
     private readonly TaskManager _manager;
+    private readonly static string s_cascadeCancellationReason = "Canceled because another subtask failed.";
 
-    public ParentTask(string name) : this(name, TaskManager.Instance)
+    public ParentTask(
+        string name,
+        string? translationKey = null,
+        IReadOnlyList<object?>? translationArgs = null)
+        : this(name, TaskManager.Instance, translationKey, translationArgs)
     {
     }
 
-    internal ParentTask(string name, TaskManager manager) : base(name)
+    internal ParentTask(
+        string name,
+        TaskManager manager,
+        string? translationKey = null,
+        IReadOnlyList<object?>? translationArgs = null)
+        : base(name, translationKey, translationArgs)
     {
         _manager = manager;
     }
@@ -37,14 +47,26 @@ public class ParentTask : TaskBase
     public int CompletedCount => SubTasks.Count(s => s.State == TaskState.Completed);
     public int TotalCount => SubTasks.Count;
     public string ProgressText => $"{CompletedCount}/{TotalCount}";
+    public SubTaskBase? FirstFaultedSubTask => SubTasks.FirstOrDefault(subTask => subTask.State == TaskState.Faulted);
 
     public SubTask<T> CreateSubTask<T>(
         string name,
         int priority,
         Func<CancellationToken, Dictionary<SubTaskBase, object>, IProgress<int>, Task<T>> execute,
-        IEnumerable<SubTaskBase>? dependencies = null)
+        IEnumerable<SubTaskBase>? dependencies = null,
+        bool waitForSiblingTasksToComplete = false,
+        string? translationKey = null,
+        IReadOnlyList<object?>? translationArgs = null)
     {
-        var subTask = new SubTask<T>(name, priority, this, dependencies, execute);
+        var subTask = new SubTask<T>(
+            name,
+            priority,
+            this,
+            dependencies,
+            execute,
+            waitForSiblingTasksToComplete,
+            translationKey,
+            translationArgs);
         SubTasks.Add(subTask);
         _manager.OnSubTaskAdded(subTask);
         return subTask;
@@ -59,6 +81,7 @@ public class ParentTask : TaskBase
 
     internal void OnSubTaskFaulted(SubTaskBase faulted)
     {
+        FailureException ??= faulted.FailureException;
         State = TaskState.Faulted;
         CancelRemainingSubTasks();
         
@@ -73,7 +96,7 @@ public class ParentTask : TaskBase
         {
             foreach (var sub in SubTasks.Where(s => !s.IsFinished))
             {
-                sub.Cancel();
+                sub.Cancel(s_cascadeCancellationReason);
             }
 
             _manager.Signal();

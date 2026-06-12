@@ -1,3 +1,16 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,13 +32,16 @@ using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Versioning;
 using LMCCore.Game.Versioning.Discovery;
 using LMCUI.I18n;
+using LMCUI.Navigation.Model;
 using LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
+using LMCUI.Pages.TaskPage;
 using LMCUI.Utils;
 
 namespace LMCUI.Pages.DownloadMinecraftPage;
 
 public partial class DownloadMinecraftPage : PageBase
 {
+    private readonly static TimeSpan MinimumDialogLoadingDuration = TimeSpan.FromMilliseconds(300);
     private readonly Logger _logger = new("DownloadMinecraftPage");
     private readonly DownloadManager _downloadManager = new();
     private readonly ObservableCollection<ManifestVersionListItem> _visibleVersions = [];
@@ -304,13 +320,15 @@ public partial class DownloadMinecraftPage : PageBase
             IsPrimaryButtonEnabled = false,
             IsSecondaryButtonEnabled = true
         };
+        var isDialogBusy = false;
+        var allowProgrammaticClose = false;
 
         var wizard = new DownloadMinecraft.DownloadMinecraftWizard(
             wizardContext,
             state =>
             {
-                dialog.IsPrimaryButtonEnabled = state.hasPrev;
-                dialog.IsSecondaryButtonEnabled = state.hasNext;
+                dialog.IsPrimaryButtonEnabled = !isDialogBusy && state.hasPrev;
+                dialog.IsSecondaryButtonEnabled = !isDialogBusy && state.hasNext;
                 dialog.SecondaryButtonText = state.isFinal
                     ? I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.FinishButton")
                     : I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.NextButton");
@@ -319,20 +337,134 @@ public partial class DownloadMinecraftPage : PageBase
         dialog.Content = wizard;
         dialog.PrimaryButtonClick += (s, e) =>
         {
+            if (isDialogBusy)
+            {
+                e.Cancel = true;
+                return;
+            }
+
             e.Cancel = true;
             wizard.PreviousStep(s, e);
         };
-        dialog.SecondaryButtonClick += (s, e) =>
+        dialog.SecondaryButtonClick += async (_, e) =>
         {
             e.Cancel = true;
-            if (wizard.Continue())
+            if (!wizard.Continue())
             {
-                e.Cancel = false;
                 return;
+            }
+
+            var selection = wizard.Result;
+            if (selection == null)
+            {
+                return;
+            }
+
+            isDialogBusy = true;
+            dialog.IsPrimaryButtonEnabled = false;
+            dialog.IsSecondaryButtonEnabled = false;
+            dialog.CloseButtonText = string.Empty;
+            dialog.Content = CreateDialogLoadingContent(
+                I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Loading"));
+            var startTime = DateTime.UtcNow;
+
+            try
+            {
+                var request = DownloadMinecraftWizardSupport.CreateDownloadRequest(selection);
+                await _downloadManager.CreateDownloadPlanAsync(request);
+                await EnsureMinimumDialogLoadingDurationAsync(startTime);
+
+                isDialogBusy = false;
+                allowProgrammaticClose = true;
+                dialog.Hide();
+                NavigateToTaskPage();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Creating download plan");
+                await EnsureMinimumDialogLoadingDurationAsync(startTime);
+                await MessageQueueHelper.ShowError(
+                    I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Errors.LoadFailedTitle"),
+                    ex.Message);
+                isDialogBusy = false;
+                dialog.Content = wizard;
+                dialog.IsPrimaryButtonEnabled = true;
+                dialog.CloseButtonText = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Dialog.CloseButton");
+                dialog.IsSecondaryButtonEnabled = true;
+            }
+        };
+        dialog.CloseButtonClick += (_, args) =>
+        {
+            if (DownloadMinecraftWizardSupport.ShouldCancelDialogClose(isDialogBusy, allowProgrammaticClose))
+            {
+                args.Cancel = true;
+            }
+        };
+        dialog.Closing += (_, args) =>
+        {
+            if (DownloadMinecraftWizardSupport.ShouldCancelDialogClose(isDialogBusy, allowProgrammaticClose))
+            {
+                args.Cancel = true;
             }
         };
 
-        dialog.ShowAsync();
+        _ = dialog.ShowAsync();
+    }
+
+    async private static Task EnsureMinimumDialogLoadingDurationAsync(DateTime startTime)
+    {
+        var elapsed = DateTime.UtcNow - startTime;
+        var remaining = MinimumDialogLoadingDuration - elapsed;
+        if (remaining > TimeSpan.Zero)
+        {
+            await Task.Delay(remaining);
+        }
+    }
+
+    private static Control CreateDialogLoadingContent(string text)
+    {
+        return new Grid
+        {
+            MinHeight = 220,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Center,
+            Children =
+            {
+                new StackPanel
+                {
+                    Orientation = Orientation.Vertical,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Spacing = 12,
+                    Children =
+                    {
+                        new FAProgressRing
+                        {
+                            IsActive = true,
+                            IsIndeterminate = true,
+                            Width = 36,
+                            Height = 36
+                        },
+                        new TextBlock
+                        {
+                            Text = text,
+                            HorizontalAlignment = HorizontalAlignment.Center
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    private static void NavigateToTaskPage()
+    {
+        var selectedItem = MainWindow.Instance.mnv.SelectedItem as FANavigationViewItem
+                           ?? MainWindow.Instance.mnv.FooterMenuItems.OfType<FANavigationViewItem>()
+                               .First(item => string.Equals(item.Tag?.ToString(), "TaskPage", StringComparison.Ordinal));
+
+        MainWindow.NavigatePage(
+            new PageNavigateWay(typeof(TaskPage.TaskPage), selectedItem),
+            NavigateType.New);
     }
 
     private string GetDisplayTypeText(GameVersionDisplayType displayType)
@@ -447,3 +579,4 @@ public partial class DownloadMinecraftPage : PageBase
         VersionListStateHost.IsVisible = true;
     }
 }
+

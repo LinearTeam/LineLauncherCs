@@ -1,3 +1,16 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 namespace LMC.Basic.Configs;
 
 using System.Collections.Concurrent;
@@ -5,10 +18,10 @@ using System.Reflection;
 
 internal static class ConfigMetadataRepository
 {
-    private static readonly object s_syncRoot = new();
+    private readonly static object s_syncRoot = new();
     private static ConfigScanResult? s_cachedScanResult;
     private static int s_cachedAssemblyCount = -1;
-    private static readonly ConcurrentDictionary<Type, int> s_configVersions = new();
+    private readonly static ConcurrentDictionary<Type, int> s_configVersions = new();
 
     public static int GetConfigVersion(Type configType)
     {

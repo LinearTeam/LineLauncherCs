@@ -74,14 +74,26 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
 
     public async Task<LocalVersionInfo?> GetVersionInfoAsync(string versionId, CancellationToken cancellationToken = default)
     {
+        var json = await GetVersionJsonAsync(versionId, cancellationToken);
+        return ParseVersionJson(json);
+    }
+
+    public async Task<LocalVersionInfo?> GetVersionInfoByUrlAsync(string versionJsonUrl, CancellationToken cancellationToken = default)
+    {
+        var json = await GetVersionJsonByUrlAsync(versionJsonUrl, cancellationToken);
+        return ParseVersionJson(json);
+    }
+
+    public async Task<string> GetVersionJsonAsync(string versionId, CancellationToken cancellationToken = default)
+    {
         var manifest = await GetVersionManifestAsync(cancellationToken);
         var versionEntry = manifest.Versions.FirstOrDefault(v => v.Id == versionId)
             ?? throw new ArgumentException($"Version {versionId} not found");
 
-        return await GetVersionInfoByUrlAsync(versionEntry.Url, cancellationToken);
+        return await GetVersionJsonByUrlAsync(versionEntry.Url, cancellationToken);
     }
 
-    public async Task<LocalVersionInfo?> GetVersionInfoByUrlAsync(string versionJsonUrl, CancellationToken cancellationToken = default)
+    public async Task<string> GetVersionJsonByUrlAsync(string versionJsonUrl, CancellationToken cancellationToken = default)
     {
         var transformedUrl = _sourceManager.TransformUrl(versionJsonUrl);
 
@@ -91,8 +103,7 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
             .GetAsync(cancellationToken);
 
         response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadAsStringAsync(cancellationToken);
-        return ParseVersionJson(json);
+        return await response.Content.ReadAsStringAsync(cancellationToken);
     }
 
     public static LocalVersionInfo? ParseVersionJson(string json)

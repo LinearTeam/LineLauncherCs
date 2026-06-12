@@ -20,6 +20,9 @@ using System.Text.Json.Serialization;
 
 public class DownloadableGameVersion
 {
+    [JsonPropertyName("rootPath")]
+    public required string RootPath { get; set; }
+
     [JsonPropertyName("versionId")]
     public required string VersionId { get; set; }
 
@@ -30,6 +33,6 @@ public class DownloadableGameVersion
     public required ModLoader[] Loaders { get; set; }
 
     [JsonPropertyName("optiFine")]
-    public bool OptiFine { get; set; } = false;
+    public string? OptiFine { get; set; }
 }
 

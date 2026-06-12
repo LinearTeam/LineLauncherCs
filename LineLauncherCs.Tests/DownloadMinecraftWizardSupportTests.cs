@@ -1,4 +1,19 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 using LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
+using LMCCore.Game.Download.Model;
+using LMCCore.Game.Model.Loaders;
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Versioning;
 using LMCUI.Pages.DownloadMinecraftPage;
@@ -118,6 +133,42 @@ public class DownloadMinecraftWizardSupportTests
         Assert.Equal("Pages.DownloadMinecraftPage.Wizard.Steps.VersionNameStep.Validation.AlreadyExists", invalid.ErrorMessage);
         Assert.True(valid.IsValid);
         Assert.Equal("demo-2", valid.Selection!.VersionName);
+    }
+
+    [Fact]
+    public void CreateDownloadRequest_MapsSelectionToDownloadableGameVersion()
+    {
+        var selection = new DownloadableVersionSelection(
+            "1.20.6",
+            "1.20.6-Fabric_0.15.11",
+            @"C:\Games\.minecraft",
+            "0.15.11",
+            "47.2.0",
+            "I6");
+
+        var request = DownloadMinecraftWizardSupport.CreateDownloadRequest(selection);
+
+        Assert.Equal(selection.SelectedRootPath, request.RootPath);
+        Assert.Equal(selection.ManifestVersionId, request.VersionId);
+        Assert.Equal(selection.VersionName, request.VersionName);
+        Assert.Equal("I6", request.OptiFine);
+        Assert.Equal(2, request.Loaders.Length);
+        Assert.Contains(request.Loaders, loader => loader.Type == ModLoaderType.Fabric && loader.VersionId == "0.15.11");
+        Assert.Contains(request.Loaders, loader => loader.Type == ModLoaderType.Forge && loader.VersionId == "47.2.0");
+    }
+
+    [Theory]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, false)]
+    public void ShouldCancelDialogClose_OnlyBlocksUserCloseWhileBusy(
+        bool isDialogBusy,
+        bool allowProgrammaticClose,
+        bool expected)
+    {
+        var result = DownloadMinecraftWizardSupport.ShouldCancelDialogClose(isDialogBusy, allowProgrammaticClose);
+
+        Assert.Equal(expected, result);
     }
 
     private static VersionEntry CreateVersion(string id, string type, DateTimeOffset releaseTime)

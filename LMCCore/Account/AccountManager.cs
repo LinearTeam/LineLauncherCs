@@ -1,10 +1,3 @@
-﻿using System.Text;
-using System.Text.Json.Serialization;
-using LMCCore.Account.Model;
-using System.Text.Json;
-using System.Security.Cryptography;
-using LMC.Basic.Configs;
-using LMC.Basic.Configs.Security;
 // Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +11,13 @@ using LMC.Basic.Configs.Security;
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-
+using System.Text;
+using System.Text.Json.Serialization;
+using LMCCore.Account.Model;
+using System.Text.Json;
+using System.Security.Cryptography;
+using LMC.Basic.Configs;
+using LMC.Basic.Configs.Security;
 using LMCCore.Utils;
 
 namespace LMCCore.Account;
@@ -26,7 +25,7 @@ namespace LMCCore.Account;
 
 public static class AccountManager
 {
-    private static readonly object s_accountsLock = new();
+    private readonly static object s_accountsLock = new();
     private static List<Model.Account> s_accounts = [];
 
     public static IReadOnlyList<Model.Account> Accounts = s_accounts.AsReadOnly();

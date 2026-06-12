@@ -107,7 +107,7 @@ public static class BatchDownloader
         return await DownloadAsync(options, cancellationToken, progress, BatchDownloadRuntime.Default);
     }
 
-    internal async static Task<BatchDownloadResult> DownloadAsync<TFile>(
+    async internal static Task<BatchDownloadResult> DownloadAsync<TFile>(
         BatchDownloadOptions<TFile> options,
         CancellationToken cancellationToken,
         IProgress<int>? progress,
@@ -291,7 +291,7 @@ public static class BatchDownloader
         };
     }
 
-    internal async static Task DownloadFileAsync(string url, string savePath, CancellationToken cancellationToken, int maxRetries = 3)
+    async internal static Task DownloadFileAsync(string url, string savePath, CancellationToken cancellationToken, int maxRetries = 3)
     {
         Exception? lastException = null;
         

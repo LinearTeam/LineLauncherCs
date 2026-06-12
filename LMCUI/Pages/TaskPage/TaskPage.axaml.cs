@@ -18,11 +18,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
 using LMC.Basic.Logging;
 using LMCCore.Tasks;
 using LMCCore.Tasks.Model;
+using LMCUI.I18n;
 
 namespace LMCUI.Pages.TaskPage;
 

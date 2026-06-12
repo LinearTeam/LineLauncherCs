@@ -62,7 +62,7 @@ public static class MicrosoftOAuth
         return await coordinator.StartAsync(s_cancellationTokenSource.Token);
     }
     
-    internal static async Task<OAuthOperationResult<MinecraftOwnershipPayload>> CheckMinecraftOwnership(string mcAccessToken)
+    async internal static Task<OAuthOperationResult<MinecraftOwnershipPayload>> CheckMinecraftOwnership(string mcAccessToken)
     {
         try
         {
@@ -127,7 +127,7 @@ public static class MicrosoftOAuth
         }
     }
     
-    internal static async Task<OAuthOperationResult<string>> GetMinecraftAccessToken(string userHash, string xstsToken, CancellationToken cancellationToken)
+    async internal static Task<OAuthOperationResult<string>> GetMinecraftAccessToken(string userHash, string xstsToken, CancellationToken cancellationToken)
     {
         try
         {
@@ -181,7 +181,7 @@ public static class MicrosoftOAuth
         }
     }
 
-    private static async Task<(string? accessToken, Exception? exception)> TryGetMinecraftServiceAccessTokenFromAccessTokenAsync(
+    async private static Task<(string? accessToken, Exception? exception)> TryGetMinecraftServiceAccessTokenFromAccessTokenAsync(
         MicrosoftAccount account,
         CancellationToken cancellationToken)
     {
@@ -210,7 +210,7 @@ public static class MicrosoftOAuth
             : (null, minecraftAccessToken.Exception);
     }
 
-    private static async Task<(string? accessToken, Exception? exception)> RefreshMicrosoftAccountTokenAsync(
+    async private static Task<(string? accessToken, Exception? exception)> RefreshMicrosoftAccountTokenAsync(
         MicrosoftAccount account,
         CancellationToken cancellationToken)
     {
@@ -230,7 +230,7 @@ public static class MicrosoftOAuth
         return (account.AccessToken, null);
     }
     
-    internal static async Task<OAuthOperationResult<XboxTokenPayload>> GetXstsToken(string xblToken, CancellationToken cancellationToken)
+    async internal static Task<OAuthOperationResult<XboxTokenPayload>> GetXstsToken(string xblToken, CancellationToken cancellationToken)
     {
         try
         {
@@ -257,7 +257,7 @@ public static class MicrosoftOAuth
         }
     }
     
-    internal static async Task<OAuthOperationResult<XboxTokenPayload>> GetXblToken(string accessToken, CancellationToken cancellationToken)
+    async internal static Task<OAuthOperationResult<XboxTokenPayload>> GetXblToken(string accessToken, CancellationToken cancellationToken)
     {
         for (int attempt = 0; attempt < 2; attempt++)
         {
@@ -295,7 +295,7 @@ public static class MicrosoftOAuth
         return OAuthOperationResult<XboxTokenPayload>.Failure(new Exception("XBL token acquisition failed after retries"));
     }
     
-    internal static async Task<OAuthOperationResult<OAuthTokenPayload>> GetTokenByAuthCode(string code, CancellationToken cancellationToken)
+    async internal static Task<OAuthOperationResult<OAuthTokenPayload>> GetTokenByAuthCode(string code, CancellationToken cancellationToken)
     {
         try
         {
@@ -329,7 +329,7 @@ public static class MicrosoftOAuth
         }
     }
 
-    internal static async Task<OAuthOperationResult<OAuthTokenPayload>> GetTokenByRefreshToken(string refreshToken, CancellationToken cancellationToken)
+    async internal static Task<OAuthOperationResult<OAuthTokenPayload>> GetTokenByRefreshToken(string refreshToken, CancellationToken cancellationToken)
     {
         try
         {
