@@ -66,6 +66,8 @@ public class AccountFlowTests
         Assert.Equal(@"C:\cache\abcdef12.png", avatarPath);
         Assert.Equal(@"C:\cache\abcdef12.url", skinPath);
         Assert.True(AccountAvatarCacheHelper.ShouldUseCachedAvatar("https://skins.example/1", "https://skins.example/1", true));
+        Assert.False(AccountAvatarCacheHelper.ShouldUseCachedAvatar("https://skins.example/1", "https://skins.example/2", true));
+        Assert.False(AccountAvatarCacheHelper.ShouldUseCachedAvatar("https://skins.example/1", "https://skins.example/1", false));
     }
 
     [Fact]

@@ -56,17 +56,16 @@ public class Logger
             {
                 FileName = Path.Combine(logDir, "${date:format=yyyy-MM-dd}-${cached:${date}:cached=true:inner=${counter:DailyCounter}.log}"),
                 Layout = "${longdate} [${level}] [${logger}] ${message}",
-                // ArchiveOldFileOnStartup = true,
-                ArchiveAboveSize = 10485760,
-                ArchiveSuffixFormat = "#",
-                MaxArchiveFiles = 100,
-                ArchiveEvery = FileArchivePeriod.Day
+                KeepFileOpen = false,
+                AutoFlush = true
             };
 
             var latestTarget = new FileTarget("latestTarget")
             {
                 FileName = Path.Combine(logDir, "latest.log"),
                 Layout = "${longdate} [${level}] [${logger}] ${message}",
+                KeepFileOpen = false,
+                AutoFlush = true
             };
 
             var consoleTarget = new ConsoleTarget("console")
@@ -121,6 +120,4 @@ public class Logger
     }
 
     public void Close() => LogManager.Shutdown();
-        
-    ~Logger() => Close();
 }

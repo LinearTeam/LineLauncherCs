@@ -41,6 +41,7 @@ public class FabricInfoTaskContributor : IInstallationSubTaskContributor, IGameI
             translationKey: "Pages.TaskPage.Tasks.GameInstall.Fabric.GetVersionInfo");
 
         context.Tasks.SetFabricVersionJsonTask(task);
+        context.Tasks.RegisterVersionJsonDependencyTask(task);
     }
 
     public Task<string> ModifyVersionJsonAsync(

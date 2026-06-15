@@ -126,9 +126,14 @@ internal static class AccountAvatarService
                              skinBitmap.PixelSize.Height >= overlayRect.Bottom;
 
             using var baseHead = new CroppedBitmap(skinBitmap, baseRect);
-            using var output = new RenderTargetBitmap(new PixelSize(headSize, headSize));
+            var scaledSize = Math.Max(32, headSize * 4);
+            using var output = new RenderTargetBitmap(new PixelSize(scaledSize, scaledSize));
             using (var context = output.CreateDrawingContext())
             {
+                using var renderOptions = context.PushRenderOptions(new RenderOptions
+                {
+                    BitmapInterpolationMode = BitmapInterpolationMode.None
+                });
                 var sourceRect = new Rect(0, 0, baseHead.Size.Width, baseHead.Size.Height);
                 var destRect = new Rect(0, 0, output.Size.Width, output.Size.Height);
                 baseHead.Draw(context, sourceRect, destRect);
@@ -139,12 +144,8 @@ internal static class AccountAvatarService
                 }
             }
 
-            var scaledSize = Math.Max(32, headSize * 4);
-            using var scaledOutput = output.CreateScaledBitmap(
-                new PixelSize(scaledSize, scaledSize),
-                BitmapInterpolationMode.None);
             using var avatarStream = new MemoryStream();
-            scaledOutput.Save(avatarStream);
+            output.Save(avatarStream);
             return avatarStream.ToArray();
         }
         catch (Exception ex)

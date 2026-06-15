@@ -12,22 +12,28 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using LMCCore.Game.Download.Installation.Forge;
+using System.Text.Json.Nodes;
 using LMCCore.Game.Model.LocalVersion;
 
-namespace LMCCore.Game.Download.Installation.Caching;
+namespace LMCCore.Game.Download.Installation.Forge;
 
-public sealed class GameInstallationRuntimeState
+public sealed class ForgeInstallationRuntimeState
 {
+    public required string LoaderVersion { get; init; }
+
+    public required string ArtifactVersion { get; init; }
+
+    public required string InstallerJarPath { get; init; }
+
+    public required string InstallProfileJson { get; init; }
+
     public string? VersionJson { get; set; }
 
-    public LocalVersionInfo? VersionInfo { get; set; }
+    public bool IsLegacyInstaller { get; set; }
 
-    public required string CacheDirectory { get; init; }
+    public JsonObject? InstallProfileObject { get; set; }
 
-    public required string CachedVersionJsonPath { get; init; }
+    public JsonObject? VersionJsonObject { get; set; }
 
-    public required string CachedClientJarPath { get; init; }
-
-    public ForgeInstallationRuntimeState? ForgeInstallation { get; set; }
+    public List<DownloadableFileInfo> AdditionalLibraries { get; } = [];
 }

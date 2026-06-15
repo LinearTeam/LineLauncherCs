@@ -19,6 +19,7 @@ namespace LMCCore.Game.Download.Installation;
 public sealed class DownloadInstallationTaskRegistry
 {
     private readonly Dictionary<string, SubTaskBase> _customTasks = [];
+    private readonly List<SubTaskBase> _versionJsonDependencyTasks = [];
 
     public SubTask<LocalVersionInfo>? VersionInfoTask { get; private set; }
 
@@ -31,6 +32,10 @@ public sealed class DownloadInstallationTaskRegistry
     public SubTask<bool>? FinalizationTask { get; private set; }
 
     public SubTask<string>? FabricVersionJsonTask { get; private set; }
+
+    public SubTask<Forge.ForgeInstallationRuntimeState>? ForgeInstallerTask { get; private set; }
+
+    public SubTask<bool>? ForgeProcessorsTask { get; private set; }
 
     public void SetVersionInfoTask(SubTask<LocalVersionInfo> task)
     {
@@ -60,6 +65,33 @@ public sealed class DownloadInstallationTaskRegistry
     public void SetFabricVersionJsonTask(SubTask<string> task)
     {
         FabricVersionJsonTask = task ?? throw new ArgumentNullException(nameof(task));
+    }
+
+    public void SetForgeInstallerTask(SubTask<Forge.ForgeInstallationRuntimeState> task)
+    {
+        ForgeInstallerTask = task ?? throw new ArgumentNullException(nameof(task));
+    }
+
+    public void SetForgeProcessorsTask(SubTask<bool> task)
+    {
+        ForgeProcessorsTask = task ?? throw new ArgumentNullException(nameof(task));
+    }
+
+    public void RegisterVersionJsonDependencyTask(SubTaskBase task)
+    {
+        ArgumentNullException.ThrowIfNull(task);
+
+        if (_versionJsonDependencyTasks.Any(existing => existing.Id == task.Id))
+        {
+            return;
+        }
+
+        _versionJsonDependencyTasks.Add(task);
+    }
+
+    public IReadOnlyList<SubTaskBase> GetVersionJsonDependencyTasks()
+    {
+        return _versionJsonDependencyTasks.AsReadOnly();
     }
 
     public void Register(string key, SubTaskBase task)
@@ -105,6 +137,13 @@ public sealed class DownloadInstallationTaskRegistry
         AddTask(tasks, taskIds, AssetsTask);
         AddTask(tasks, taskIds, FinalizationTask);
         AddTask(tasks, taskIds, FabricVersionJsonTask);
+        AddTask(tasks, taskIds, ForgeInstallerTask);
+        AddTask(tasks, taskIds, ForgeProcessorsTask);
+
+        foreach (var task in _versionJsonDependencyTasks)
+        {
+            AddTask(tasks, taskIds, task);
+        }
 
         foreach (var task in _customTasks.Values)
         {

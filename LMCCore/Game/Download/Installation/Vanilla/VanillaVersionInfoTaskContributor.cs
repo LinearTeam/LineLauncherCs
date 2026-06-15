@@ -12,8 +12,6 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using LMCCore.Tasks.Model;
-
 namespace LMCCore.Game.Download.Installation.Vanilla;
 
 internal sealed class VanillaVersionInfoTaskContributor : IInstallationSubTaskContributor
@@ -22,14 +20,8 @@ internal sealed class VanillaVersionInfoTaskContributor : IInstallationSubTaskCo
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var dependencies = new List<SubTaskBase>();
-        if (context.Tasks.FabricVersionJsonTask != null)
-        {
-            dependencies.Add(context.Tasks.FabricVersionJsonTask);
-        }
-
         var task = context.ParentTask.CreateSubTask(
-            $"获取版本信息 ({context.Request.VersionId})",
+            $"Get version info ({context.Request.VersionId})",
             0,
             async (cancellationToken, _, progress) =>
             {
@@ -47,7 +39,7 @@ internal sealed class VanillaVersionInfoTaskContributor : IInstallationSubTaskCo
                 progress.Report(100);
                 return versionInfo;
             },
-            dependencies: dependencies,
+            dependencies: context.Tasks.GetVersionJsonDependencyTasks(),
             translationKey: "Pages.TaskPage.Tasks.GameInstall.Vanilla.GetVersionInfo");
 
         context.Tasks.SetVersionInfoTask(task);

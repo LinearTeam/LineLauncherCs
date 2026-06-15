@@ -146,6 +146,7 @@ public class DownloadManager
             new VanillaInstallationTaskProvider(),
             new FabricInstallationTaskProvider(),
             new ForgeInstallationTaskProvider(),
+            new ForgePostProcessingTaskProvider(),
             new OptiFineInstallationTaskProvider(),
             new GameInstallationFinalizationTaskProvider()
         ];
