@@ -11,10 +11,12 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using LMC;
 using LMC.Basic.Configs;
 using LMC.Basic.Logging;
 using LMCCore.Game.Download;
+using LMCCore.Game.Launching;
 using LMCCore.Game.Model;
 using LMCCore.Game.Model.LocalVersion;
 using LMCCore.Game.Model.Validation;
@@ -23,10 +25,14 @@ using LMCCore.Game.Versioning.Validation;
 
 namespace LMCCore.Game.Versioning;
 
-public class VersionManager(DownloadManager? downloadManager = null, IEnumerable<IVersionValidator>? validators = null)
+public class VersionManager(
+    DownloadManager? downloadManager = null,
+    IEnumerable<IVersionValidator>? validators = null,
+    GameLaunchManager? gameLaunchManager = null)
 {
     private readonly IReadOnlyList<IVersionValidator> _validators = (validators ?? CreateDefaultValidators()).ToList().AsReadOnly();
     private readonly DownloadManager _downloadManager = downloadManager ?? new DownloadManager();
+    private readonly GameLaunchManager _gameLaunchManager = gameLaunchManager ?? new GameLaunchManager();
     private readonly Logger _logger = new("VersionManager");
     private LocalVersionScanner? _versionScanner;
 
@@ -111,6 +117,27 @@ public class VersionManager(DownloadManager? downloadManager = null, IEnumerable
         }
 
         return ValidateVersionsAsync(selectedRoot.RootPath, cancellationToken);
+    }
+
+    public Task<GameLaunchResult> LaunchGameAsync(
+        LocalGameVersionEntry version,
+        AppConfig config,
+        LMCCore.Account.Model.Account account,
+        bool shouldValidateAndCompleteMissingFiles = true,
+        IProgress<GameLaunchProgress>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(account);
+
+        return _gameLaunchManager.LaunchAsync(
+            version,
+            config,
+            account,
+            shouldValidateAndCompleteMissingFiles,
+            progress,
+            cancellationToken);
     }
 
     private ManagedGameRootService CreateRootService()

@@ -8,15 +8,48 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LMCUI.Pages.LaunchPage.LaunchPage">
 
-    <Grid>
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-            <TextBlock Text="{i18n:I18nBinding Key=Pages.LaunchPage.WelcomeMessage}" 
-                       FontSize="24" 
-                       HorizontalAlignment="Center" 
-                       Margin="0,0,0,20" />
+    <Grid Margin="24">
+        <Border
+            MaxWidth="560"
+            Padding="20"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            CornerRadius="12"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+            <StackPanel Spacing="14">
+                <TextBlock
+                    Text="{i18n:I18nBinding Key=Pages.LaunchPage.WelcomeMessage}"
+                    FontSize="24" />
 
-            <Button Name="InstallVanillaButton" Content="安装 Minecraft 1.21" Click="InstallVanillaButton_Click" />
-            <Button Name="NavigateToTaskPageButton" Content="查看任务页面" Click="NavigateToTaskPageButton_Click" />
-        </StackPanel>
+                <TextBlock Text="临时启动测试面板" FontSize="14" Opacity="0.75" />
+
+                <StackPanel Spacing="6">
+                    <TextBlock Text="选择本地游戏版本" />
+                    <ComboBox
+                        Name="VersionComboBox"
+                        HorizontalAlignment="Stretch"
+                        SelectionChanged="VersionComboBox_SelectionChanged" />
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                    <TextBlock Text="选择账户" />
+                    <ComboBox
+                        Name="AccountComboBox"
+                        HorizontalAlignment="Stretch"
+                        SelectionChanged="AccountComboBox_SelectionChanged" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Name="CurrentStepLabel" Text="当前进行的启动步骤：未开始" />
+                    <TextBlock Name="CurrentStatusLabel" Text="当前状态：等待选择版本和账户" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <Button
+                    Name="LaunchGameButton"
+                    HorizontalAlignment="Left"
+                    Content="启动游戏"
+                    Click="LaunchGameButton_Click" />
+            </StackPanel>
+        </Border>
     </Grid>
 </pages:PageBase>

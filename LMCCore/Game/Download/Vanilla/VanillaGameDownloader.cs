@@ -219,7 +219,7 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
     private static string EnsureTrailingSlash(string url) =>
         url.EndsWith("/", StringComparison.Ordinal) ? url : $"{url}/";
 
-    private static bool TryBuildMavenRelativePath(string name, out string relativePath)
+    public static bool TryBuildMavenRelativePath(string name, out string relativePath)
     {
         var parts = name.Split(':', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length is not (3 or 4))

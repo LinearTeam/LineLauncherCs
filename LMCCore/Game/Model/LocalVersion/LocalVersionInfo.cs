@@ -65,9 +65,12 @@ public class LocalVersionInfo
     [JsonPropertyName("clientVersion")]
     public string? ClientVersion { get; set; }
 
+    [JsonPropertyName("inheritsFrom")]
+    public string? InheritsFrom { get; set; }
+
     [JsonPropertyName("patches")]
     public List<HMCLPatchInfo>? Patches { get; set; }
-
+    
 }
 public class HMCLPatchInfo
 {

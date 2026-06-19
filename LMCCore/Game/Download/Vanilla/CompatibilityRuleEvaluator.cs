@@ -30,7 +30,7 @@ public static class CompatibilityRuleEvaluator
     {
         if (rules == null)
             return true;
-
+        
         var otherOsAllowed = false;
         foreach (var rule in rules)
         {
