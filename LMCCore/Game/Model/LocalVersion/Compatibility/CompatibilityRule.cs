@@ -36,8 +36,19 @@ public class RuleOs
 
     [JsonPropertyName("version")]
     public string? Version { get; set; }
+    
+    [JsonPropertyName("versionRange")]
+    public VersionRange? VersionRange { get; set; }
 }
 
+public class VersionRange
+{
+    [JsonPropertyName("min")]
+    public string? Min { get; set; }
+
+    [JsonPropertyName("max")]
+    public string? Max { get; set; }
+}
 
 public enum RuleAction
 {

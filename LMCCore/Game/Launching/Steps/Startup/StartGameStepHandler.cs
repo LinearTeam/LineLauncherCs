@@ -25,7 +25,7 @@ public sealed class StartGameStepHandler : IGameLaunchStepHandler
 {
     public GameLaunchProgressStep Step => GameLaunchProgressStep.StartGame;
 
-    public Task ExecuteAsync(GameLaunchContext context, CancellationToken cancellationToken)
+    public async Task ExecuteAsync(GameLaunchContext context, CancellationToken cancellationToken)
     {
         context.Process = null;
         var process = new Process();
@@ -41,10 +41,10 @@ public sealed class StartGameStepHandler : IGameLaunchStepHandler
                 UseShellExecute = false,
                 WorkingDirectory = context.Version.VersionDirectory
             };
+        await File.WriteAllTextAsync(Path.Combine(context.Version.VersionDirectory, "launch.bat"), psi.Arguments, cancellationToken);
         new Logger("Args").Debug(psi.FileName + " " +psi.Arguments);
         process.StartInfo = psi;
         context.Process = process;
         process.Start();
-        return Task.CompletedTask;
     }
 }

@@ -29,9 +29,11 @@ public class CommandBuilder
 
     public IReadOnlyList<string> GetGameArguments()
     {
-        return _gameArguments.AsReadOnly();
+        return _gameArguments
+            .Select(QuoteGameArgumentIfNeeded)
+            .ToList()
+            .AsReadOnly();
     }
-
     public void AddJvmArgument(string arg)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(arg);
@@ -125,7 +127,19 @@ public class CommandBuilder
 
     private static string QuoteSystemPropertyArgumentIfNeeded(string arg)
     {
-        if (!arg.StartsWith("-D", StringComparison.Ordinal))
+        if (!arg.StartsWith("-D", StringComparison.Ordinal) && !arg.Contains(' '))
+        {
+            return arg;
+        }
+
+        return arg.Length >= 2 && arg[0] == '"' && arg[^1] == '"'
+            ? arg
+            : $"\"{arg}\"";
+    }
+
+    private static string QuoteGameArgumentIfNeeded(string arg)
+    {
+        if (!arg.Contains(' '))
         {
             return arg;
         }

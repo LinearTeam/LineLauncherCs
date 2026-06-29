@@ -97,6 +97,22 @@ public static class CompatibilityRuleEvaluator
             }
         }
 
+        if (rule.Os?.VersionRange != null)
+        {
+            var range = rule.Os.VersionRange;
+            var osVersion = Environment.OSVersion.Version;
+            if (!string.IsNullOrEmpty(range.Min))
+            {
+                var version = new Version(range.Min);
+                if (osVersion < version) return false;
+            }
+            if (!string.IsNullOrEmpty(range.Max))
+            {
+                var version = new Version(range.Max);
+                if (osVersion > version) return false;
+            }
+        }
+
         if (!string.IsNullOrEmpty(rule.Os?.Arch))
         {
             var archName = RuntimeInformation.OSArchitecture switch

@@ -74,6 +74,9 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
         SimpleLibraryInfo library,
         ISet<string> nativeArchives)
     {
+        return;
+        
+        // Unused
         if (!library.Name.Contains("natives", StringComparison.OrdinalIgnoreCase))
         {
             return;
@@ -98,29 +101,29 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
             return;
         }
         
-        if (library.Name.Contains("natives", StringComparison.OrdinalIgnoreCase))
-        {
-            if (library.Name.Contains(":natives-"))
-            {
-                var i = library.Name.LastIndexOf(':');
-                var nativesIdentifier = library.Name[(i + 1)..]
-                    .Replace("natives-", "");
-                var rule = new CompatibilityRule
-                {
-                    Action = "allow",
-                    Os = new RuleOs
-                    {
-                        Name = nativesIdentifier
-                    }
-                };
-                if (!CompatibilityRuleEvaluator.RuleMatchesOs(rule)) return;
-            }
-            var archivePath = library.Downloads?.Artifact?.Path ?? library.Path;
-            if (!string.IsNullOrWhiteSpace(archivePath))
-            {
-                nativeArchives.Add(VanillaGameDownloader.GetLibrarySavePath(context.Version.RootPath, archivePath));
-            }
-        }
+        // if (library.Name.Contains("natives", StringComparison.OrdinalIgnoreCase))
+        // {
+        //     if (library.Name.Contains(":natives-"))
+        //     {
+        //         var i = library.Name.LastIndexOf(':');
+        //         var nativesIdentifier = library.Name[(i + 1)..]
+        //             .Replace("natives-", "");
+        //         var rule = new CompatibilityRule
+        //         {
+        //             Action = "allow",
+        //             Os = new RuleOs
+        //             {
+        //                 Name = nativesIdentifier
+        //             }
+        //         };
+        //         if (!CompatibilityRuleEvaluator.RuleMatchesOs(rule)) return;
+        //     }
+        //     var archivePath = library.Downloads?.Artifact?.Path ?? library.Path;
+        //     if (!string.IsNullOrWhiteSpace(archivePath))
+        //     {
+        //         nativeArchives.Add(VanillaGameDownloader.GetLibrarySavePath(context.Version.RootPath, archivePath));
+        //     }
+        // }
 
         if (library.Natives is not { Count: > 0 } ||
             library.Downloads?.Classifiers is not { Count: > 0 } ||
@@ -154,16 +157,32 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
                 continue;
             }
 
-            var targetPath = Path.Combine(nativesFolder, entry.Name);
+            var targetPath = Path.Combine(nativesFolder, entry.FullName);
+            var targetPathFlat = Path.Combine(nativesFolder, entry.Name);
+            if (!Directory.Exists(Path.GetDirectoryName(targetPath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? throw new NullReferenceException());
+            }
             await using var entryStream = await entry.OpenAsync(cancellationToken);
-            await using var fileStream = new FileStream(
-                targetPath,
+            // await using (var fileStream = new FileStream(
+            //                  targetPath,
+            //                  FileMode.Create,
+            //                  FileAccess.Write,
+            //                  FileShare.None,
+            //                  81920,
+            //                  useAsync: true))
+            // {
+            //     await entryStream.CopyToAsync(fileStream, cancellationToken);
+            // }
+
+            await using var fileStreamFlat = new FileStream(
+                targetPathFlat,
                 FileMode.Create,
                 FileAccess.Write,
                 FileShare.None,
                 81920,
                 useAsync: true);
-            await entryStream.CopyToAsync(fileStream, cancellationToken);
+            await entryStream.CopyToAsync(fileStreamFlat, cancellationToken);
         }
     }
 

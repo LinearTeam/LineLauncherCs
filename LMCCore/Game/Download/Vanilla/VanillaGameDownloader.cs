@@ -158,13 +158,12 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
             return;
         }
 
-        var hasNative = libInfo.Name.Contains("natives", StringComparison.OrdinalIgnoreCase) ||
+        var hasNative = /* libInfo.Name.Contains("natives", StringComparison.OrdinalIgnoreCase) || */
                         libInfo.Natives is { Count: > 0 } ||
                         libInfo.Downloads?.Classifiers is { Count: > 0 };
 
         if (hasNative &&
-            libInfo.Natives is { Count: > 0 } &&
-            libInfo.Downloads?.Classifiers is { Count: > 0 })
+            libInfo is { Natives.Count: > 0, Downloads.Classifiers.Count: > 0 })
         {
             var os = PlatformDetector.GetCurrentOs();
             if (libInfo.Natives.TryGetValue(os, out var key) &&

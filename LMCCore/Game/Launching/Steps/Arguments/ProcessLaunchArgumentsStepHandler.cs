@@ -21,6 +21,7 @@ using LMCCore.Game.Download.Vanilla;
 using LMCCore.Game.Launching.Execution;
 using LMCCore.Game.Model.LocalVersion;
 using LMCCore.Game.Model.LocalVersion.Arguments;
+using LMCCore.Game.Model.LocalVersion.Compatibility;
 using LMCCore.Game.Model.LocalVersion.Libraries;
 
 namespace LMCCore.Game.Launching.Steps.Arguments;
@@ -28,13 +29,32 @@ namespace LMCCore.Game.Launching.Steps.Arguments;
 public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
 {
     public GameLaunchProgressStep Step => GameLaunchProgressStep.ProcessLaunchArguments;
+    private readonly List<IGameArgument> _defaultJvmArguments = [
+        new ConditionGameArguments
+        {
+            Value = new StringConditionArgumentValue{ Value = "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump" },
+            Rules = [
+                new CompatibilityRule
+                {
+                    Os = new RuleOs
+                    {
+                        Name = "windows"
+                    },
+                    Action = "allow"
+                }
+            ]
+        },
+        new StringGameArgument { Value = "-Djava.library.path=${natives_directory}" },
+        new StringGameArgument { Value = "-Dminecraft.launcher.brand=${launcher_name}" },
+        new StringGameArgument { Value = "-Dminecraft.launcher.version=${launcher_version}" },
+        new StringGameArgument { Value = "-cp" },
+        new StringGameArgument { Value = "${classpath}" }
+    ];
 
     public Task ExecuteAsync(GameLaunchContext context, CancellationToken cancellationToken)
     {
         var cp = BuildClassPaths(context, cancellationToken);
         var cb = new CommandBuilder();
-        cb.AddJvmArguments(["-Xmx4G"]); // TODO: 读配置
-
         var cpStr = string.Join(Path.PathSeparator, cp);
         cpStr = $"\"{cpStr}\"";
         
@@ -45,6 +65,10 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
         
         AddJvmArguments(context, cb, cpStr);
         AddGameArguments(context, cb, cpStr);
+
+        cb.AddJvmArguments(["-Xmx4G"]); // TODO: 读配置
+
+        AddUserDefaultJvmArguments(context, cb, cpStr);
 
         context.CommandBuilder = cb;
         return Task.CompletedTask;
@@ -65,7 +89,7 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
         s = s.Replace("${user_properties}", "{}");
         s = s.Replace("${version_name}", context.Version.VersionName);
         s = s.Replace("${profile_name}", $"LMC {Current.Version}");
-        s = s.Replace("${version_type}", context.Version.VersionInfo!.Type);
+        s = s.Replace("${version_type}", $"LMC-{Current.VersionType}");
         s = s.Replace("${game_directory}", context.Version.VersionDirectory);
         s = s.Replace("${assets_index_name}", context.Version.VersionInfo.AssetIndex!.Id);
         // s = s.Replace("${resolution_width}", context.Account.Name);
@@ -88,10 +112,14 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(context.Version.VersionInfo);
-        if(context.Version.VersionInfo.Arguments == null) return;
-        if (!context.Version.VersionInfo.Arguments.TryGetValue("game", out var args))
+        var args = context.Version.VersionInfo.Arguments?.GetValueOrDefault("game");
+        if (args == null)
         {
-            return;
+            var mcArgs = context.Version.VersionInfo.MinecraftArguments;
+            if(string.IsNullOrEmpty(mcArgs)) return;
+            args = new List<IGameArgument>(mcArgs.Split(' ')
+                .Select(str => new StringGameArgument{ Value = str })
+                .ToList());
         }
         var finalArgs = ProcessArgs(context, classPath, args);
         cb.AddGameArguments(finalArgs);
@@ -101,8 +129,16 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(context.Version.VersionInfo);
+        var args = context.Version.VersionInfo.Arguments?.GetValueOrDefault("jvm") ??  _defaultJvmArguments;
+        var finalArgs = ProcessArgs(context, classPath, args);
+        cb.AddJvmArguments(finalArgs);
+    }
+    private void AddUserDefaultJvmArguments(GameLaunchContext context, CommandBuilder cb, string classPath)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(context.Version.VersionInfo);
         if(context.Version.VersionInfo.Arguments == null) return;
-        if (!context.Version.VersionInfo.Arguments.TryGetValue("jvm", out var args))
+        if (!context.Version.VersionInfo.Arguments.TryGetValue("default-user-jvm", out var args))
         {
             return;
         }
@@ -123,7 +159,7 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
                     break;
                 case ConditionGameArguments cga:
                     if(!CompatibilityRuleEvaluator.CheckRulesApply(cga.Rules)) continue;
-                    if (cga.Rules.Any(r => r.Features != null)) continue;
+                    if (cga.Rules != null && cga.Rules.Any(r => r.Features != null)) continue;
                     switch (cga.Value)
                     {
                         case StringConditionArgumentValue scav:
@@ -202,7 +238,7 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
         IDictionary<string, ClassPathCandidate> selectedCandidates,
         IList<string> candidateOrder)
     {
-        if (IsNativeLibrary(library.Name))
+        if (IsNativeLibrary(library))
         {
             return;
         }
@@ -217,7 +253,7 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
         IDictionary<string, ClassPathCandidate> selectedCandidates,
         IList<string> candidateOrder)
     {
-        if (!CompatibilityRuleEvaluator.CheckRulesApply(library.Rules) || IsNativeLibrary(library.Name))
+        if (!CompatibilityRuleEvaluator.CheckRulesApply(library.Rules) || IsNativeLibrary(library))
         {
             return;
         }
@@ -368,9 +404,14 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
             .ToList();
     }
 
-    private static bool IsNativeLibrary(string libraryName)
+    private static bool IsNativeLibrary(ILibraryInfo libraryInfo)
     {
-        return libraryName.Contains("natives", StringComparison.OrdinalIgnoreCase);
+        return libraryInfo switch
+        {
+            SimpleLibraryInfo => false,
+            LibraryInfo libInfo => libInfo.Natives != null && libInfo.Natives.ContainsKey(PlatformDetector.GetCurrentOs()),
+            _ => false
+        };
     }
 
     private sealed record ClassPathCandidate(string DependencyKey, string? Version, string Path);
