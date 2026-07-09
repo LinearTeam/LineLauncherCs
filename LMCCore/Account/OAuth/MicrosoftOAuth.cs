@@ -152,6 +152,10 @@ public static class MicrosoftOAuth
     {
         try
         {
+            MicrosoftOAuthSensitiveData.Add(account.AccessToken, "{MSAccessToken}");
+            MicrosoftOAuthSensitiveData.Add(account.RefreshToken, "{MSRefreshToken}");
+            MicrosoftOAuthSensitiveData.Add(account.Xuid, "{Xuid}");
+
             if (!string.IsNullOrWhiteSpace(account.AccessToken) && account.ExpiresAt > DateTimeOffset.Now.AddMinutes(1))
             {
                 var existingTokenResult = await TryGetMinecraftServiceAccessTokenFromAccessTokenAsync(account, cancellationToken);
@@ -192,6 +196,10 @@ public static class MicrosoftOAuth
             return (null, xblResult.Exception ?? new Exception("Failed to get xbl token"));
         }
 
+        MicrosoftOAuthSensitiveData.Add(xblResult.Value.Token, "{XBLToken}");
+        MicrosoftOAuthSensitiveData.Add(xblResult.Value.UserHash, "{XBLUserHash}");
+        MicrosoftOAuthSensitiveData.Add(xblResult.Value.Xuid, "{XBLXuid}");
+
         var xstsResult = await GetXstsToken(xblResult.Value.Token!, cancellationToken);
         if (!xstsResult.IsSuccess ||
             string.IsNullOrWhiteSpace(xstsResult.Value?.Token) ||
@@ -201,10 +209,20 @@ public static class MicrosoftOAuth
         }
 
         s_logger.Info($"微软账号现有 AccessToken 可用: {account.Name}");
+        MicrosoftOAuthSensitiveData.Add(xstsResult.Value.Token, "{XSTSToken}");
+        MicrosoftOAuthSensitiveData.Add(xstsResult.Value.UserHash, "{XSTSUserHash}");
+        MicrosoftOAuthSensitiveData.Add(xstsResult.Value.Xuid, "{XSTSXuid}");
+
+        if (!string.IsNullOrWhiteSpace(xstsResult.Value.Xuid))
+        {
+            account.Xuid = xstsResult.Value.Xuid!;
+        }
+
         var minecraftAccessToken = await GetMinecraftAccessToken(
             xstsResult.Value.UserHash!,
             xstsResult.Value.Token!,
             cancellationToken);
+        MicrosoftOAuthSensitiveData.Add(minecraftAccessToken.Value, "{MCAccessToken}");
         return minecraftAccessToken.IsSuccess
             ? (minecraftAccessToken.Value, null)
             : (null, minecraftAccessToken.Exception);
@@ -214,6 +232,7 @@ public static class MicrosoftOAuth
         MicrosoftAccount account,
         CancellationToken cancellationToken)
     {
+        MicrosoftOAuthSensitiveData.Add(account.RefreshToken, "{MSRefreshToken}");
         var tokenResult = await GetTokenByRefreshToken(account.RefreshToken, cancellationToken);
         if (!tokenResult.IsSuccess || string.IsNullOrWhiteSpace(tokenResult.Value?.AccessToken))
         {
@@ -221,9 +240,11 @@ public static class MicrosoftOAuth
         }
 
         account.AccessToken = tokenResult.Value.AccessToken!;
+        MicrosoftOAuthSensitiveData.Add(account.AccessToken, "{MSAccessToken}");
         if (!string.IsNullOrWhiteSpace(tokenResult.Value.RefreshToken))
         {
             account.RefreshToken = tokenResult.Value.RefreshToken!;
+            MicrosoftOAuthSensitiveData.Add(account.RefreshToken, "{MSRefreshToken}");
         }
 
         account.ExpiresAt = DateTimeOffset.Now.AddSeconds(tokenResult.Value.ExpiresIn);

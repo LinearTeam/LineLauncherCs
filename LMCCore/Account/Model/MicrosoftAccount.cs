@@ -23,6 +23,7 @@ public class MicrosoftAccount : Account
 
     public string RefreshToken { get; set; } = string.Empty;
     public DateTimeOffset ExpiresAt { get; set; }
+    public string Xuid { get; set; } = string.Empty;
 
     public MicrosoftAccount()
     {

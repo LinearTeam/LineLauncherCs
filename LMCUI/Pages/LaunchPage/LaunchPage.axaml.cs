@@ -25,6 +25,7 @@ using LMCCore.Account.Model;
 using LMCCore.Game.Launching;
 using LMCCore.Game.Model;
 using LMCCore.Game.Versioning;
+using LMCUI.Pages;
 
 namespace LMCUI.Pages.LaunchPage;
 
@@ -39,37 +40,71 @@ public partial class LaunchPage : PageBase
     public LaunchPage() : base("Pages.LaunchPage.Title", "LaunchPage")
     {
         InitializeComponent();
-        _ = LoadLaunchOptionsAsync();
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
-    async private Task LoadLaunchOptionsAsync()
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        VersionCatalogRefreshCoordinator.Refreshed += VersionCatalogRefreshCoordinator_OnRefreshed;
+        _ = LoadLaunchOptionsAsync(VersionCatalogRefreshCoordinator.LatestSnapshot);
+    }
+
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
+    {
+        VersionCatalogRefreshCoordinator.Refreshed -= VersionCatalogRefreshCoordinator_OnRefreshed;
+    }
+
+    async private Task LoadLaunchOptionsAsync(VersionCatalogSnapshot? snapshot = null)
     {
         try
         {
             SetStatus("正在加载本地版本和账户...");
 
             AccountManager.Load();
-            var versions = await _versionManager.ScanSelectedRootVersionsAsync();
+            var versions = snapshot?.Versions ?? await _versionManager.ScanSelectedRootVersionsAsync();
             var versionOptions = versions
                 .Select(version => new LaunchVersionOption(version))
                 .ToList();
             var accountOptions = AccountManager.Accounts
                 .Select(account => new LaunchAccountOption(account))
                 .ToList();
+            var previousVersionName = _selectedVersion?.Version.VersionName;
+            var previousAccountName = _selectedAccount?.Account.Name;
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 VersionComboBox.ItemsSource = versionOptions;
                 AccountComboBox.ItemsSource = accountOptions;
 
-                if (versionOptions.Count > 0)
+                var versionIndex = versionOptions.FindIndex(option =>
+                    string.Equals(option.Version.VersionName, previousVersionName, StringComparison.Ordinal));
+                if (versionIndex >= 0)
+                {
+                    VersionComboBox.SelectedIndex = versionIndex;
+                }
+                else if (versionOptions.Count > 0)
                 {
                     VersionComboBox.SelectedIndex = 0;
                 }
+                else
+                {
+                    VersionComboBox.SelectedIndex = -1;
+                }
 
-                if (accountOptions.Count > 0)
+                var accountIndex = accountOptions.FindIndex(option =>
+                    string.Equals(option.Account.Name, previousAccountName, StringComparison.Ordinal));
+                if (accountIndex >= 0)
+                {
+                    AccountComboBox.SelectedIndex = accountIndex;
+                }
+                else if (accountOptions.Count > 0)
                 {
                     AccountComboBox.SelectedIndex = 0;
+                }
+                else
+                {
+                    AccountComboBox.SelectedIndex = -1;
                 }
             });
 
@@ -94,6 +129,11 @@ public partial class LaunchPage : PageBase
             SetStatus($"加载启动信息失败：{ex.Message}");
             UpdateLaunchButtonState();
         }
+    }
+
+    private void VersionCatalogRefreshCoordinator_OnRefreshed(VersionCatalogSnapshot snapshot)
+    {
+        _ = LoadLaunchOptionsAsync(snapshot);
     }
 
     private void VersionComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)

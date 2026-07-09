@@ -34,6 +34,7 @@ using LMCCore.Game.Versioning;
 using LMCUI.I18n;
 using LMCUI.Navigation;
 using LMCUI.Navigation.Model;
+using LMCUI.Pages;
 using LMCUI.Utils;
 
 namespace LMCUI.Pages.VersionManagePage;
@@ -233,6 +234,7 @@ public partial class VersionManagePage : PageBase
             DisposeWatcher();
             _lastInvalidVersionSignature = string.Empty;
             _refreshState.ClearPendingExternalRefresh();
+            VersionCatalogRefreshCoordinator.Publish(null, []);
             RenderEmptyState(I18nManager.Instance.GetString("Pages.VersionManagePage.EmptyState.NoRootVersions"));
             return;
         }
@@ -290,6 +292,7 @@ public partial class VersionManagePage : PageBase
         _refreshState.MarkRefreshed(DateTime.UtcNow);
         UpdateCurrentRootDisplay(selectedRoot, versions.Count);
         RenderVersions(renderData);
+        VersionCatalogRefreshCoordinator.Publish(selectedRoot.RootPath, versions);
         NotifyInvalidVersions(versions, forceInvalidNotification);
         ConfigureWatcher(selectedRoot.RootPath);
     }

@@ -115,7 +115,7 @@ internal sealed class MicrosoftOAuthFlowCoordinator(
             return null;
         }
 
-        SecretsManager.SensitiveData[code] = "{OACode}";
+        MicrosoftOAuthSensitiveData.Add(code, "{OACode}");
 
         _progressReporter.ReportStep(OAuthFlowStep.GetAccessToken);
         LogStep(OAuthFlowStep.GetAccessToken);
@@ -128,6 +128,9 @@ internal sealed class MicrosoftOAuthFlowCoordinator(
             return null;
         }
 
+        MicrosoftOAuthSensitiveData.Add(tokenResult.Value!.AccessToken, "{MSAccessToken}");
+        MicrosoftOAuthSensitiveData.Add(tokenResult.Value.RefreshToken, "{MSRefreshToken}");
+
         _progressReporter.ReportStep(OAuthFlowStep.XblAuthorize);
         LogStep(OAuthFlowStep.XblAuthorize);
         var xblResult = await _dependencies.GetXblTokenAsync(tokenResult.Value!.AccessToken!, cancellationToken);
@@ -139,7 +142,9 @@ internal sealed class MicrosoftOAuthFlowCoordinator(
             return null;
         }
 
-        SecretsManager.SensitiveData[xblResult.Value.Token!] = "{XBLToken}";
+        MicrosoftOAuthSensitiveData.Add(xblResult.Value.Token, "{XBLToken}");
+        MicrosoftOAuthSensitiveData.Add(xblResult.Value.UserHash, "{XBLUserHash}");
+        MicrosoftOAuthSensitiveData.Add(xblResult.Value.Xuid, "{XBLXuid}");
 
         _progressReporter.ReportStep(OAuthFlowStep.XstsAuthorize);
         LogStep(OAuthFlowStep.XstsAuthorize);
@@ -154,8 +159,9 @@ internal sealed class MicrosoftOAuthFlowCoordinator(
             return null;
         }
 
-        SecretsManager.SensitiveData[xstsResult.Value.Token!] = "{XSTSToken}";
-        SecretsManager.SensitiveData[xstsResult.Value.UserHash!] = "{UserHash}";
+        MicrosoftOAuthSensitiveData.Add(xstsResult.Value.Token, "{XSTSToken}");
+        MicrosoftOAuthSensitiveData.Add(xstsResult.Value.UserHash, "{XSTSUserHash}");
+        MicrosoftOAuthSensitiveData.Add(xstsResult.Value.Xuid, "{XSTSXuid}");
 
         _progressReporter.ReportStep(OAuthFlowStep.MinecraftAuthorize);
         LogStep(OAuthFlowStep.MinecraftAuthorize);
@@ -171,7 +177,7 @@ internal sealed class MicrosoftOAuthFlowCoordinator(
             return null;
         }
 
-        SecretsManager.SensitiveData[minecraftTokenResult.Value!] = "{MCAccessToken}";
+        MicrosoftOAuthSensitiveData.Add(minecraftTokenResult.Value, "{MCAccessToken}");
 
         _progressReporter.ReportStep(OAuthFlowStep.ValidateMinecraft);
         LogStep(OAuthFlowStep.ValidateMinecraft);
@@ -198,7 +204,8 @@ internal sealed class MicrosoftOAuthFlowCoordinator(
             ExpiresAt = DateTimeOffset.Now.AddSeconds(tokenResult.Value.ExpiresIn),
             Type = AccountType.Microsoft,
             Name = ownershipResult.Value.Name!,
-            Uuid = ownershipResult.Value.Uuid!
+            Uuid = ownershipResult.Value.Uuid!,
+            Xuid = xstsResult.Value.Xuid ?? string.Empty
         };
     }
 

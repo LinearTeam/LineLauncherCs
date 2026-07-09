@@ -40,4 +40,6 @@ public sealed class GameLaunchContext
     public CommandBuilder? CommandBuilder { get; set; }
     
     public required Account.Model.Account Account { get; set; }
+
+    public string? MinecraftAccessToken { get; set; }
 }

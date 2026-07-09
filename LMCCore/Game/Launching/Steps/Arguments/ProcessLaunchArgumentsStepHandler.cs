@@ -76,15 +76,17 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
 
     private static string ReplaceVars(string s, GameLaunchContext context, string classPath)
     {
+        var authAccessToken = GetAuthAccessToken(context);
         s = s.Replace("${natives_directory}", Path.Combine(context.Version.VersionDirectory, $"natives-{RuntimeInformation.RuntimeIdentifier}"));
         s = s.Replace("${auth_player_name}", context.Account.Name);
         s = s.Replace("${auth_session}", context.Account.Type != AccountType.Microsoft 
             ? Guid.NewGuid().ToString("N")
-            : ((MicrosoftAccount) context.Account).AccessToken);
+            : authAccessToken);
         s = s.Replace("${auth_access_token}", context.Account.Type != AccountType.Microsoft 
             ? Guid.NewGuid().ToString("N")
-            : ((MicrosoftAccount) context.Account).AccessToken);
+            : authAccessToken);
         s = s.Replace("${auth_uuid}", context.Account.Uuid.Replace("-", "").ToLower());
+        s = s.Replace("${auth_xuid}", GetAuthXuid(context));
         s = s.Replace("${user_type}", context.Account.Type == AccountType.Microsoft ? "msa" : "legacy");
         s = s.Replace("${user_properties}", "{}");
         s = s.Replace("${version_name}", context.Version.VersionName);
@@ -105,7 +107,24 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
         s = s.Replace("${launcher_version}", Current.Version);
         s = s.Replace("${classpath}", classPath);
         s = s.Replace("${assets_root}", Path.Combine(context.Version.RootPath, "assets"));
+        s = s.Replace("${clientid}", "1cbfda79-fc84-47f9-8110-f924da9841ec");
         return s;
+    }
+
+    private static string GetAuthAccessToken(GameLaunchContext context)
+    {
+        return context.Account.Type == AccountType.Microsoft
+            ? context.MinecraftAccessToken ?? throw new InvalidOperationException(
+                "Minecraft access token has not been prepared for the Microsoft account.")
+            : Guid.NewGuid().ToString("N");
+    }
+
+    private static string GetAuthXuid(GameLaunchContext context)
+    {
+        return context.Account is MicrosoftAccount microsoftAccount &&
+               !string.IsNullOrWhiteSpace(microsoftAccount.Xuid)
+            ? microsoftAccount.Xuid
+            : "0";
     }
     
     private void AddGameArguments(GameLaunchContext context, CommandBuilder cb, string classPath)

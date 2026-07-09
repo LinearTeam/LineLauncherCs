@@ -12,6 +12,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 using System.Text.Json.Serialization;
+using LMC.Basic.Configs.Security;
 using LMCCore.Account.Model;
 using LMCCore.Utils;
 
@@ -26,8 +27,21 @@ internal sealed record OAuthOperationResult<T>(T? Value, Exception? Exception)
 }
 
 internal sealed record OAuthTokenPayload(string? AccessToken, string? RefreshToken, int ExpiresIn);
-internal sealed record XboxTokenPayload(string? Token, string? UserHash = null);
+internal sealed record XboxTokenPayload(string? Token, string? UserHash = null, string? Xuid = null);
 internal sealed record MinecraftOwnershipPayload(bool HasMinecraft, string? Uuid, string? Name);
+
+internal static class MicrosoftOAuthSensitiveData
+{
+    public static void Add(string? value, string replacement)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        SecretsManager.SensitiveData[value] = replacement;
+    }
+}
 
 internal static class MicrosoftOAuthParser
 {
@@ -48,7 +62,8 @@ internal static class MicrosoftOAuthParser
             throw new InvalidOperationException("Failed to parse xbox token response");
         }
 
-        return new XboxTokenPayload(response.Token, response.DisplayClaims?.Xui?.FirstOrDefault()?.UserHash);
+        var claim = response.DisplayClaims?.Xui?.FirstOrDefault();
+        return new XboxTokenPayload(response.Token, claim?.UserHash, claim?.Xuid);
     }
 
     public static MinecraftOwnershipPayload ParseOwnership(string entitlementsJson, string profileJson)
@@ -127,6 +142,9 @@ internal static class MicrosoftOAuthParser
     {
         [JsonPropertyName("uhs")]
         public string? UserHash { get; set; }
+
+        [JsonPropertyName("xid")]
+        public string? Xuid { get; set; }
     }
 
     private sealed class MinecraftEntitlementsResponse

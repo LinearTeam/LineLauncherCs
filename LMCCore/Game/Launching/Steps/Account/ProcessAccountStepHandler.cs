@@ -33,13 +33,15 @@ public sealed class ProcessAccountStepHandler : IGameLaunchStepHandler
             return;
         }
 
-        if (!ShouldRefreshMicrosoftAccount(microsoftAccount))
+        if (ShouldRefreshMicrosoftAccount(microsoftAccount))
+        {
+            s_logger.Info($"Refreshing expired Microsoft account token for '{microsoftAccount.Name}'.");
+        }
+        else
         {
             s_logger.Info($"Microsoft account token is still valid: {microsoftAccount.ExpiresAt:O}");
-            return;
         }
 
-        s_logger.Info($"Refreshing expired Microsoft account token for '{microsoftAccount.Name}'.");
         var refreshResult = await MicrosoftOAuth.GetMinecraftServiceAccessTokenAsync(
             microsoftAccount,
             cancellationToken);
@@ -49,8 +51,9 @@ public sealed class ProcessAccountStepHandler : IGameLaunchStepHandler
                 $"Failed to refresh Microsoft account token for '{microsoftAccount.Name}'.");
         }
 
+        context.MinecraftAccessToken = refreshResult.accessToken;
         AccountManager.Save();
-        s_logger.Info($"Microsoft account token refreshed for '{microsoftAccount.Name}'.");
+        s_logger.Info($"Minecraft access token prepared for '{microsoftAccount.Name}'.");
     }
 
     private static bool ShouldRefreshMicrosoftAccount(MicrosoftAccount account)

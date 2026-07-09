@@ -96,11 +96,7 @@ public class Logger
     }
     private static string ReplaceSensitiveData(string msg)
     {
-        foreach (var kv in SecretsManager.SensitiveData)
-        {
-            if(!string.IsNullOrWhiteSpace(kv.Key)) msg = msg.Replace(kv.Key, kv.Value);
-        }
-        return msg;
+        return SecretsManager.SensitiveData.Where(kv => !string.IsNullOrWhiteSpace(kv.Key)).Aggregate(msg, (current, kv) => current.Replace(kv.Key, kv.Value));
     }
     public void Info(string msg) => _nlogLogger.Info(ReplaceSensitiveData(msg));
     public void Error(string msg) => _nlogLogger.Error(ReplaceSensitiveData(msg));
