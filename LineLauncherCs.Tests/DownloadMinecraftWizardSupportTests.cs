@@ -1,4 +1,4 @@
-// Copyright 2025-2026 LinearTeam
+﻿// Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -66,8 +66,8 @@ public class DownloadMinecraftWizardSupportTests
                 """,
             OptiFineJson = """
                 [
-                  {"patch":"HD_U_I6"},
-                  {"patch":"HD_U_I5"}
+                  {"type":"HD_U","patch":"I6"},
+                  {"type":"HD_U","patch":"I5"}
                 ]
                 """
         };
@@ -78,6 +78,29 @@ public class DownloadMinecraftWizardSupportTests
         Assert.Equal(["0.15.11", "0.15.10"], result.Catalog.FabricVersions);
         Assert.Equal(["47.2.0", "47.1.0"], result.Catalog.ForgeVersions);
         Assert.Equal(["HD_U_I5", "HD_U_I6"], result.Catalog.OptiFineVersions);
+    }
+
+    [Theory]
+    [InlineData("1.8", "1.8.0")]
+    [InlineData("1.9", "1.9.0")]
+    [InlineData("1.20.6", "1.20.6")]
+    public void NormalizeRequestVersion_HandlesBmclLegacySpecialCases(string version, string expected)
+    {
+        var result = OptiFineCatalogVersionSupport.NormalizeRequestVersion(version);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("HD_U_I6", "HD_U", "I6")]
+    [InlineData("I6", "HD_U", "I6")]
+    public void TryParseSelectedVersion_PreservesTypeInformation(string version, string expectedType, string expectedPatch)
+    {
+        var parsed = OptiFineCatalogVersionSupport.TryParseSelectedVersion(version, out var type, out var patch);
+
+        Assert.True(parsed);
+        Assert.Equal(expectedType, type);
+        Assert.Equal(expectedPatch, patch);
     }
 
     [Fact]
@@ -144,14 +167,14 @@ public class DownloadMinecraftWizardSupportTests
             @"C:\Games\.minecraft",
             "0.15.11",
             "47.2.0",
-            "I6");
+            "HD_U_I6");
 
         var request = DownloadMinecraftWizardSupport.CreateDownloadRequest(selection);
 
         Assert.Equal(selection.SelectedRootPath, request.RootPath);
         Assert.Equal(selection.ManifestVersionId, request.VersionId);
         Assert.Equal(selection.VersionName, request.VersionName);
-        Assert.Equal("I6", request.OptiFine);
+        Assert.Equal("HD_U_I6", request.OptiFine);
         Assert.Equal(2, request.Loaders.Length);
         Assert.Contains(request.Loaders, loader => loader.Type == ModLoaderType.Fabric && loader.VersionId == "0.15.11");
         Assert.Contains(request.Loaders, loader => loader.Type == ModLoaderType.Forge && loader.VersionId == "47.2.0");

@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMCCore.Game.Download.Installation.Forge;
+using LMCCore.Game.Download.Installation.OptiFine;
 using LMCCore.Game.Model.LocalVersion;
 
 namespace LMCCore.Game.Download.Installation.Caching;
@@ -30,4 +31,6 @@ public sealed class GameInstallationRuntimeState
     public required string CachedClientJarPath { get; init; }
 
     public ForgeInstallationRuntimeState? ForgeInstallation { get; set; }
+
+    public OptiFineInstallationRuntimeState? OptiFineInstallation { get; set; }
 }

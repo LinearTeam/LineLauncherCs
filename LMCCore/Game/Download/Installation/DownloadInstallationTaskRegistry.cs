@@ -37,6 +37,8 @@ public sealed class DownloadInstallationTaskRegistry
 
     public SubTask<bool>? ForgeProcessorsTask { get; private set; }
 
+    public SubTask<OptiFine.OptiFineInstallationRuntimeState>? OptiFineTask { get; private set; }
+
     public void SetVersionInfoTask(SubTask<LocalVersionInfo> task)
     {
         VersionInfoTask = task ?? throw new ArgumentNullException(nameof(task));
@@ -75,6 +77,11 @@ public sealed class DownloadInstallationTaskRegistry
     public void SetForgeProcessorsTask(SubTask<bool> task)
     {
         ForgeProcessorsTask = task ?? throw new ArgumentNullException(nameof(task));
+    }
+
+    public void SetOptiFineTask(SubTask<OptiFine.OptiFineInstallationRuntimeState> task)
+    {
+        OptiFineTask = task ?? throw new ArgumentNullException(nameof(task));
     }
 
     public void RegisterVersionJsonDependencyTask(SubTaskBase task)
@@ -139,6 +146,7 @@ public sealed class DownloadInstallationTaskRegistry
         AddTask(tasks, taskIds, FabricVersionJsonTask);
         AddTask(tasks, taskIds, ForgeInstallerTask);
         AddTask(tasks, taskIds, ForgeProcessorsTask);
+        AddTask(tasks, taskIds, OptiFineTask);
 
         foreach (var task in _versionJsonDependencyTasks)
         {

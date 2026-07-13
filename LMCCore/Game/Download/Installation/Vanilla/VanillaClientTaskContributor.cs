@@ -12,6 +12,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 using LMCCore.Game.Download.Vanilla;
+using LMCCore.Game.Launching.Steps.Resources;
 
 namespace LMCCore.Game.Download.Installation.Vanilla;
 
@@ -38,6 +39,16 @@ internal sealed class VanillaClientTaskContributor : IInstallationSubTaskContrib
 
                 context.CacheManager.EnsureCacheDirectoryExists();
                 var clientPath = context.CacheManager.CachedClientJarPath;
+                var fileCheck = GameLaunchFileIntegrityHelper.CheckFile(
+                    clientPath,
+                    clientDownload.Sha1,
+                    clientDownload.Size,
+                    cancellationToken);
+                if (fileCheck is { Exists: true, IsValid: true })
+                {
+                    progress.Report(100);
+                    return clientPath;
+                }
 
                 await VanillaGameSubTaskFactory.DownloadSingleFileAsync(
                     context.DownloadSourceManager.TransformUrl(clientDownload.Url) ?? clientDownload.Url,

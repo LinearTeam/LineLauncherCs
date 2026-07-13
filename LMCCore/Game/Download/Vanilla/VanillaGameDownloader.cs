@@ -58,18 +58,37 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
 
     async private Task<VersionManifestInfo> FetchVersionManifestAsync()
     {
-        const string url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
-        var transformedUrl = _sourceManager.TransformUrl(url);
+        const string officialUrl = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+        var transformedUrl = _sourceManager.TransformUrl(officialUrl) ?? officialUrl;
+        string json;
 
-        var response = await HttpUtils.CreateRequest(transformedUrl ?? url)
-            .WithRetry(3)
-            .WithRetryDelay(1000)
-            .GetAsync();
+        if (string.Equals(transformedUrl, officialUrl, StringComparison.OrdinalIgnoreCase))
+        {
+            json = await FetchVersionManifestJsonAsync(officialUrl);
+        }
+        else
+        {
+            try
+            {
+                json = await FetchVersionManifestJsonAsync(transformedUrl);
+            }
+            catch (Exception ex)
+            {
+                s_logger.Warn($"Failed to fetch version manifest from mirror '{transformedUrl}', falling back to official source. {ex.Message}");
+                json = await FetchVersionManifestJsonAsync(officialUrl);
+            }
+        }
 
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadAsStringAsync();
         return JsonUtils.Parse(json).Get<VersionManifestInfo>() ??
                throw new InvalidOperationException("Failed to parse version manifest");
+    }
+
+    internal static void ResetVersionManifestCacheForTesting()
+    {
+        lock (s_manifestLock)
+        {
+            s_manifestTask = null;
+        }
     }
 
     public async Task<LocalVersionInfo?> GetVersionInfoAsync(string versionId, CancellationToken cancellationToken = default)
@@ -217,6 +236,17 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
 
     private static string EnsureTrailingSlash(string url) =>
         url.EndsWith("/", StringComparison.Ordinal) ? url : $"{url}/";
+
+    private static async Task<string> FetchVersionManifestJsonAsync(string url)
+    {
+        using var response = await HttpUtils.CreateRequest(url)
+            .WithRetry(3)
+            .WithRetryDelay(1000)
+            .GetAsync();
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
 
     public static bool TryBuildMavenRelativePath(string name, out string relativePath)
     {

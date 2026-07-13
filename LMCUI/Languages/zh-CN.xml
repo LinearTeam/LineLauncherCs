@@ -266,6 +266,9 @@
                         <DownloadInstaller>下载 Forge 安装器</DownloadInstaller>
                         <RunProcessors>执行 Forge 安装处理器</RunProcessors>
                     </Forge>
+                    <OptiFine>
+                        <Install>安装 OptiFine</Install>
+                    </OptiFine>
                     <Vanilla>
                         <GetVersionInfo>获取版本信息</GetVersionInfo>
                         <DownloadClientFile>下载客户端文件</DownloadClientFile>

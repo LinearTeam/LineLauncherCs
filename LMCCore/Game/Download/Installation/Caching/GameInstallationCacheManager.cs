@@ -57,20 +57,43 @@ public sealed class GameInstallationCacheManager
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var versionDirectory = Path.Combine(rootPath, "versions", versionName);
-        Directory.CreateDirectory(versionDirectory);
-
-        await CopyFileAsync(
+        await CopyCachedFileToVersionDirectoryAsync(
             CachedVersionJsonPath,
-            Path.Combine(versionDirectory, $"{versionName}.json"),
+            rootPath,
+            versionName,
+            $"{versionName}.json",
             required: true,
             cancellationToken);
 
-        await CopyFileAsync(
+        await CopyCachedFileToVersionDirectoryAsync(
             CachedClientJarPath,
-            Path.Combine(versionDirectory, $"{versionName}.jar"),
+            rootPath,
+            versionName,
+            $"{versionName}.jar",
             required: false,
             cancellationToken);
+    }
+
+    public Task CopyCachedFileToVersionDirectoryAsync(
+        string sourcePath,
+        string rootPath,
+        string versionName,
+        string relativePath,
+        bool required,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(rootPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(versionName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(relativePath);
+
+        var versionDirectory = Path.Combine(rootPath, "versions", versionName);
+        var destinationPath = Path.Combine(versionDirectory, relativePath);
+        var destinationDirectory = Path.GetDirectoryName(destinationPath)
+                                   ?? throw new InvalidOperationException("Failed to resolve destination directory.");
+        Directory.CreateDirectory(destinationDirectory);
+
+        return CopyFileAsync(sourcePath, destinationPath, required, cancellationToken);
     }
 
     public void RegisterCleanupOnTaskCompletion(IEnumerable<SubTaskBase> tasks)

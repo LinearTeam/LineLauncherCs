@@ -1,4 +1,4 @@
-// Copyright 2025-2026 LinearTeam
+﻿// Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using LMCCore.Game.Download.Model;
@@ -54,6 +54,7 @@ internal sealed class HttpDownloadMinecraftCatalogClient : IDownloadMinecraftCat
 
     public async Task<string?> GetOptiFineVersionsJsonAsync(string mcVersion, CancellationToken cancellationToken)
     {
+        mcVersion = OptiFineCatalogVersionSupport.NormalizeRequestVersion(mcVersion);
         using var response = await HttpUtils.CreateRequest($"https://bmclapi2.bangbang93.com/optifine/{mcVersion}")
             .GetAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -62,6 +63,49 @@ internal sealed class HttpDownloadMinecraftCatalogClient : IDownloadMinecraftCat
         }
 
         return await response.Content.ReadAsStringAsync(cancellationToken);
+    }
+}
+
+internal static class OptiFineCatalogVersionSupport
+{
+    public static string NormalizeRequestVersion(string mcVersion)
+    {
+        return mcVersion switch
+        {
+            "1.8" => "1.8.0",
+            "1.9" => "1.9.0",
+            _ => mcVersion
+        };
+    }
+
+    public static string BuildDisplayIdentifier(string type, string patch)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(type);
+        ArgumentException.ThrowIfNullOrWhiteSpace(patch);
+        return $"{type}_{patch}";
+    }
+
+    public static bool TryParseSelectedVersion(string? value, out string type, out string patch)
+    {
+        type = string.Empty;
+        patch = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var lastSeparator = value.LastIndexOf('_');
+        if (lastSeparator > 0 && lastSeparator < value.Length - 1)
+        {
+            type = value[..lastSeparator];
+            patch = value[(lastSeparator + 1)..];
+            return true;
+        }
+
+        type = "HD_U";
+        patch = value;
+        return true;
     }
 }
 
@@ -89,7 +133,7 @@ internal sealed record VersionNameValidationResult(
 
 internal static class DownloadMinecraftWizardSupport
 {
-    private const string OptiFineDisplayPrefix = "HD_U_";
+    private const string LegacyOptiFineDisplayPrefix = "HD_U_";
 
     public async static Task<DownloadMinecraftCatalogLoadResult> LoadCatalogAsync(
         string mcVersion,
@@ -139,10 +183,15 @@ internal static class DownloadMinecraftWizardSupport
                 using var optiFineDoc = JsonDocument.Parse(optiFineJson);
                 foreach (var item in optiFineDoc.RootElement.EnumerateArray())
                 {
+                    var type = item.TryGetProperty("type", out var typeProperty)
+                        ? typeProperty.GetString()
+                        : null;
                     var patch = item.GetProperty("patch").GetString();
                     if (!string.IsNullOrWhiteSpace(patch))
                     {
-                        var displayPatch = FormatOptiFineVersionForDisplay(patch);
+                        var displayPatch = !string.IsNullOrWhiteSpace(type)
+                            ? OptiFineCatalogVersionSupport.BuildDisplayIdentifier(type, patch)
+                            : FormatOptiFineVersionForDisplay(patch);
                         if (!string.IsNullOrWhiteSpace(displayPatch))
                         {
                             catalog.OptiFineVersions.Insert(0, displayPatch);
@@ -291,9 +340,9 @@ internal static class DownloadMinecraftWizardSupport
             return optiFineVersion;
         }
 
-        return optiFineVersion.StartsWith(OptiFineDisplayPrefix, StringComparison.OrdinalIgnoreCase)
+        return OptiFineCatalogVersionSupport.TryParseSelectedVersion(optiFineVersion, out _, out _)
             ? optiFineVersion
-            : $"{OptiFineDisplayPrefix}{optiFineVersion}";
+            : $"{LegacyOptiFineDisplayPrefix}{optiFineVersion}";
     }
 
     public static string? NormalizeOptiFineVersionFromDisplay(string? optiFineVersion)
@@ -303,9 +352,7 @@ internal static class DownloadMinecraftWizardSupport
             return optiFineVersion;
         }
 
-        return optiFineVersion.StartsWith(OptiFineDisplayPrefix, StringComparison.OrdinalIgnoreCase)
-            ? optiFineVersion[OptiFineDisplayPrefix.Length..]
-            : optiFineVersion;
+        return optiFineVersion;
     }
 
     public static DownloadMinecraftWizardContext CreatePreviousContext(DownloadMinecraftSelectionContext context)

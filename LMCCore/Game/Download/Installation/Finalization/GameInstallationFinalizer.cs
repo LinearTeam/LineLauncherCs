@@ -30,6 +30,18 @@ public class GameInstallationFinalizer
             context.Request.VersionName,
             cancellationToken);
 
+        var optiFineState = context.RuntimeState.OptiFineInstallation;
+        if (optiFineState is { InstallAsStandaloneMod: true, StandaloneModFileName: not null })
+        {
+            await context.CacheManager.CopyCachedFileToVersionDirectoryAsync(
+                optiFineState.CachedInstallerJarPath,
+                context.Request.RootPath,
+                context.Request.VersionName,
+                Path.Combine("mods", optiFineState.StandaloneModFileName),
+                required: true,
+                cancellationToken);
+        }
+
         var vcm = new VersionConfigManager();
         var path = Path.Combine(context.Request.RootPath, "versions", context.Request.VersionName);
         var entry = new LocalGameVersionEntry

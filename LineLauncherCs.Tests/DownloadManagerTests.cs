@@ -80,6 +80,39 @@ public class DownloadManagerTests : IDisposable
     }
 
     [Fact]
+    public async Task GameInstallationCacheManager_CopyCachedFileToVersionDirectoryAsync_CopiesFileIntoVersionSubDirectory()
+    {
+        using var scope = new TestFileSystemScope();
+        var parent = new ParentTask("parent");
+        var cacheManager = new GameInstallationCacheManager(parent);
+        cacheManager.EnsureCacheDirectoryExists();
+
+        var cachedModsDirectory = Path.Combine(cacheManager.CacheDirectory, "mods");
+        Directory.CreateDirectory(cachedModsDirectory);
+        var cachedModPath = Path.Combine(cachedModsDirectory, "OptiFine-installer.jar");
+        await File.WriteAllTextAsync(cachedModPath, "installer");
+
+        var rootPath = Path.Combine(scope.RootPath, ".minecraft");
+        await cacheManager.CopyCachedFileToVersionDirectoryAsync(
+            cachedModPath,
+            rootPath,
+            "1.21.9-Fabric",
+            Path.Combine("mods", "OptiFine-installer.jar"),
+            required: true,
+            CancellationToken.None);
+
+        var versionModPath = Path.Combine(
+            rootPath,
+            "versions",
+            "1.21.9-Fabric",
+            "mods",
+            "OptiFine-installer.jar");
+
+        Assert.True(File.Exists(versionModPath));
+        Assert.Equal("installer", await File.ReadAllTextAsync(versionModPath));
+    }
+
+    [Fact]
     public async Task CreateDownloadPlanAsync_DoesNotPrefetchVersionInfoBeforeTaskExecution()
     {
         var resolverCalls = 0;
