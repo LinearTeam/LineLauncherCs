@@ -12,6 +12,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using LMCCore.Game.Model.Loaders;
 using LMCCore.Game.Download.Installation.Forge;
 
 namespace LineLauncherCs.Tests;
@@ -34,5 +35,26 @@ public class ForgeInstallationTests
         Assert.Equal(
             Path.Combine(".minecraft", "libraries", "net", "minecraft", "client", "1.20.6", "client-1.20.6-mappings.tsrg"),
             mojmapsPath);
+    }
+
+    [Fact]
+    public void ForgeVersionResolver_UsesBranchMetadataWhenBuildingInstallerUrl()
+    {
+        var loader = new ModLoader
+        {
+            Type = ModLoaderType.Forge,
+            VersionId = "47.2.0",
+            Metadata = new Dictionary<string, string?>
+            {
+                [ForgeVersionResolver.BranchMetadataKey] = "latest",
+                [ForgeVersionResolver.InstallerFormatMetadataKey] = "jar"
+            }
+        };
+
+        var url = ForgeVersionResolver.ResolveInstallerDownloadUrl("1.20.1", loader);
+
+        Assert.Equal(
+            "https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.2.0-latest/forge-1.20.1-47.2.0-latest-installer.jar",
+            url);
     }
 }

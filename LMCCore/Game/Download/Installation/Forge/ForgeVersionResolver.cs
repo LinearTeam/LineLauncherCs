@@ -12,10 +12,16 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using LMCCore.Game.Download.Model;
+using LMCCore.Game.Model.Loaders;
+
 namespace LMCCore.Game.Download.Installation.Forge;
 
 internal static class ForgeVersionResolver
 {
+    public const string BranchMetadataKey = "branch";
+    public const string InstallerFormatMetadataKey = "installerFormat";
+
     public static string ResolveArtifactVersion(string minecraftVersion, string forgeVersion)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(minecraftVersion);
@@ -36,5 +42,43 @@ internal static class ForgeVersionResolver
             _ => $"{minecraftVersion}-{forgeVersion}"
         };
 
+    }
+
+    public static string ResolveInstallerDownloadUrl(string minecraftVersion, ModLoader loader)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(minecraftVersion);
+        ArgumentNullException.ThrowIfNull(loader);
+        ArgumentException.ThrowIfNullOrWhiteSpace(loader.VersionId);
+
+        var classifier = ResolveInstallerClassifier(
+            minecraftVersion,
+            loader.VersionId,
+            TryGetMetadataValue(loader, BranchMetadataKey));
+        var format = ResolveInstallerFormat(loader);
+
+        return $"{OfficialDownloadSource.ForgeMavenBaseUrl}/net/minecraftforge/forge/{classifier}/forge-{classifier}-installer.{format}";
+    }
+
+    private static string ResolveInstallerClassifier(
+        string minecraftVersion,
+        string forgeVersion,
+        string? branch)
+    {
+        return string.IsNullOrWhiteSpace(branch)
+            ? $"{minecraftVersion}-{forgeVersion}"
+            : $"{minecraftVersion}-{forgeVersion}-{branch}";
+    }
+
+    private static string ResolveInstallerFormat(ModLoader loader)
+    {
+        var format = TryGetMetadataValue(loader, InstallerFormatMetadataKey);
+        return string.IsNullOrWhiteSpace(format) ? "jar" : format;
+    }
+
+    private static string? TryGetMetadataValue(ModLoader loader, string key)
+    {
+        return loader.Metadata != null && loader.Metadata.TryGetValue(key, out var value)
+            ? value
+            : null;
     }
 }

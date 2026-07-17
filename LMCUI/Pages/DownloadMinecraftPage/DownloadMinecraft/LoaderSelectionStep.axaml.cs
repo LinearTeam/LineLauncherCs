@@ -56,6 +56,7 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
             : (typeof(VersionNameStep), new DownloadMinecraftSelectionContext(
                 _selection.SelectedRootPath,
                 _selection.ManifestVersionId,
+                _selection.DisplayType,
                 _selection.FabricVersion,
                 _selection.ForgeVersion,
                 _selection.OptiFineVersion));
@@ -78,7 +79,7 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
         var state = DownloadMinecraftWizardSupport.BuildLoaderSelectionState(
             _context,
             FabricComboBox.SelectedItem as string,
-            ForgeComboBox.SelectedItem as string,
+            ForgeComboBox.SelectedItem as ForgeVersionCatalogEntry,
             OptiFineComboBox.SelectedItem as string,
             _isLoading,
             NoneText,
@@ -151,7 +152,7 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
     private void ApplyCatalog(DownloadMinecraftVersionCatalogResult catalog)
     {
         FabricComboBox.ItemsSource = new ObservableCollection<string>(catalog.FabricVersions.Prepend(NoneText));
-        ForgeComboBox.ItemsSource = new ObservableCollection<string>(catalog.ForgeVersions.Prepend(NoneText));
+        ForgeComboBox.ItemsSource = new ObservableCollection<object>(catalog.ForgeVersions.Cast<object>().Prepend(NoneText));
         OptiFineComboBox.ItemsSource = new ObservableCollection<string>(catalog.OptiFineVersions.Prepend(NoneText));
 
         FabricComboBox.SelectedIndex = 0;
@@ -163,6 +164,6 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
 public sealed class DownloadMinecraftVersionCatalogResult
 {
     public List<string> FabricVersions { get; } = [];
-    public List<string> ForgeVersions { get; } = [];
+    public List<ForgeVersionCatalogEntry> ForgeVersions { get; } = [];
     public List<string> OptiFineVersions { get; } = [];
 }

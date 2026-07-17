@@ -14,6 +14,8 @@
 
 using LMCCore.Tasks.Model;
 using LMC.Basic.Logging;
+using LMCCore.Game.Download.Installation.Caching;
+using LMCCore.Game.Launching.Steps.Resources;
 using LMCCore.Game.Download.Vanilla.Batching;
 using LMCCore.Game.Model.LocalVersion;
 
@@ -51,6 +53,7 @@ public static class VanillaGameSubTaskFactory
                 GetDownloadUrl = file => file.Url!,
                 GetFileSize = file => file.Size,
                 GetHash = file => file.Sha1,
+                GetHashes = file => file.Checksums,
                 GetDisplayName = file => file.Path ?? savePath,
                 SkipIfSizeMatches = true,
                 SkipIfHashMatches = true
@@ -80,6 +83,11 @@ public static class VanillaGameSubTaskFactory
                 return [];
             }
 
+            await GameInstallationLocalReuseHelper.WarmLibrariesFromManagedRootsAsync(
+                libraryRoot,
+                libraries,
+                cancellationToken);
+
             var downloadedLibraries = new List<DownloadableFileInfo>();
 
             var result = await BatchDownloader.DownloadAsync(
@@ -92,6 +100,8 @@ public static class VanillaGameSubTaskFactory
                     GetDownloadUrl = lib => downloader.GetLibraryDownloadUrl(lib.Url!),
                     GetFileSize = lib => lib.Size > 0 ? lib.Size : null,
                     GetHash = lib => lib.Sha1,
+                    GetHashes = lib => lib.Checksums,
+                    GetIgnoreNotFound = lib => lib.IgnoreNotFound,
                     GetDisplayName = lib => lib.Path,
                     SkipIfSizeMatches = true,
                     SkipIfHashMatches = true
@@ -115,15 +125,22 @@ public static class VanillaGameSubTaskFactory
         return async (cancellationToken, _, progress) =>
         {
             var downloadedAssets = new Dictionary<string, AssetInfo>();
+            var currentRootPath = Path.GetDirectoryName(assetRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+                                  ?? throw new InvalidOperationException("Failed to resolve current game root.");
 
             s_logger.Info($"正在获取版本 {versionId} 的资源文件索引");
-            var assetIndexJson = await downloader.GetAssetIndexJsonAsync(assetIndex, cancellationToken);
+            var assetIndexJson = string.Empty;
 
             // 保存asset index JSON到 assets/indexes/<id>.json
             var assetIndexesDir = Path.Combine(assetRoot, "indexes");
             Directory.CreateDirectory(assetIndexesDir);
             var assetIndexPath = Path.Combine(assetIndexesDir, $"{assetIndex?.Id}.json");
-            await File.WriteAllTextAsync(assetIndexPath, assetIndexJson, cancellationToken);
+            assetIndexJson = await GetAssetIndexJsonAsync(
+                downloader,
+                currentRootPath,
+                assetIndex,
+                assetIndexPath,
+                cancellationToken);
             s_logger.Info($"资源文件索引已保存至 {assetIndexPath}");
 
             var assets = downloader.ParseAssetIndex(assetIndexJson);
@@ -136,6 +153,11 @@ public static class VanillaGameSubTaskFactory
             }
 
             // 将字典转换为列表以便批量下载
+            await GameInstallationLocalReuseHelper.WarmAssetsFromManagedRootsAsync(
+                currentRootPath,
+                assets,
+                cancellationToken);
+
             var assetList = assets.ToList();
             var result = await BatchDownloader.DownloadAsync(
                 new BatchDownloadOptions<KeyValuePair<string, AssetInfo>>
@@ -157,5 +179,37 @@ public static class VanillaGameSubTaskFactory
             s_logger.Info($"资源文件下载完成， {result.SuccessCount} 成功 {result.FailedCount} 失败 {result.SkippedCount} 跳过");
             return downloadedAssets;
         };
+    }
+
+    private static async Task<string> GetAssetIndexJsonAsync(
+        VanillaGameDownloader downloader,
+        string currentRootPath,
+        AssetIndexInfo? assetIndex,
+        string assetIndexPath,
+        CancellationToken cancellationToken)
+    {
+        if (assetIndex == null)
+        {
+            throw new InvalidOperationException("Asset index metadata is missing.");
+        }
+
+        long? expectedSize = assetIndex.Size > 0 ? assetIndex.Size : null;
+        if (!GameLaunchFileIntegrityHelper.CheckFile(assetIndexPath, assetIndex.Sha1, expectedSize, cancellationToken).IsValid)
+        {
+            await GameInstallationLocalReuseHelper.TryPopulateAssetIndexFromManagedRootsAsync(
+                currentRootPath,
+                assetIndex,
+                assetIndexPath,
+                cancellationToken);
+        }
+
+        if (GameLaunchFileIntegrityHelper.CheckFile(assetIndexPath, assetIndex.Sha1, expectedSize, cancellationToken).IsValid)
+        {
+            return await File.ReadAllTextAsync(assetIndexPath, cancellationToken);
+        }
+
+        var assetIndexJson = await downloader.GetAssetIndexJsonAsync(assetIndex, cancellationToken);
+        await File.WriteAllTextAsync(assetIndexPath, assetIndexJson, cancellationToken);
+        return assetIndexJson;
     }
 }

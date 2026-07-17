@@ -21,7 +21,9 @@ internal sealed record PreparedBatchFile<TFile>(
     string DownloadUrl,
     string DisplayName,
     long? FileSize,
-    string? Hash);
+    string? Hash,
+    IReadOnlyList<string>? Hashes,
+    bool IgnoreNotFound);
 
 internal sealed class BatchDownloadRuntime
 {
@@ -106,7 +108,9 @@ internal static class BatchDownloadPreparation
                 options.GetDownloadUrl(file),
                 options.GetDisplayName?.Invoke(file) ?? Path.GetFileName(options.GetSavePath(file)),
                 options.GetFileSize?.Invoke(file),
-                options.GetHash?.Invoke(file)))
+                options.GetHash?.Invoke(file),
+                options.GetHashes?.Invoke(file),
+                options.GetIgnoreNotFound?.Invoke(file) ?? false))
             .ToList();
     }
 
@@ -131,8 +135,9 @@ internal static class BatchDownloadSkipEvaluator
     {
         cancellationToken.ThrowIfCancellationRequested();
         var existingSize = new FileInfo(file.SavePath).Length;
+        var hasHashes = !string.IsNullOrWhiteSpace(file.Hash) || (file.Hashes != null && file.Hashes.Count > 0);
 
-        if (!file.FileSize.HasValue && string.IsNullOrEmpty(file.Hash))
+        if (!file.FileSize.HasValue && !hasHashes)
         {
             return options.SkipIfSizeMatches ? "文件已存在" : null;
         }
@@ -144,21 +149,38 @@ internal static class BatchDownloadSkipEvaluator
                 return null;
             }
 
-            if (string.IsNullOrEmpty(file.Hash))
+            if (!hasHashes)
             {
                 return options.SkipIfSizeMatches ? "大小匹配" : null;
             }
 
             var fileHash = runtime.ComputeSha1(file.SavePath, cancellationToken);
-            return fileHash == file.Hash ? "SHA1匹配" : null;
+            return MatchesAnyHash(fileHash, file.Hash, file.Hashes) ? "SHA1匹配" : null;
         }
 
-        if (!string.IsNullOrEmpty(file.Hash))
+        if (hasHashes)
         {
             var fileHash = runtime.ComputeSha1(file.SavePath, cancellationToken);
-            return fileHash == file.Hash ? "SHA1匹配" : null;
+            return MatchesAnyHash(fileHash, file.Hash, file.Hashes) ? "SHA1匹配" : null;
         }
 
         return null;
+    }
+
+    public static bool MatchesAnyHash(string actualHash, string? primaryHash, IReadOnlyList<string>? hashes)
+    {
+        if (!string.IsNullOrWhiteSpace(primaryHash) &&
+            string.Equals(actualHash, primaryHash, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (hashes == null)
+        {
+            return false;
+        }
+
+        return hashes.Any(hash => !string.IsNullOrWhiteSpace(hash) &&
+                                  string.Equals(actualHash, hash, StringComparison.OrdinalIgnoreCase));
     }
 }

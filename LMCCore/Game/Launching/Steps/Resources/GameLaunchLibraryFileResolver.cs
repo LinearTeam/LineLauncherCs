@@ -21,7 +21,7 @@ namespace LMCCore.Game.Launching.Steps.Resources;
 
 internal static class GameLaunchLibraryFileResolver
 {
-    public static IReadOnlyList<GameLaunchDownloadItem> CollectMissingLibraryDownloads(
+    public static GameLaunchLibraryResolutionResult CollectMissingLibraries(
         string rootPath,
         LocalVersionInfo versionInfo,
         CancellationToken cancellationToken)
@@ -30,26 +30,30 @@ internal static class GameLaunchLibraryFileResolver
         ArgumentNullException.ThrowIfNull(versionInfo);
 
         var downloads = new Dictionary<string, GameLaunchDownloadItem>(StringComparer.OrdinalIgnoreCase);
+        var blockingFailures = new List<GameLaunchLibraryBlockingFailure>();
         foreach (var library in versionInfo.Libraries)
         {
             switch (library)
             {
                 case LibraryInfo detailedLibrary:
-                    ProcessDetailedLibrary(rootPath, detailedLibrary, downloads, cancellationToken);
+                    ProcessDetailedLibrary(rootPath, detailedLibrary, downloads, blockingFailures, cancellationToken);
                     break;
                 case SimpleLibraryInfo simpleLibrary:
-                    ProcessSimpleLibrary(rootPath, simpleLibrary, downloads, cancellationToken);
+                    ProcessSimpleLibrary(rootPath, simpleLibrary, downloads, blockingFailures, cancellationToken);
                     break;
             }
         }
 
-        return downloads.Values.ToList().AsReadOnly();
+        return new GameLaunchLibraryResolutionResult(
+            downloads.Values.ToList().AsReadOnly(),
+            blockingFailures.AsReadOnly());
     }
 
     private static void ProcessDetailedLibrary(
         string rootPath,
         LibraryInfo library,
         IDictionary<string, GameLaunchDownloadItem> downloads,
+        ICollection<GameLaunchLibraryBlockingFailure> blockingFailures,
         CancellationToken cancellationToken)
     {
         if (!CompatibilityRuleEvaluator.CheckRulesApply(library.Rules))
@@ -64,6 +68,26 @@ internal static class GameLaunchLibraryFileResolver
                 library.Name,
                 library.Downloads.Artifact,
                 downloads,
+                blockingFailures,
+                cancellationToken);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(library.Url) &&
+            VanillaGameDownloader.TryBuildMavenRelativePath(library.Name, out var relativePath))
+        {
+            var downloadUrl = new Uri(new Uri(EnsureTrailingSlash(library.Url)), relativePath).ToString();
+            var savePath = ForgeLibraryPathHelper.GetAbsoluteLibraryPath(rootPath, library.Name);
+            HandleRequiredFile(
+                savePath,
+                library.Name,
+                downloadUrl,
+                library.GetPreferredSha1(),
+                library.Checksums,
+                library.Size,
+                false,
+                downloads,
+                blockingFailures,
                 cancellationToken);
         }
 
@@ -84,6 +108,7 @@ internal static class GameLaunchLibraryFileResolver
             $"{library.Name}:{nativeKey}",
             nativeDownload,
             downloads,
+            blockingFailures,
             cancellationToken);
     }
 
@@ -91,16 +116,28 @@ internal static class GameLaunchLibraryFileResolver
         string rootPath,
         SimpleLibraryInfo library,
         IDictionary<string, GameLaunchDownloadItem> downloads,
+        ICollection<GameLaunchLibraryBlockingFailure> blockingFailures,
         CancellationToken cancellationToken)
     {
+        if (!VanillaGameDownloader.TryBuildMavenRelativePath(library.Name, out var relativePath))
+        {
+            return;
+        }
+
+        var hasExplicitUrl = !string.IsNullOrWhiteSpace(library.Url);
+        var baseUrl = hasExplicitUrl ? library.Url! : VanillaGameDownloader.OfficialLibraryBaseUrl;
+        var downloadUrl = new Uri(new Uri(EnsureTrailingSlash(baseUrl)), relativePath).ToString();
         var savePath = ForgeLibraryPathHelper.GetAbsoluteLibraryPath(rootPath, library.Name);
         HandleRequiredFile(
             savePath,
             library.Name,
-            library.Url,
-            library.Sha1,
+            downloadUrl,
+            library.GetPreferredSha1(),
+            library.Checksums,
             library.Size,
+            !hasExplicitUrl,
             downloads,
+            blockingFailures,
             cancellationToken);
     }
 
@@ -109,6 +146,7 @@ internal static class GameLaunchLibraryFileResolver
         string displayName,
         DownloadableFileInfo file,
         IDictionary<string, GameLaunchDownloadItem> downloads,
+        ICollection<GameLaunchLibraryBlockingFailure> blockingFailures,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(file.Path))
@@ -122,8 +160,11 @@ internal static class GameLaunchLibraryFileResolver
             displayName,
             file.Url,
             file.Sha1,
+            file.Checksums,
             file.Size,
+            file.IgnoreNotFound,
             downloads,
+            blockingFailures,
             cancellationToken);
     }
 
@@ -132,11 +173,14 @@ internal static class GameLaunchLibraryFileResolver
         string displayName,
         string? downloadUrl,
         string? sha1,
+        IReadOnlyList<string>? hashes,
         long? size,
+        bool ignoreNotFound,
         IDictionary<string, GameLaunchDownloadItem> downloads,
+        ICollection<GameLaunchLibraryBlockingFailure> blockingFailures,
         CancellationToken cancellationToken)
     {
-        var check = GameLaunchFileIntegrityHelper.CheckFile(savePath, sha1, size, cancellationToken);
+        var check = GameLaunchFileIntegrityHelper.CheckFile(savePath, sha1, hashes, size, cancellationToken);
         if (check.IsValid)
         {
             return;
@@ -144,8 +188,8 @@ internal static class GameLaunchLibraryFileResolver
 
         if (string.IsNullOrWhiteSpace(downloadUrl))
         {
-            throw new InvalidOperationException(
-                $"Library '{displayName}' failed validation and cannot be downloaded: {check.Reason}");
+            blockingFailures.Add(new GameLaunchLibraryBlockingFailure(displayName, savePath, check.Reason));
+            return;
         }
 
         downloads[savePath] = new GameLaunchDownloadItem(
@@ -153,6 +197,22 @@ internal static class GameLaunchLibraryFileResolver
             downloadUrl,
             displayName,
             size,
-            sha1);
+            sha1,
+            hashes,
+            ignoreNotFound);
+    }
+
+    private static string EnsureTrailingSlash(string url)
+    {
+        return url.EndsWith("/", StringComparison.Ordinal) ? url : $"{url}/";
     }
 }
+
+internal sealed record GameLaunchLibraryResolutionResult(
+    IReadOnlyList<GameLaunchDownloadItem> Downloads,
+    IReadOnlyList<GameLaunchLibraryBlockingFailure> BlockingFailures);
+
+internal sealed record GameLaunchLibraryBlockingFailure(
+    string DisplayName,
+    string SavePath,
+    string Reason);

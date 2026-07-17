@@ -18,8 +18,10 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using LMCCore.Game.Download;
 using LMCCore.Game.Download.Model;
 using LMCCore.Game.Model.Loaders;
+using LMCCore.Game.Versioning.Discovery;
 using LMCCore.Utils;
 
 namespace LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
@@ -33,9 +35,12 @@ internal interface IDownloadMinecraftCatalogClient
 
 internal sealed class HttpDownloadMinecraftCatalogClient : IDownloadMinecraftCatalogClient
 {
+    private readonly DownloadSourceManager _downloadSourceManager = DownloadSourceManager.CreateDefault();
+
     public async Task<string> GetFabricVersionsJsonAsync(CancellationToken cancellationToken)
     {
-        using var response = await HttpUtils.CreateRequest("https://meta.fabricmc.net/v2/versions").GetAsync(cancellationToken);
+        const string url = "https://meta.fabricmc.net/v2/versions";
+        using var response = await HttpUtils.CreateRequest(_downloadSourceManager.TransformUrl(url) ?? url).GetAsync(cancellationToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync(cancellationToken);
     }
@@ -123,6 +128,14 @@ internal sealed record LoaderSelectionUiState(
     bool IsForgeEnabled,
     bool IsOptiFineEnabled);
 
+public sealed record ForgeVersionCatalogEntry(
+    string VersionId,
+    string? Branch,
+    string InstallerFormat)
+{
+    public override string ToString() => VersionId;
+}
+
 internal sealed record VersionNameValidationResult(
     DownloadableVersionSelection? Selection,
     string? ErrorMessage,
@@ -134,6 +147,28 @@ internal sealed record VersionNameValidationResult(
 internal static class DownloadMinecraftWizardSupport
 {
     private const string LegacyOptiFineDisplayPrefix = "HD_U_";
+    private const string ForgeBranchMetadataKey = "branch";
+    private const string ForgeInstallerFormatMetadataKey = "installerFormat";
+    private readonly record struct MinecraftReleaseVersion(int Major, int Minor, int Patch)
+        : IComparable<MinecraftReleaseVersion>
+    {
+        public int CompareTo(MinecraftReleaseVersion other)
+        {
+            var majorComparison = Major.CompareTo(other.Major);
+            if (majorComparison != 0)
+            {
+                return majorComparison;
+            }
+
+            var minorComparison = Minor.CompareTo(other.Minor);
+            if (minorComparison != 0)
+            {
+                return minorComparison;
+            }
+
+            return Patch.CompareTo(other.Patch);
+        }
+    }
 
     public async static Task<DownloadMinecraftCatalogLoadResult> LoadCatalogAsync(
         string mcVersion,
@@ -170,11 +205,14 @@ internal static class DownloadMinecraftWizardSupport
                     var version = item.GetProperty("version").GetString();
                     if (!string.IsNullOrWhiteSpace(version))
                     {
-                        catalog.ForgeVersions.Add(version);
+                        catalog.ForgeVersions.Add(new ForgeVersionCatalogEntry(
+                            version,
+                            item.TryGetProperty("branch", out var branchProperty) ? branchProperty.GetString() : null,
+                            ResolveForgeInstallerFormat(item)));
                     }
                 }
 
-                catalog.ForgeVersions.Sort((a, b) => string.CompareOrdinal(b, a));
+                catalog.ForgeVersions.Sort((a, b) => string.CompareOrdinal(b.VersionId, a.VersionId));
             }
 
             var optiFineJson = await client.GetOptiFineVersionsJsonAsync(mcVersion, cancellationToken);
@@ -211,7 +249,7 @@ internal static class DownloadMinecraftWizardSupport
     public static LoaderSelectionUiState BuildLoaderSelectionState(
         DownloadMinecraftWizardContext? context,
         string? selectedFabric,
-        string? selectedForge,
+        ForgeVersionCatalogEntry? selectedForge,
         string? selectedOptiFine,
         bool isLoading,
         string noneText,
@@ -223,24 +261,27 @@ internal static class DownloadMinecraftWizardSupport
         }
 
         var fabricChosen = !IsNone(selectedFabric, noneText);
-        var forgeChosen = !IsNone(selectedForge, noneText);
+        var forgeChosen = selectedForge != null;
         var optiFineChosen = !IsNone(selectedOptiFine, noneText);
-        var validationMessage = fabricChosen && optiFineChosen ? conflictWarningText : string.Empty;
+        var fabricOptiFineCompatible = IsFabricOptiFineCombinationAllowed(context);
+        var hasFabricOptiFineConflict = fabricChosen && optiFineChosen;
+        var hasBlockingFabricOptiFineConflict = hasFabricOptiFineConflict && !fabricOptiFineCompatible;
 
         return new LoaderSelectionUiState(
             new DownloadMinecraftSelectionContext(
                 context.SelectedRootPath,
                 context.ManifestVersionId,
+                context.DisplayType,
                 fabricChosen ? selectedFabric : null,
-                forgeChosen ? selectedForge : null,
+                selectedForge,
                 optiFineChosen ? NormalizeOptiFineVersionFromDisplay(selectedOptiFine) : null),
-            validationMessage,
-            !string.IsNullOrWhiteSpace(validationMessage),
+            hasBlockingFabricOptiFineConflict ? conflictWarningText : string.Empty,
+            hasBlockingFabricOptiFineConflict,
             false,
-            true,
-            !forgeChosen,
+            !hasBlockingFabricOptiFineConflict,
+            !forgeChosen && !(optiFineChosen && !fabricOptiFineCompatible),
             !fabricChosen,
-            true);
+            !(fabricChosen && !fabricOptiFineCompatible));
     }
 
     public static VersionNameValidationResult ValidateVersionName(
@@ -304,12 +345,13 @@ internal static class DownloadMinecraftWizardSupport
             });
         }
 
-        if (!string.IsNullOrWhiteSpace(selection.ForgeVersion))
+        if (selection.ForgeVersion != null)
         {
             loaders.Add(new ModLoader
             {
                 Type = ModLoaderType.Forge,
-                VersionId = selection.ForgeVersion
+                VersionId = selection.ForgeVersion.VersionId,
+                Metadata = CreateForgeLoaderMetadata(selection.ForgeVersion)
             });
         }
 
@@ -330,7 +372,7 @@ internal static class DownloadMinecraftWizardSupport
             return string.Empty;
         }
 
-        return $"{context.FabricVersion ?? "-"} | {context.ForgeVersion ?? "-"} | {FormatOptiFineVersionForDisplay(context.OptiFineVersion) ?? "-"}";
+        return $"{context.FabricVersion ?? "-"} | {context.ForgeVersion?.VersionId ?? "-"} | {FormatOptiFineVersionForDisplay(context.OptiFineVersion) ?? "-"}";
     }
 
     public static string? FormatOptiFineVersionForDisplay(string? optiFineVersion)
@@ -357,7 +399,10 @@ internal static class DownloadMinecraftWizardSupport
 
     public static DownloadMinecraftWizardContext CreatePreviousContext(DownloadMinecraftSelectionContext context)
     {
-        return new DownloadMinecraftWizardContext(context.SelectedRootPath, context.ManifestVersionId);
+        return new DownloadMinecraftWizardContext(
+            context.SelectedRootPath,
+            context.ManifestVersionId,
+            context.DisplayType);
     }
 
     public static (bool hasPrev, bool hasNext, bool isFinal) BuildDialogButtonState(DownloadMinecraftStep step, (bool hasPrev, bool hasNext) state)
@@ -373,6 +418,88 @@ internal static class DownloadMinecraftWizardSupport
     private static bool IsNone(string? value, string noneText)
     {
         return string.IsNullOrWhiteSpace(value) || string.Equals(value, noneText, StringComparison.Ordinal);
+    }
+
+    private static string ResolveForgeInstallerFormat(JsonElement item)
+    {
+        if (!item.TryGetProperty("files", out var files) || files.ValueKind != JsonValueKind.Array)
+        {
+            return "jar";
+        }
+
+        foreach (var file in files.EnumerateArray())
+        {
+            if (!file.TryGetProperty("category", out var categoryProperty) ||
+                !string.Equals(categoryProperty.GetString(), "installer", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var format = file.TryGetProperty("format", out var formatProperty)
+                ? formatProperty.GetString()
+                : null;
+            if (!string.IsNullOrWhiteSpace(format))
+            {
+                return format;
+            }
+        }
+
+        return "jar";
+    }
+
+    private static Dictionary<string, string?> CreateForgeLoaderMetadata(ForgeVersionCatalogEntry forgeVersion)
+    {
+        return new Dictionary<string, string?>
+        {
+            [ForgeBranchMetadataKey] = forgeVersion.Branch,
+            [ForgeInstallerFormatMetadataKey] = forgeVersion.InstallerFormat
+        };
+    }
+
+    private static bool IsFabricOptiFineCombinationAllowed(DownloadMinecraftWizardContext context)
+    {
+        if (context.DisplayType is GameVersionDisplayType.Snapshot or GameVersionDisplayType.AprilFools or GameVersionDisplayType.Old)
+        {
+            return true;
+        }
+
+        if (!TryParseReleaseVersion(context.ManifestVersionId, out var version))
+        {
+            return true;
+        }
+
+        return version.CompareTo(new MinecraftReleaseVersion(1, 14, 0)) >= 0 &&
+               version.CompareTo(new MinecraftReleaseVersion(1, 20, 4)) <= 0;
+    }
+
+    private static bool TryParseReleaseVersion(string? versionId, out MinecraftReleaseVersion version)
+    {
+        version = default;
+        if (string.IsNullOrWhiteSpace(versionId))
+        {
+            return false;
+        }
+
+        var segments = versionId.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (segments.Length < 2 || segments.Length > 3)
+        {
+            return false;
+        }
+
+        if (!int.TryParse(segments[0], out var major) ||
+            !int.TryParse(segments[1], out var minor))
+        {
+            return false;
+        }
+
+        var patch = 0;
+        if (segments.Length == 3 && !int.TryParse(segments[2], out patch))
+        {
+            return false;
+        }
+
+        version = new MinecraftReleaseVersion(major, minor, patch);
+        return true;
     }
 
     private static bool IsLegalPathSegment(string versionName)

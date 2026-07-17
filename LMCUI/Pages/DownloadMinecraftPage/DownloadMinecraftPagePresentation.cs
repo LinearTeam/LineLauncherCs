@@ -106,10 +106,10 @@ internal static class DownloadMinecraftPagePresentation
         return !string.IsNullOrWhiteSpace(selectedRootPath);
     }
 
-    public static DownloadMinecraftWizardContext? TryCreateWizardContext(string? selectedRootPath, string manifestVersionId)
+    public static DownloadMinecraftWizardContext? TryCreateWizardContext(string? selectedRootPath, ManifestVersionListItem version)
     {
         return CanOpenWizard(selectedRootPath)
-            ? new DownloadMinecraftWizardContext(selectedRootPath!, manifestVersionId)
+            ? new DownloadMinecraftWizardContext(selectedRootPath!, version.Id, version.DisplayType)
             : null;
     }
 

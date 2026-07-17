@@ -24,6 +24,16 @@ internal static class GameLaunchFileIntegrityHelper
         long? size,
         CancellationToken cancellationToken)
     {
+        return CheckFile(path, sha1, null, size, cancellationToken);
+    }
+
+    public static GameLaunchFileCheckResult CheckFile(
+        string path,
+        string? sha1,
+        IReadOnlyCollection<string>? validHashes,
+        long? size,
+        CancellationToken cancellationToken)
+    {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
         if (!File.Exists(path))
@@ -31,12 +41,16 @@ internal static class GameLaunchFileIntegrityHelper
             return new GameLaunchFileCheckResult(false, false, "File not found");
         }
 
-        if (!string.IsNullOrWhiteSpace(sha1))
+        var acceptedHashes = BuildAcceptedHashes(sha1, validHashes);
+        if (acceptedHashes.Count > 0)
         {
             var actualHash = BatchDownloader.ComputeSha1Fast(path, cancellationToken);
-            return actualHash.Equals(sha1, StringComparison.OrdinalIgnoreCase)
+            return acceptedHashes.Contains(actualHash, StringComparer.OrdinalIgnoreCase)
                 ? new GameLaunchFileCheckResult(true, true, "SHA1 matched")
-                : new GameLaunchFileCheckResult(true, false, $"SHA1 mismatch: expected {sha1}, actual {actualHash}");
+                : new GameLaunchFileCheckResult(
+                    true,
+                    false,
+                    $"SHA1 mismatch: expected one of [{string.Join(", ", acceptedHashes)}], actual {actualHash}");
         }
 
         if (size.HasValue)
@@ -48,5 +62,28 @@ internal static class GameLaunchFileIntegrityHelper
         }
 
         return new GameLaunchFileCheckResult(true, true, "Exists");
+    }
+
+    private static List<string> BuildAcceptedHashes(string? sha1, IReadOnlyCollection<string>? validHashes)
+    {
+        var hashes = new List<string>();
+        if (!string.IsNullOrWhiteSpace(sha1))
+        {
+            hashes.Add(sha1);
+        }
+
+        if (validHashes != null)
+        {
+            foreach (var hash in validHashes)
+            {
+                if (!string.IsNullOrWhiteSpace(hash) &&
+                    !hashes.Contains(hash, StringComparer.OrdinalIgnoreCase))
+                {
+                    hashes.Add(hash);
+                }
+            }
+        }
+
+        return hashes;
     }
 }

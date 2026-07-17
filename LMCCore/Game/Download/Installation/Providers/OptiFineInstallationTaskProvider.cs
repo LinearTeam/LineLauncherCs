@@ -14,6 +14,7 @@
 
 using System.Diagnostics;
 using LMC.Basic.Logging;
+using LMCCore.Game.Download.Installation.Caching;
 using LMCCore.Game.Download.Installation.Forge;
 using LMCCore.Game.Download.Installation.OptiFine;
 using LMCCore.Game.Download.Vanilla;
@@ -122,13 +123,35 @@ public sealed class OptiFineInstallationTaskProvider : IGameInstallationTaskProv
         };
 
         context.CacheManager.EnsureCacheDirectoryExists();
-
-        await VanillaGameSubTaskFactory.DownloadSingleFileAsync(
-            context.DownloadSourceManager.TransformUrl(state.InstallerDownloadUrl) ?? state.InstallerDownloadUrl,
+        var installerCheck = GameLaunchFileIntegrityHelper.CheckFile(
             cachedInstallerJarPath,
             null,
             null,
             cancellationToken);
+        if (!installerCheck.IsValid)
+        {
+            await GameInstallationLocalReuseHelper.TryPopulateOptiFineInstallerFromKnownVersionsAsync(
+                context.Request.RootPath,
+                cachedInstallerJarPath,
+                installerFileNameForMods,
+                cancellationToken);
+        }
+
+        installerCheck = GameLaunchFileIntegrityHelper.CheckFile(
+            cachedInstallerJarPath,
+            null,
+            null,
+            cancellationToken);
+        if (!installerCheck.IsValid)
+        {
+            await VanillaGameSubTaskFactory.DownloadSingleFileAsync(
+                context.DownloadSourceManager.TransformUrl(state.InstallerDownloadUrl) ?? state.InstallerDownloadUrl,
+                cachedInstallerJarPath,
+                null,
+                null,
+                cancellationToken);
+        }
+
         progress.Report(20);
 
         if (ShouldInstallInstallerAsStandaloneMod(context))

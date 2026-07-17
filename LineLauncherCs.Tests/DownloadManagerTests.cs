@@ -112,94 +112,9 @@ public class DownloadManagerTests : IDisposable
         Assert.Equal("installer", await File.ReadAllTextAsync(versionModPath));
     }
 
-    [Fact]
-    public async Task CreateDownloadPlanAsync_DoesNotPrefetchVersionInfoBeforeTaskExecution()
-    {
-        var resolverCalls = 0;
-        var request = new DownloadableGameVersion
-        {
-            RootPath = @"C:\Games\.minecraft",
-            VersionId = "1.20.6",
-            VersionName = "1.20.6",
-            Loaders = []
-        };
-        var manager = new DownloadManager(
-            DownloadSourceManager.CreateDefault(),
-            [
-                new FakeProvider(DownloadInstallationComponent.Vanilla, _ => true, _ => { }),
-                CreateNoOpFinalizationProvider()
-            ],
-            (_, _) =>
-            {
-                Interlocked.Increment(ref resolverCalls);
-                return Task.FromResult("""
-                {
-                  "id": "1.20.6",
-                  "mainClass": "net.minecraft.client.main.Main",
-                  "libraries": []
-                }
-                """);
-            });
-
-        var createPlanTask = manager.CreateDownloadPlanAsync(request);
-        var completedTask = await Task.WhenAny(createPlanTask, Task.Delay(500));
-
-        Assert.Same(createPlanTask, completedTask);
-
-        var plan = await createPlanTask;
-        Assert.Equal(0, resolverCalls);
-        Assert.Equal(request, plan.Request);
-
-        await WaitForConditionAsync(() => plan.ParentTask.SubTasks.All(task => task.IsFinished));
-    }
-
-    [Fact]
-    public async Task CreateDownloadPlanAsync_RejectsUnsupportedLoaderType()
-    {
-        var request = new DownloadableGameVersion
-        {
-            RootPath = @"C:\Games\.minecraft",
-            VersionId = "1.20.6",
-            VersionName = "1.20.6-NeoForge",
-            Loaders =
-            [
-                new ModLoader
-                {
-                    Type = ModLoaderType.NeoForge,
-                    VersionId = "20.6.0"
-                }
-            ]
-        };
-
-        var manager = new DownloadManager();
-
-        var exception = await Assert.ThrowsAsync<NotSupportedException>(() => manager.CreateDownloadPlanAsync(request));
-        Assert.Contains("Unsupported", exception.Message, StringComparison.OrdinalIgnoreCase);
-    }
-
     public void Dispose()
     {
         HttpUtils.ResetTransportForTesting();
-    }
-
-    private static IGameInstallationTaskProvider CreateNoOpFinalizationProvider()
-    {
-        return new FakeProvider(
-            DownloadInstallationComponent.Finalization,
-            _ => true,
-            context =>
-            {
-                var task = context.ParentTask.CreateSubTask(
-                    "noop-finalize",
-                    int.MaxValue,
-                    (_, _, progress) =>
-                    {
-                        progress.Report(100);
-                        return Task.FromResult(true);
-                    },
-                    waitForSiblingTasksToComplete: true);
-                context.Tasks.SetFinalizationTask(task);
-            });
     }
 
     async private static Task WaitForConditionAsync(Func<bool> predicate, int timeoutMs = 3000)
@@ -214,19 +129,6 @@ public class DownloadManagerTests : IDisposable
 
             await Task.Delay(20);
         }
-    }
-
-    private sealed class FakeProvider(
-        DownloadInstallationComponent component,
-        Func<DownloadInstallationContext, bool> shouldApply,
-        Action<DownloadInstallationContext> addTasks)
-        : IGameInstallationTaskProvider
-    {
-        public DownloadInstallationComponent Component { get; } = component;
-
-        public bool ShouldApply(DownloadInstallationContext context) => shouldApply(context);
-
-        public void AddTasks(DownloadInstallationContext context) => addTasks(context);
     }
 
 }

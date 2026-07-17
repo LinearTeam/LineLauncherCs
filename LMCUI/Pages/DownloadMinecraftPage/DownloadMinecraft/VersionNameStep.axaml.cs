@@ -42,9 +42,9 @@ public partial class VersionNameStep : DownloadMinecraftStep
         {
             finalName += $"-Fabric_{_context.FabricVersion}";
         }
-        if (!string.IsNullOrEmpty(_context.ForgeVersion))
+        if (_context.ForgeVersion != null)
         {
-            finalName += $"-Forge_{_context.ForgeVersion}";
+            finalName += $"-Forge_{_context.ForgeVersion.VersionId}";
         }
         if (!string.IsNullOrEmpty(_context.OptiFineVersion))
         {

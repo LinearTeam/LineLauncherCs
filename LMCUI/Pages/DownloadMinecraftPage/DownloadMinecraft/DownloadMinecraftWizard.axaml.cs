@@ -15,6 +15,8 @@ using System;
 using Avalonia.Controls;
 using FluentAvalonia.UI.Media.Animation;
 
+using LMCCore.Game.Versioning.Discovery;
+
 namespace LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 
 public partial class DownloadMinecraftWizard : UserControl
@@ -113,19 +115,23 @@ public abstract class DownloadMinecraftStep : UserControl
     public virtual DownloadableVersionSelection? GetResult() => null;
 }
 
-public sealed record DownloadMinecraftWizardContext(string SelectedRootPath, string ManifestVersionId);
+public sealed record DownloadMinecraftWizardContext(
+    string SelectedRootPath,
+    string ManifestVersionId,
+    GameVersionDisplayType DisplayType);
 
-    public sealed record DownloadMinecraftSelectionContext(
-        string SelectedRootPath,
-        string ManifestVersionId,
-        string? FabricVersion,
-        string? ForgeVersion,
-        string? OptiFineVersion);
+public sealed record DownloadMinecraftSelectionContext(
+    string SelectedRootPath,
+    string ManifestVersionId,
+    GameVersionDisplayType DisplayType,
+    string? FabricVersion,
+    ForgeVersionCatalogEntry? ForgeVersion,
+    string? OptiFineVersion);
 
 public sealed record DownloadableVersionSelection(
     string ManifestVersionId,
     string VersionName,
     string SelectedRootPath,
     string? FabricVersion,
-    string? ForgeVersion,
+    ForgeVersionCatalogEntry? ForgeVersion,
     string? OptiFineVersion);

@@ -24,7 +24,7 @@ internal sealed class ForgeInstallProfile
     public int? Spec { get; set; }
 
     [JsonPropertyName("install")]
-    public JsonElement? Install { get; set; }
+    public ForgeInstallProfileInstallInfo? Install { get; set; }
 
     [JsonPropertyName("versionInfo")]
     public JsonElement? VersionInfo { get; set; }
@@ -76,4 +76,16 @@ internal sealed class ForgeInstallProfileDataEntry
 
     [JsonPropertyName("server")]
     public string? Server { get; set; }
+}
+
+internal sealed class ForgeInstallProfileInstallInfo
+{
+    [JsonPropertyName("version")]
+    public string? Version { get; set; }
+
+    [JsonPropertyName("filePath")]
+    public string? FilePath { get; set; }
+    
+    [JsonPropertyName("path")]
+    public string? Path { get; set; }
 }

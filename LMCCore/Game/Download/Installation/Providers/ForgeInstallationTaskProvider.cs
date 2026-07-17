@@ -37,7 +37,7 @@ public sealed class ForgeInstallationTaskProvider : ModLoaderInstallationTaskPro
             -20,
             async (cancellationToken, _, progress) =>
             {
-                var forgeState = await DownloadInstallerAsync(context, loader.VersionId, cancellationToken);
+                var forgeState = await DownloadInstallerAsync(context, loader, cancellationToken);
                 progress.Report(100);
                 return forgeState;
             },
@@ -57,14 +57,9 @@ public sealed class ForgeInstallationTaskProvider : ModLoaderInstallationTaskPro
 
         var forgeState = context.Tasks.ForgeInstallerTask?.Result
                          ?? throw new InvalidOperationException("Forge installer task has not completed.");
-        if (forgeState.IsLegacyInstaller)
-        {
-            throw new NotSupportedException($"Legacy Forge installer '{forgeState.LoaderVersion}' is not supported yet.");
-        }
-
         if (string.IsNullOrWhiteSpace(forgeState.VersionJson))
         {
-            throw new InvalidOperationException("Forge installer does not contain version.json.");
+            throw new InvalidOperationException("Forge installer does not contain mergeable version metadata.");
         }
 
         var vanilla = JsonUtils.Parse(versionJson);
@@ -74,20 +69,20 @@ public sealed class ForgeInstallationTaskProvider : ModLoaderInstallationTaskPro
 
     async private Task<ForgeInstallationRuntimeState> DownloadInstallerAsync(
         DownloadInstallationContext context,
-        string loaderVersion,
+        ModLoader loader,
         CancellationToken cancellationToken)
     {
-        var installerFileName = $"forge-{context.Request.VersionId}-{loaderVersion}-installer.jar";
-        var installerUrl = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{context.Request.VersionId}-{loaderVersion}/{installerFileName}";
-        var transformedUrl = context.DownloadSourceManager.TransformUrl(installerUrl) ?? installerUrl;
+        ArgumentNullException.ThrowIfNull(loader);
+
+        var installerUrl = ForgeVersionResolver.ResolveInstallerDownloadUrl(context.Request.VersionId, loader);
+        var installerFileName = Path.GetFileName(new Uri(installerUrl).LocalPath);
         var installerJarPath = Path.Combine(context.CacheManager.CacheDirectory, installerFileName);
+        var candidateUrls = context.DownloadSourceManager.GetUrlCandidates(installerUrl);
 
         context.CacheManager.EnsureCacheDirectoryExists();
-        await VanillaGameSubTaskFactory.DownloadSingleFileAsync(
-            transformedUrl,
+        await InstallationFileDownloader.DownloadFileWithFallbackAsync(
+            candidateUrls,
             installerJarPath,
-            null,
-            null,
             cancellationToken);
 
         var installProfileJson = ForgeInstallerArchiveReader.ReadRequiredTextEntry(installerJarPath, "install_profile.json");
@@ -97,19 +92,25 @@ public sealed class ForgeInstallationTaskProvider : ModLoaderInstallationTaskPro
         var installProfile = JsonUtils.Parse(installProfileJson).Get<ForgeInstallProfile>()
                              ?? throw new InvalidOperationException("Failed to deserialize Forge install_profile.json.");
         var isLegacyInstaller = ResolveInstallerKind(installProfile);
+        if (isLegacyInstaller)
+        {
+            ExtractLegacyInstallerLibrary(context, installProfile, installerJarPath);
+        }
+
+        var mergeableVersionJson = ResolveMergeableVersionJson(versionJson, installProfile, isLegacyInstaller);
 
         var state = new ForgeInstallationRuntimeState
         {
-            LoaderVersion = loaderVersion,
-            ArtifactVersion = ForgeVersionResolver.ResolveArtifactVersion(context.Request.VersionId, loaderVersion),
+            LoaderVersion = loader.VersionId,
+            ArtifactVersion = ForgeVersionResolver.ResolveArtifactVersion(context.Request.VersionId, loader.VersionId),
             InstallerJarPath = installerJarPath,
             InstallProfileJson = installProfileJson,
-            VersionJson = versionJson,
+            VersionJson = mergeableVersionJson,
             IsLegacyInstaller = isLegacyInstaller,
             InstallProfileObject = installProfileObject,
-            VersionJsonObject = string.IsNullOrWhiteSpace(versionJson)
+            VersionJsonObject = string.IsNullOrWhiteSpace(mergeableVersionJson)
                 ? null
-                : JsonNode.Parse(versionJson)?.AsObject()
+                : JsonNode.Parse(mergeableVersionJson)?.AsObject()
         };
 
         context.RuntimeState.ForgeInstallation = state;
@@ -133,4 +134,51 @@ public sealed class ForgeInstallationTaskProvider : ModLoaderInstallationTaskPro
         throw new InvalidOperationException(
             "Forge install_profile.json does not contain a supported installer shape. Expected either 'spec' for modern Forge or both 'install' and 'versionInfo' for legacy Forge.");
     }
+
+    private static string ResolveMergeableVersionJson(
+        string? modernVersionJson,
+        ForgeInstallProfile installProfile,
+        bool isLegacyInstaller)
+    {
+        if (!isLegacyInstaller)
+        {
+            return !string.IsNullOrWhiteSpace(modernVersionJson)
+                ? modernVersionJson
+                : throw new InvalidOperationException("Forge installer does not contain version.json.");
+        }
+
+        return installProfile.VersionInfo is not { } versionInfoElement ? throw new InvalidOperationException("Legacy Forge installer does not contain install_profile.versionInfo.") : versionInfoElement.GetRawText();
+
+    }
+
+    private static void ExtractLegacyInstallerLibrary(
+        DownloadInstallationContext context,
+        ForgeInstallProfile installProfile,
+        string installerJarPath)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(installProfile);
+        ArgumentException.ThrowIfNullOrWhiteSpace(installerJarPath);
+
+        var extraction = ResolveLegacyInstallerExtraction(installProfile);
+        if (extraction == null)
+        {
+            return;
+        }
+
+        var destinationPath = ForgeLibraryPathHelper.GetAbsoluteLibraryPath(
+            context.Request.RootPath,
+            extraction.LibraryCoordinate);
+        ForgeInstallerArchiveReader.ExtractEntry(installerJarPath, extraction.EntryPath, destinationPath);
+    }
+
+    private static LegacyForgeInstallerExtraction? ResolveLegacyInstallerExtraction(ForgeInstallProfile installProfile)
+    {
+        ArgumentNullException.ThrowIfNull(installProfile.Install);
+
+        return new LegacyForgeInstallerExtraction(installProfile.Install.FilePath ?? throw new NullReferenceException("'filePath' in 'install' of forge install profile is null."), 
+            installProfile.Install.Path ?? throw new NullReferenceException("'path' in 'install' of forge install profile is null."));
+    }
+
+    private sealed record LegacyForgeInstallerExtraction(string EntryPath, string LibraryCoordinate);
 }

@@ -83,6 +83,34 @@ public abstract class DownloadSource
             : TransformUrlWithFallbackCore(normalizedUrl);
     }
 
+    public IReadOnlyList<string> TransformUrlCandidates(string? officialUrl)
+    {
+        var normalizedUrl = NormalizeUrl(officialUrl);
+        if (normalizedUrl == null)
+        {
+            return [];
+        }
+
+        var candidates = new List<string>();
+        foreach (var source in GetSourceChain())
+        {
+            var transformedUrl = source.TransformUrlCore(normalizedUrl) ?? normalizedUrl;
+            if (candidates.Contains(transformedUrl, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            candidates.Add(transformedUrl);
+        }
+
+        if (!candidates.Contains(normalizedUrl, StringComparer.OrdinalIgnoreCase))
+        {
+            candidates.Add(normalizedUrl);
+        }
+
+        return candidates;
+    }
+
     public IEnumerable<DownloadSource> GetSourceChain()
     {
         var current = this;
@@ -162,6 +190,9 @@ public abstract class DownloadSource
 // 官方源（Mojang官方）
 public class OfficialDownloadSource : DownloadSource
 {
+    public const string ForgeMavenBaseUrl = "https://maven.minecraftforge.net";
+    public const string ForgeLegacyFilesMavenBaseUrl = "https://files.minecraftforge.net/maven";
+
     public OfficialDownloadSource()
     {
         Name = "Official";
@@ -180,7 +211,7 @@ public class OfficialDownloadSource : DownloadSource
         KeepOriginalIfStartsWith(officialUrl, "https://libraries.minecraft.net/");
 
     public override string? TransformForgeUrl(string officialUrl) =>
-        KeepOriginalIfStartsWith(officialUrl, "https://files.minecraftforge.net/maven");
+        KeepOriginalIfStartsWith(officialUrl, ForgeMavenBaseUrl, ForgeLegacyFilesMavenBaseUrl);
 
     public override string? TransformFabricMetaUrl(string officialUrl) =>
         KeepOriginalIfStartsWith(officialUrl, "https://meta.fabricmc.net");
@@ -243,10 +274,9 @@ public class BmclDownloadSource : DownloadSource
         return ReplacePrefix(officialUrl, "https://libraries.minecraft.net/", $"{BmclBase}/maven/");
     }
 
-    public override string? TransformForgeUrl(string officialUrl)
-    {
-        return ReplacePrefix(officialUrl, "https://files.minecraftforge.net/maven", $"{BmclBase}/maven");
-    }
+    public override string? TransformForgeUrl(string officialUrl) =>
+        ReplacePrefix(officialUrl, OfficialDownloadSource.ForgeMavenBaseUrl, $"{BmclBase}/maven")
+        ?? ReplacePrefix(officialUrl, OfficialDownloadSource.ForgeLegacyFilesMavenBaseUrl, $"{BmclBase}/maven");
 
     public override string? TransformFabricMetaUrl(string officialUrl)
     {

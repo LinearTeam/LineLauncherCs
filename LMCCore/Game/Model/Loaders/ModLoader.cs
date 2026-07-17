@@ -14,6 +14,8 @@
 
 namespace LMCCore.Game.Model.Loaders;
 
+using System.Text.Json.Serialization;
+
 public enum ModLoaderType
 {
     Forge,
@@ -26,4 +28,7 @@ public class ModLoader
     public required ModLoaderType Type { get; set; }
 
     public required string VersionId { get; set; }
+
+    [JsonPropertyName("metadata")]
+    public Dictionary<string, string?>? Metadata { get; set; }
 }

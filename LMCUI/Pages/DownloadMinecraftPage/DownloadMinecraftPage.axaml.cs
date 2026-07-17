@@ -301,7 +301,7 @@ public partial class DownloadMinecraftPage : PageBase
 
     private void ShowVersionDialog(ManifestVersionListItem version)
     {
-        var wizardContext = DownloadMinecraftPagePresentation.TryCreateWizardContext(Current.Config.SelectedGameRootPath, version.Id);
+        var wizardContext = DownloadMinecraftPagePresentation.TryCreateWizardContext(Current.Config.SelectedGameRootPath, version);
         if (wizardContext == null)
         {
             _ = MessageQueueHelper.ShowError(

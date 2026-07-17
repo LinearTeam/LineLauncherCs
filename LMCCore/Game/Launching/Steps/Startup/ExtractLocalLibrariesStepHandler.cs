@@ -39,17 +39,21 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
             return;
         }
 
-        var nativeArchives = CollectNativeArchivePaths(context);
+        var nativeArchives = CollectNativeArchivePlans(context);
         foreach (var nativeArchive in nativeArchives)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await ExtractNativeFilesAsync(nativeArchive, nativesFolder, cancellationToken);
+            await ExtractNativeFilesAsync(
+                nativeArchive.ArchivePath,
+                nativesFolder,
+                nativeArchive.ExcludePrefixes,
+                cancellationToken);
         }
     }
 
-    private static IReadOnlyCollection<string> CollectNativeArchivePaths(GameLaunchContext context)
+    private static IReadOnlyCollection<NativeArchiveExtractionPlan> CollectNativeArchivePlans(GameLaunchContext context)
     {
-        var nativeArchives = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var nativeArchives = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
         var currentOs = PlatformDetector.GetCurrentOs();
 
         foreach (var library in context.Version.VersionInfo!.Libraries)
@@ -66,16 +70,19 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
             }
         }
 
-        return nativeArchives;
+        return nativeArchives
+            .Select(pair => new NativeArchiveExtractionPlan(pair.Key, pair.Value.ToList().AsReadOnly()))
+            .ToList()
+            .AsReadOnly();
     }
 
     private static void AddSimpleLibraryNativeArchive(
         GameLaunchContext context,
         SimpleLibraryInfo library,
-        ISet<string> nativeArchives)
+        IDictionary<string, HashSet<string>> nativeArchives)
     {
         return;
-        
+
         // Unused
         if (!library.Name.Contains("natives", StringComparison.OrdinalIgnoreCase))
         {
@@ -87,43 +94,19 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
             return;
         }
 
-        nativeArchives.Add(VanillaGameDownloader.GetLibrarySavePath(context.Version.RootPath, relativePath));
+        AddNativeArchive(nativeArchives, VanillaGameDownloader.GetLibrarySavePath(context.Version.RootPath, relativePath), []);
     }
 
     private static void AddDetailedLibraryNativeArchives(
         GameLaunchContext context,
         LibraryInfo library,
         string currentOs,
-        ISet<string> nativeArchives)
+        IDictionary<string, HashSet<string>> nativeArchives)
     {
         if (!CompatibilityRuleEvaluator.CheckRulesApply(library.Rules))
         {
             return;
         }
-        
-        // if (library.Name.Contains("natives", StringComparison.OrdinalIgnoreCase))
-        // {
-        //     if (library.Name.Contains(":natives-"))
-        //     {
-        //         var i = library.Name.LastIndexOf(':');
-        //         var nativesIdentifier = library.Name[(i + 1)..]
-        //             .Replace("natives-", "");
-        //         var rule = new CompatibilityRule
-        //         {
-        //             Action = "allow",
-        //             Os = new RuleOs
-        //             {
-        //                 Name = nativesIdentifier
-        //             }
-        //         };
-        //         if (!CompatibilityRuleEvaluator.RuleMatchesOs(rule)) return;
-        //     }
-        //     var archivePath = library.Downloads?.Artifact?.Path ?? library.Path;
-        //     if (!string.IsNullOrWhiteSpace(archivePath))
-        //     {
-        //         nativeArchives.Add(VanillaGameDownloader.GetLibrarySavePath(context.Version.RootPath, archivePath));
-        //     }
-        // }
 
         if (library.Natives is not { Count: > 0 } ||
             library.Downloads?.Classifiers is not { Count: > 0 } ||
@@ -134,12 +117,41 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
             return;
         }
 
-        nativeArchives.Add(VanillaGameDownloader.GetLibrarySavePath(context.Version.RootPath, nativeFile.Path));
+        AddNativeArchive(
+            nativeArchives,
+            VanillaGameDownloader.GetLibrarySavePath(context.Version.RootPath, nativeFile.Path),
+            library.Extract?.Exclude);
     }
 
-    async private static Task ExtractNativeFilesAsync(
+    private static void AddNativeArchive(
+        IDictionary<string, HashSet<string>> nativeArchives,
+        string archivePath,
+        IEnumerable<string>? excludePrefixes)
+    {
+        if (!nativeArchives.TryGetValue(archivePath, out var excludes))
+        {
+            excludes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            nativeArchives[archivePath] = excludes;
+        }
+
+        if (excludePrefixes == null)
+        {
+            return;
+        }
+
+        foreach (var prefix in excludePrefixes)
+        {
+            if (!string.IsNullOrWhiteSpace(prefix))
+            {
+                excludes.Add(prefix);
+            }
+        }
+    }
+
+    internal static async Task ExtractNativeFilesAsync(
         string archivePath,
         string nativesFolder,
+        IReadOnlyCollection<string> excludePrefixes,
         CancellationToken cancellationToken)
     {
         if (!File.Exists(archivePath))
@@ -152,38 +164,36 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (string.IsNullOrWhiteSpace(entry.Name) || !IsNativeLibraryFile(entry.Name))
+            if (string.IsNullOrWhiteSpace(entry.Name) ||
+                !IsNativeLibraryFile(entry.Name) ||
+                ShouldExcludeEntry(entry.FullName, excludePrefixes))
             {
                 continue;
             }
 
-            var targetPath = Path.Combine(nativesFolder, entry.FullName);
-            var targetPathFlat = Path.Combine(nativesFolder, entry.Name);
-            if (!Directory.Exists(Path.GetDirectoryName(targetPath)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? throw new NullReferenceException());
-            }
+            var targetPath = Path.Combine(nativesFolder, entry.Name);
             await using var entryStream = await entry.OpenAsync(cancellationToken);
-            // await using (var fileStream = new FileStream(
-            //                  targetPath,
-            //                  FileMode.Create,
-            //                  FileAccess.Write,
-            //                  FileShare.None,
-            //                  81920,
-            //                  useAsync: true))
-            // {
-            //     await entryStream.CopyToAsync(fileStream, cancellationToken);
-            // }
-
-            await using var fileStreamFlat = new FileStream(
-                targetPathFlat,
+            await using var fileStream = new FileStream(
+                targetPath,
                 FileMode.Create,
                 FileAccess.Write,
                 FileShare.None,
                 81920,
                 useAsync: true);
-            await entryStream.CopyToAsync(fileStreamFlat, cancellationToken);
+            await entryStream.CopyToAsync(fileStream, cancellationToken);
         }
+    }
+
+    internal static bool ShouldExcludeEntry(string entryPath, IReadOnlyCollection<string> excludePrefixes)
+    {
+        if (string.IsNullOrWhiteSpace(entryPath) || excludePrefixes.Count == 0)
+        {
+            return false;
+        }
+
+        return excludePrefixes.Any(prefix =>
+            !string.IsNullOrWhiteSpace(prefix) &&
+            entryPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool IsNativeLibraryFile(string fileName)
@@ -199,4 +209,6 @@ public sealed class ExtractLocalLibrariesStepHandler : IGameLaunchStepHandler
                extension.Equals(".dylib", StringComparison.OrdinalIgnoreCase) ||
                extension.Equals(".jnilib", StringComparison.OrdinalIgnoreCase);
     }
+
+    internal sealed record NativeArchiveExtractionPlan(string ArchivePath, IReadOnlyCollection<string> ExcludePrefixes);
 }

@@ -272,7 +272,8 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
         IDictionary<string, ClassPathCandidate> selectedCandidates,
         IList<string> candidateOrder)
     {
-        if (!CompatibilityRuleEvaluator.CheckRulesApply(library.Rules) || IsNativeLibrary(library))
+        if (!CompatibilityRuleEvaluator.CheckRulesApply(library.Rules) ||
+            IsNativeLibrary(library))
         {
             return;
         }
@@ -427,10 +428,30 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
     {
         return libraryInfo switch
         {
-            SimpleLibraryInfo => false,
-            LibraryInfo libInfo => libInfo.Natives != null && libInfo.Natives.ContainsKey(PlatformDetector.GetCurrentOs()),
+            SimpleLibraryInfo simpleLibrary => HasNativeClassifier(simpleLibrary.Name),
+            LibraryInfo libInfo => HasNativeClassifier(libInfo.Name) ||
+                                   IsNativeLibraryPath(libInfo.Path) ||
+                                   IsNativeLibraryPath(libInfo.Downloads?.Artifact?.Path),
             _ => false
         };
+    }
+
+    private static bool HasNativeClassifier(string? libraryName)
+    {
+        if (string.IsNullOrWhiteSpace(libraryName))
+        {
+            return false;
+        }
+
+        var parts = libraryName.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length > 3 &&
+               parts.Skip(3).Any(part => part.Contains("natives", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool IsNativeLibraryPath(string? path)
+    {
+        return !string.IsNullOrWhiteSpace(path) &&
+               Path.GetFileName(path).Contains("-natives-", StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed record ClassPathCandidate(string DependencyKey, string? Version, string Path);

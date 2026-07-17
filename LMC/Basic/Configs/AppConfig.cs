@@ -33,5 +33,13 @@ public class AppConfig {
 
     public NewVersionConfigSource DefaultVersionConfigSourceForNewInstalls { get; set; } =
         NewVersionConfigSource.VersionJson;
+
+    public DownloadSourcePolicy DefaultVersionManifestSource { get; set; } = DownloadSourcePolicy.BmclapiFirst;
+    public DownloadSourcePolicy DefaultFileDownloadSource { get; set; } = DownloadSourcePolicy.BmclapiFirst;
+}
+
+public enum DownloadSourcePolicy
+{
+    BmclapiFirst, OfficialFirst
 }
 

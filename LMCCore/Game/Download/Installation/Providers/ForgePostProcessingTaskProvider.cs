@@ -54,7 +54,9 @@ public sealed class ForgePostProcessingTaskProvider : ModLoaderInstallationTaskP
                                  ?? throw new InvalidOperationException("Forge installer state has not been initialized.");
                 if (forgeState.IsLegacyInstaller)
                 {
-                    throw new NotSupportedException($"Legacy Forge installer '{loader.VersionId}' is not supported yet.");
+                    _logger.Info($"Skipping processor execution for legacy Forge installer '{loader.VersionId}'.");
+                    progress.Report(100);
+                    return true;
                 }
 
                 await DownloadAdditionalLibrariesAsync(context, forgeState, cancellationToken);

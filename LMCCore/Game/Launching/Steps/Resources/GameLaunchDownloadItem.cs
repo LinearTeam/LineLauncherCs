@@ -19,4 +19,6 @@ internal sealed record GameLaunchDownloadItem(
     string DownloadUrl,
     string DisplayName,
     long? Size,
-    string? Hash);
+    string? Hash,
+    IReadOnlyList<string>? Hashes = null,
+    bool IgnoreNotFound = false);

@@ -1,4 +1,4 @@
-﻿// Copyright 2025-2026 LinearTeam
+// Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,4 +12,14 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace LMCCore.Game.Download.Fabric;
+using LMCCore.Game.Download.Installation.Forge;
+
+namespace LMCCore.Game.Download.Installation.OptiFine;
+
+internal static class OptiFineLibraryPathHelper
+{
+    public static string GetAbsoluteLibraryPath(string rootPath, string coordinate)
+    {
+        return ForgeLibraryPathHelper.GetAbsoluteLibraryPath(rootPath, coordinate);
+    }
+}

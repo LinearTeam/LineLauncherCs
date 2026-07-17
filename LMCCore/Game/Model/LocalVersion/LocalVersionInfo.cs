@@ -114,10 +114,16 @@ public class DownloadableFileInfo
     
     [JsonPropertyName("sha1")]
     public string? Sha1 { get; set; }
+
+    [JsonPropertyName("checksums")]
+    public List<string>? Checksums { get; set; }
     
     [JsonPropertyName("size")]
     public long? Size { get; set; }
     
     [JsonPropertyName("url")]
     public string? Url { get; set; }
+
+    [JsonIgnore]
+    public bool IgnoreNotFound { get; set; }
 }

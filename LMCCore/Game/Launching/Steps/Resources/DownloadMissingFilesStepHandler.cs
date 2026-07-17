@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMC.Basic.Logging;
+using LMCCore.Game.Download.Installation.Caching;
 using LMCCore.Game.Download.Vanilla;
 using LMCCore.Game.Download.Vanilla.Batching;
 using LMCCore.Game.Launching.Execution;
@@ -38,19 +39,22 @@ public sealed class DownloadMissingFilesStepHandler : IGameLaunchStepHandler
                           ?? throw new InvalidOperationException("Version info is required before launching.");
         var pendingDownloads = new Dictionary<string, GameLaunchDownloadItem>(StringComparer.OrdinalIgnoreCase);
 
-        CollectClientJarDownload(context, versionInfo, pendingDownloads, cancellationToken);
+        await CollectClientJarDownloadAsync(context, versionInfo, pendingDownloads, cancellationToken);
         await EnsureAssetIndexAndCollectAssetsAsync(context, versionInfo, pendingDownloads, cancellationToken);
+        await WarmLibrariesAsync(context, versionInfo, cancellationToken);
 
-        foreach (var libraryDownload in GameLaunchLibraryFileResolver.CollectMissingLibraryDownloads(
-                     context.Version.RootPath,
-                     versionInfo,
-                     cancellationToken))
+        var libraryResolution = GameLaunchLibraryFileResolver.CollectMissingLibraries(
+            context.Version.RootPath,
+            versionInfo,
+            cancellationToken);
+        foreach (var libraryDownload in libraryResolution.Downloads)
         {
             pendingDownloads[libraryDownload.SavePath] = libraryDownload;
         }
 
         if (pendingDownloads.Count == 0)
         {
+            ThrowIfBlockingLibrariesExist(context, libraryResolution.BlockingFailures);
             s_logger.Info($"No missing launch files were detected for '{context.Version.VersionName}'.");
             return;
         }
@@ -70,6 +74,8 @@ public sealed class DownloadMissingFilesStepHandler : IGameLaunchStepHandler
                 GetDownloadUrl = item => item.DownloadUrl,
                 GetFileSize = item => item.Size,
                 GetHash = item => item.Hash,
+                GetHashes = item => item.Hashes,
+                GetIgnoreNotFound = item => item.IgnoreNotFound,
                 GetDisplayName = item => item.DisplayName,
                 SkipIfSizeMatches = true,
                 SkipIfHashMatches = true
@@ -82,11 +88,33 @@ public sealed class DownloadMissingFilesStepHandler : IGameLaunchStepHandler
                 $"Failed to download {batchResult.FailedCount} launch file(s) for '{context.Version.VersionName}'.");
         }
 
+        ThrowIfBlockingLibrariesExist(context, libraryResolution.BlockingFailures);
+
         s_logger.Info(
             $"Launch file repair completed for '{context.Version.VersionName}': downloaded {batchResult.SuccessCount}, skipped {batchResult.SkippedCount}.");
     }
 
-    private static void CollectClientJarDownload(
+    private static void ThrowIfBlockingLibrariesExist(
+        GameLaunchContext context,
+        IReadOnlyList<GameLaunchLibraryBlockingFailure> blockingFailures)
+    {
+        if (blockingFailures.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var failure in blockingFailures)
+        {
+            s_logger.Error(
+                $"Required library '{failure.DisplayName}' is missing and has no download source. Path: '{failure.SavePath}'. Reason: {failure.Reason}");
+        }
+
+        var libraryNames = string.Join(", ", blockingFailures.Select(failure => failure.DisplayName));
+        throw new InvalidOperationException(
+            $"Required libraries are missing and cannot be downloaded for '{context.Version.VersionName}': {libraryNames}");
+    }
+
+    private static async Task CollectClientJarDownloadAsync(
         GameLaunchContext context,
         LocalVersionInfo versionInfo,
         IDictionary<string, GameLaunchDownloadItem> pendingDownloads,
@@ -105,6 +133,22 @@ public sealed class DownloadMissingFilesStepHandler : IGameLaunchStepHandler
         }
 
         var jarCheck = GameLaunchFileIntegrityHelper.CheckFile(
+            context.Version.JarPath,
+            clientDownload.Sha1,
+            clientDownload.Size,
+            cancellationToken);
+        if (jarCheck.IsValid)
+        {
+            return;
+        }
+
+        await GameInstallationLocalReuseHelper.TryPopulateClientJarFromKnownVersionsAsync(
+            context.Version.RootPath,
+            context.Version.JarPath,
+            clientDownload.Sha1,
+            clientDownload.Size,
+            cancellationToken);
+        jarCheck = GameLaunchFileIntegrityHelper.CheckFile(
             context.Version.JarPath,
             clientDownload.Sha1,
             clientDownload.Size,
@@ -137,6 +181,10 @@ public sealed class DownloadMissingFilesStepHandler : IGameLaunchStepHandler
         }
 
         var assets = context.VanillaDownloader.ParseAssetIndex(assetIndexJson);
+        await GameInstallationLocalReuseHelper.WarmAssetsFromManagedRootsAsync(
+            context.Version.RootPath,
+            assets,
+            cancellationToken);
         foreach (var asset in assets)
         {
             var savePath = VanillaGameDownloader.GetAssetSavePath(assetRoot, asset.Value.Hash);
@@ -170,6 +218,21 @@ public sealed class DownloadMissingFilesStepHandler : IGameLaunchStepHandler
         var assetIndexPath = Path.Combine(indexesDirectory, $"{assetIndex.Id}.json");
 
         var localCheck = GameLaunchFileIntegrityHelper.CheckFile(
+            assetIndexPath,
+            assetIndex.Sha1,
+            assetIndex.Size > 0 ? assetIndex.Size : null,
+            cancellationToken);
+        if (localCheck.IsValid)
+        {
+            return await File.ReadAllTextAsync(assetIndexPath, cancellationToken);
+        }
+
+        await GameInstallationLocalReuseHelper.TryPopulateAssetIndexFromManagedRootsAsync(
+            context.Version.RootPath,
+            assetIndex,
+            assetIndexPath,
+            cancellationToken);
+        localCheck = GameLaunchFileIntegrityHelper.CheckFile(
             assetIndexPath,
             assetIndex.Sha1,
             assetIndex.Size > 0 ? assetIndex.Size : null,
@@ -215,5 +278,22 @@ public sealed class DownloadMissingFilesStepHandler : IGameLaunchStepHandler
         }
 
         return await File.ReadAllTextAsync(assetIndexPath, cancellationToken);
+    }
+
+    private static async Task WarmLibrariesAsync(
+        GameLaunchContext context,
+        LocalVersionInfo versionInfo,
+        CancellationToken cancellationToken)
+    {
+        var libraries = VanillaGameDownloader.GetLibrariesForDownload(versionInfo);
+        if (libraries.Count == 0)
+        {
+            return;
+        }
+
+        await GameInstallationLocalReuseHelper.WarmLibrariesFromManagedRootsAsync(
+            context.Version.RootPath,
+            libraries,
+            cancellationToken);
     }
 }

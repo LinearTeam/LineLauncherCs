@@ -18,6 +18,7 @@ using LMCCore.Game.Model.Loaders;
 using LMCCore.Game.Model.LocalVersion;
 using LMCCore.Tasks.Model;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace LMCCore.Game.Download.Installation;
 
@@ -91,6 +92,8 @@ public sealed class DownloadInstallationContext
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(versionJson);
 
+        versionJson = NormalizeLibrariesForInstallation(versionJson);
+
         var versionInfo = DownloadManager.ParseVersionJson(versionJson)
                           ?? throw new InvalidOperationException(
                               $"Failed to parse version metadata for {Request.VersionId}.");
@@ -107,5 +110,11 @@ public sealed class DownloadInstallationContext
         RuntimeState.VersionJson = prettyJson;
         RuntimeState.VersionInfo = versionInfo;
         return versionInfo;
+    }
+
+    internal static string NormalizeLibrariesForInstallation(string versionJson)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(versionJson);
+        return versionJson;
     }
 }

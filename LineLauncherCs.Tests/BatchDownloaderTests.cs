@@ -13,6 +13,7 @@
 //    limitations under the License.
 using System.Net;
 using System.Text;
+using LMCCore.Game.Model.LocalVersion;
 using LMCCore.Game.Download.Vanilla;
 using LMCCore.Game.Download.Vanilla.Batching;
 using LMCCore.Utils;
@@ -161,6 +162,44 @@ public class BatchDownloaderTests : IDisposable
     }
 
     [Fact]
+    public async Task DownloadAsync_IgnoresOptionalNotFoundAndPreservesExistingFile()
+    {
+        using var scope = new TestFileSystemScope();
+        var savePath = scope.GetPath("optional.jar");
+        await File.WriteAllTextAsync(savePath, "existing");
+
+        var result = await BatchDownloader.DownloadAsync(
+            new BatchDownloadOptions<DownloadableFileInfo>
+            {
+                Files =
+                [
+                    new DownloadableFileInfo
+                    {
+                        Path = "optional.jar",
+                        Url = "https://libraries.minecraft.net/example/optional.jar",
+                        IgnoreNotFound = true
+                    }
+                ],
+                GetSavePath = _ => savePath,
+                GetDownloadUrl = file => file.Url!,
+                GetIgnoreNotFound = file => file.IgnoreNotFound
+            },
+            CancellationToken.None,
+            progress: null,
+            runtime: new BatchDownloadRuntime
+            {
+                DownloadFileAsync = async (_, path, _, _) =>
+                {
+                    await File.WriteAllTextAsync(path, "temporary");
+                    throw new HttpRequestException("not found", null, HttpStatusCode.NotFound);
+                }
+            });
+
+        Assert.Equal(new BatchDownloadResult(0, 0, 1), result);
+        Assert.Equal("existing", await File.ReadAllTextAsync(savePath));
+    }
+
+    [Fact]
     public async Task DownloadFileAsync_RetriesBeforeSuccess()
     {
         using var scope = new TestFileSystemScope();
@@ -184,6 +223,22 @@ public class BatchDownloaderTests : IDisposable
 
         Assert.Equal(3, attempts);
         Assert.Equal("payload", await File.ReadAllTextAsync(savePath));
+    }
+
+    [Fact]
+    public async Task DownloadFileAsync_DoesNotReplaceExistingFileWhenRequestFails()
+    {
+        using var scope = new TestFileSystemScope();
+        var savePath = scope.GetPath("download.bin");
+        await File.WriteAllTextAsync(savePath, "existing");
+
+        HttpUtils.Transport = new DelegateHttpRequestTransport((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound)));
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            BatchDownloader.DownloadFileAsync("https://example.com/missing", savePath, CancellationToken.None, maxRetries: 0));
+
+        Assert.Equal("existing", await File.ReadAllTextAsync(savePath));
     }
 
     public void Dispose()

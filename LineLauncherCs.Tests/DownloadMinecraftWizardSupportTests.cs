@@ -16,6 +16,7 @@ using LMCCore.Game.Download.Model;
 using LMCCore.Game.Model.Loaders;
 using LMCCore.Game.Download.Model.Vanilla;
 using LMCCore.Game.Versioning;
+using LMCCore.Game.Versioning.Discovery;
 using LMCUI.Pages.DownloadMinecraftPage;
 
 namespace LineLauncherCs.Tests;
@@ -76,7 +77,8 @@ public class DownloadMinecraftWizardSupportTests
 
         Assert.Null(result.Exception);
         Assert.Equal(["0.15.11", "0.15.10"], result.Catalog.FabricVersions);
-        Assert.Equal(["47.2.0", "47.1.0"], result.Catalog.ForgeVersions);
+        Assert.Equal(["47.2.0", "47.1.0"], result.Catalog.ForgeVersions.Select(version => version.VersionId));
+        Assert.Equal("jar", result.Catalog.ForgeVersions[0].InstallerFormat);
         Assert.Equal(["HD_U_I5", "HD_U_I6"], result.Catalog.OptiFineVersions);
     }
 
@@ -121,9 +123,9 @@ public class DownloadMinecraftWizardSupportTests
     public void BuildLoaderSelectionState_ProducesMutualExclusionAndWarning()
     {
         var state = DownloadMinecraftWizardSupport.BuildLoaderSelectionState(
-            new DownloadMinecraftWizardContext(@"C:\Games\.minecraft", "1.20.6"),
+            new DownloadMinecraftWizardContext(@"C:\Games\.minecraft", "1.20.6", GameVersionDisplayType.Release),
             "0.15.11",
-            "Do not install",
+            null,
             "HD_U_I6",
             false,
             "Do not install",
@@ -131,9 +133,61 @@ public class DownloadMinecraftWizardSupportTests
 
         Assert.NotNull(state.Selection);
         Assert.False(state.IsForgeEnabled);
-        Assert.True(state.IsFabricEnabled);
+        Assert.False(state.IsFabricEnabled);
         Assert.True(state.IsValidationVisible);
         Assert.Equal("warning", state.ValidationMessage);
+    }
+
+    [Fact]
+    public void BuildLoaderSelectionState_BlocksFabricAndOptiFineCombinationOutsideSupportedReleaseRange()
+    {
+        var state = DownloadMinecraftWizardSupport.BuildLoaderSelectionState(
+            new DownloadMinecraftWizardContext(@"C:\Games\.minecraft", "1.13.2", GameVersionDisplayType.Release),
+            "0.15.11",
+            null,
+            "HD_U_I6",
+            false,
+            "Do not install",
+            "warning");
+
+        Assert.False(state.CanContinue);
+        Assert.False(state.IsOptiFineEnabled);
+        Assert.True(state.IsValidationVisible);
+    }
+
+    [Fact]
+    public void BuildLoaderSelectionState_DoesNotWarnForCompatibleFabricAndOptiFineCombination()
+    {
+        var state = DownloadMinecraftWizardSupport.BuildLoaderSelectionState(
+            new DownloadMinecraftWizardContext(@"C:\Games\.minecraft", "1.20.4", GameVersionDisplayType.Release),
+            "0.15.11",
+            null,
+            "HD_U_I6",
+            false,
+            "Do not install",
+            "warning");
+
+        Assert.True(state.CanContinue);
+        Assert.False(state.IsValidationVisible);
+        Assert.Equal(string.Empty, state.ValidationMessage);
+    }
+
+    [Fact]
+    public void BuildLoaderSelectionState_IgnoresFabricAndOptiFineRestrictionForSnapshots()
+    {
+        var state = DownloadMinecraftWizardSupport.BuildLoaderSelectionState(
+            new DownloadMinecraftWizardContext(@"C:\Games\.minecraft", "24w18a", GameVersionDisplayType.Snapshot),
+            "0.15.11",
+            null,
+            "HD_U_I6",
+            false,
+            "Do not install",
+            "warning");
+
+        Assert.True(state.CanContinue);
+        Assert.True(state.IsFabricEnabled);
+        Assert.True(state.IsOptiFineEnabled);
+        Assert.False(state.IsValidationVisible);
     }
 
     [Fact]
@@ -142,6 +196,7 @@ public class DownloadMinecraftWizardSupportTests
         var context = new DownloadMinecraftSelectionContext(
             @"C:\Games\.minecraft",
             "1.20.6",
+            GameVersionDisplayType.Release,
             "0.15.11",
             null,
             null);
@@ -159,6 +214,22 @@ public class DownloadMinecraftWizardSupportTests
     }
 
     [Fact]
+    public void CreatePreviousContext_PreservesOriginalDisplayType()
+    {
+        var context = new DownloadMinecraftSelectionContext(
+            @"C:\Games\.minecraft",
+            "3D Shareware v1.34",
+            GameVersionDisplayType.AprilFools,
+            "0.15.11",
+            null,
+            "HD_U_I6");
+
+        var previous = DownloadMinecraftWizardSupport.CreatePreviousContext(context);
+
+        Assert.Equal(GameVersionDisplayType.AprilFools, previous.DisplayType);
+    }
+
+    [Fact]
     public void CreateDownloadRequest_MapsSelectionToDownloadableGameVersion()
     {
         var selection = new DownloadableVersionSelection(
@@ -166,7 +237,7 @@ public class DownloadMinecraftWizardSupportTests
             "1.20.6-Fabric_0.15.11",
             @"C:\Games\.minecraft",
             "0.15.11",
-            "47.2.0",
+            new ForgeVersionCatalogEntry("47.2.0", "latest", "jar"),
             "HD_U_I6");
 
         var request = DownloadMinecraftWizardSupport.CreateDownloadRequest(selection);
@@ -177,7 +248,14 @@ public class DownloadMinecraftWizardSupportTests
         Assert.Equal("HD_U_I6", request.OptiFine);
         Assert.Equal(2, request.Loaders.Length);
         Assert.Contains(request.Loaders, loader => loader.Type == ModLoaderType.Fabric && loader.VersionId == "0.15.11");
-        Assert.Contains(request.Loaders, loader => loader.Type == ModLoaderType.Forge && loader.VersionId == "47.2.0");
+        Assert.Contains(request.Loaders, loader =>
+            loader.Type == ModLoaderType.Forge &&
+            loader.VersionId == "47.2.0" &&
+            loader.Metadata != null &&
+            loader.Metadata.TryGetValue("branch", out var branch) &&
+            branch == "latest" &&
+            loader.Metadata.TryGetValue("installerFormat", out var format) &&
+            format == "jar");
     }
 
     [Theory]

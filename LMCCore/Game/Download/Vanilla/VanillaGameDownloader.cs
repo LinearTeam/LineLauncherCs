@@ -24,6 +24,8 @@ namespace LMCCore.Game.Download.Vanilla;
 
 public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
 {
+    public const string OfficialLibraryBaseUrl = "https://libraries.minecraft.net/";
+
     private readonly DownloadSourceManager _sourceManager = sourceManager ?? DownloadSourceManager.CreateDefault();
     private readonly static Logger s_logger = new("Download.Vanilla");
     private readonly static object s_manifestLock = new();
@@ -56,7 +58,7 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
         }
     }
 
-    async private Task<VersionManifestInfo> FetchVersionManifestAsync()
+    private async Task<VersionManifestInfo> FetchVersionManifestAsync()
     {
         const string officialUrl = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
         var transformedUrl = _sourceManager.TransformUrl(officialUrl) ?? officialUrl;
@@ -137,17 +139,17 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
 
         if (libraries is not { Count: > 0 })
         {
-            s_logger.Error("解析依赖库失败");
+            s_logger.Error("Failed to parse libraries.");
             return librariesShouldDownload;
         }
 
-        s_logger.Info($"在版本 JSON 中找到 {libraries.Count} 个依赖库");
+        s_logger.Info($"Found {libraries.Count} libraries in version json.");
 
         foreach (var library in libraries)
         {
             if (string.IsNullOrWhiteSpace(library.Name))
             {
-                s_logger.Warn("已跳过没有 name 的依赖库");
+                s_logger.Warn("Skipped a library entry without a name.");
                 continue;
             }
 
@@ -160,12 +162,12 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
                     AppendSimpleLibraryDownload(simpleLibrary, librariesShouldDownload);
                     break;
                 default:
-                    s_logger.Warn($"已跳过未知格式的依赖库 {library.Name}");
+                    s_logger.Warn($"Skipped unsupported library entry format: {library.Name}");
                     break;
             }
         }
 
-        s_logger.Info($"共解析 {librariesShouldDownload.Count} 个需要下载的依赖库");
+        s_logger.Info($"Resolved {librariesShouldDownload.Count} downloadable libraries.");
         return librariesShouldDownload;
     }
 
@@ -173,12 +175,11 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
     {
         if (!CompatibilityRuleEvaluator.CheckRulesApply(libInfo.Rules))
         {
-            s_logger.Info($"已跳过不适用的依赖库 {libInfo.Name}");
+            s_logger.Info($"Skipped incompatible library {libInfo.Name}");
             return;
         }
 
-        var hasNative = /* libInfo.Name.Contains("natives", StringComparison.OrdinalIgnoreCase) || */
-                        libInfo.Natives is { Count: > 0 } ||
+        var hasNative = libInfo.Natives is { Count: > 0 } ||
                         libInfo.Downloads?.Classifiers is { Count: > 0 };
 
         if (hasNative &&
@@ -186,11 +187,13 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
         {
             var os = PlatformDetector.GetCurrentOs();
             if (libInfo.Natives.TryGetValue(os, out var key) &&
-                libInfo.Downloads.Classifiers.TryGetValue(key, out var fileInfo))
+                libInfo.Downloads.Classifiers.TryGetValue(
+                    key.Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
+                    out var fileInfo))
             {
                 if (string.IsNullOrWhiteSpace(fileInfo.Url))
                 {
-                    s_logger.Warn($"依赖库 {libInfo.Name} 的 {os} 本地库下载地址为空，已跳过");
+                    s_logger.Warn($"Library {libInfo.Name} has no native download url for {os}.");
                 }
                 else
                 {
@@ -202,35 +205,53 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
         if (libInfo.Downloads?.Artifact?.Url is not null)
         {
             librariesShouldDownload.Add(libInfo.Downloads.Artifact);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(libInfo.Url) &&
+            TryBuildMavenRelativePath(libInfo.Name, out var relativePath))
+        {
+            var downloadUrl = new Uri(new Uri(EnsureTrailingSlash(libInfo.Url)), relativePath).ToString();
+            librariesShouldDownload.Add(new DownloadableFileInfo
+            {
+                Path = relativePath,
+                Url = downloadUrl,
+                Sha1 = libInfo.GetPreferredSha1(),
+                Checksums = libInfo.Checksums,
+                Size = libInfo.Size
+            });
         }
     }
 
     private static void AppendSimpleLibraryDownload(SimpleLibraryInfo libInfo, ICollection<DownloadableFileInfo> librariesShouldDownload)
     {
-        if (string.IsNullOrWhiteSpace(libInfo.Url))
-        {
-            s_logger.Warn($"简单依赖库 {libInfo.Name} 缺少下载地址，已跳过");
-            return;
-        }
-
         if (!TryBuildMavenRelativePath(libInfo.Name, out var relativePath))
         {
-            s_logger.Warn($"简单依赖库 {libInfo.Name} 的 Maven 坐标无法解析，已跳过");
+            s_logger.Warn($"Simple library {libInfo.Name} does not have a valid Maven coordinate.");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(libInfo.Sha1))
         {
-            s_logger.Warn($"简单依赖库 {libInfo.Name} 缺少 sha1，将跳过校验");
+            s_logger.Warn($"Simple library {libInfo.Name} is missing sha1, hash validation may be skipped.");
         }
 
-        var downloadUrl = new Uri(new Uri(EnsureTrailingSlash(libInfo.Url)), relativePath).ToString();
+        var hasExplicitUrl = !string.IsNullOrWhiteSpace(libInfo.Url);
+        var baseUrl = hasExplicitUrl ? libInfo.Url! : OfficialLibraryBaseUrl;
+        var downloadUrl = new Uri(new Uri(EnsureTrailingSlash(baseUrl)), relativePath).ToString();
+        if (!hasExplicitUrl)
+        {
+            s_logger.Info($"Simple library {libInfo.Name} has no explicit download url, trying the official library source.");
+        }
+
         librariesShouldDownload.Add(new DownloadableFileInfo
         {
             Path = relativePath,
             Url = downloadUrl,
-            Sha1 = libInfo.Sha1,
-            Size = libInfo.Size
+            Sha1 = libInfo.GetPreferredSha1(),
+            Checksums = libInfo.Checksums,
+            Size = libInfo.Size,
+            IgnoreNotFound = !hasExplicitUrl
         });
     }
 
@@ -251,19 +272,37 @@ public class VanillaGameDownloader(DownloadSourceManager? sourceManager = null)
     public static bool TryBuildMavenRelativePath(string name, out string relativePath)
     {
         var parts = name.Split(':', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length is not (3 or 4))
+        if (parts.Length < 3)
         {
             relativePath = string.Empty;
             return false;
         }
 
-        var group = parts[0].Replace('.', '/');
-        var artifact = parts[1];
-        var version = parts[2];
-        var classifier = parts.Length == 4 ? parts[3] : null;
-        var fileName = classifier == null
-            ? $"{artifact}-{version}.jar"
-            : $"{artifact}-{version}-{classifier}.jar";
+        var normalizedParts = parts.ToArray();
+        var extension = "jar";
+
+        for (var i = 2; i < normalizedParts.Length; i++)
+        {
+            var atIndex = normalizedParts[i].LastIndexOf('@');
+            if (atIndex < 0 || atIndex >= normalizedParts[i].Length - 1)
+            {
+                continue;
+            }
+
+            extension = normalizedParts[i][(atIndex + 1)..];
+            normalizedParts[i] = normalizedParts[i][..atIndex];
+            break;
+        }
+
+        var group = normalizedParts[0].Replace('.', '/');
+        var artifact = normalizedParts[1];
+        var version = normalizedParts[2];
+        var classifier = normalizedParts.Length > 3
+            ? string.Join('-', normalizedParts.Skip(3))
+            : null;
+        var fileName = string.IsNullOrWhiteSpace(classifier)
+            ? $"{artifact}-{version}.{extension}"
+            : $"{artifact}-{version}-{classifier}.{extension}";
 
         relativePath = $"{group}/{artifact}/{version}/{fileName}";
         return true;

@@ -12,80 +12,45 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using LMCCore.Utils;
+using System.Net;
 using LMC.Basic.Logging;
+using LMCCore.Utils;
 
 namespace LMCCore.Game.Download.Vanilla.Batching;
 
-/// <summary>
-/// 批量下载结果
-/// </summary>
 public record BatchDownloadResult(
     int SuccessCount,
     int FailedCount,
     int SkippedCount
 );
 
-/// <summary>
-/// 批量下载选项
-/// </summary>
-/// <typeparam name="TFile">文件类型</typeparam>
 public class BatchDownloadOptions<TFile>
 {
-    /// <summary>
-    /// 文件集合
-    /// </summary>
     public required IEnumerable<TFile> Files { get; init; }
-    
-    /// <summary>
-    /// 最大并发数
-    /// </summary>
+
     public int MaxConcurrency { get; init; } = 8;
-    
-    /// <summary>
-    /// 获取保存路径
-    /// </summary>
+
     public required Func<TFile, string> GetSavePath { get; init; }
-    
-    /// <summary>
-    /// 获取下载URL
-    /// </summary>
+
     public required Func<TFile, string> GetDownloadUrl { get; init; }
-    
-    /// <summary>
-    /// 获取文件大小（返回null表示未知）
-    /// </summary>
+
     public Func<TFile, long?>? GetFileSize { get; init; }
-    
-    /// <summary>
-    /// 获取SHA1校验码（返回null表示不校验）
-    /// </summary>
+
     public Func<TFile, string?>? GetHash { get; init; }
-    
-    /// <summary>
-    /// 获取日志显示名称
-    /// </summary>
+
+    public Func<TFile, IReadOnlyList<string>?>? GetHashes { get; init; }
+
+    public Func<TFile, bool>? GetIgnoreNotFound { get; init; }
+
     public Func<TFile, string?>? GetDisplayName { get; init; }
-    
-    /// <summary>
-    /// 是否跳过已有且大小匹配的文件（默认true）
-    /// </summary>
+
     public bool SkipIfSizeMatches { get; init; } = true;
-    
-    /// <summary>
-    /// 是否跳过已有且校验通过的文件（默认true）
-    /// </summary>
+
     public bool SkipIfHashMatches { get; init; } = true;
-    
-    /// <summary>
-    /// 下载失败重试次数（默认3次）
-    /// </summary>
+
     public int MaxRetries { get; init; } = 3;
 }
 
-/// <summary>
-/// 批量下载器 - 提供通用的批量文件下载能力
-/// </summary>
 public static class BatchDownloader
 {
     private readonly static Logger s_logger = new("BatchDownloader");
@@ -96,18 +61,15 @@ public static class BatchDownloader
         Skipped
     }
 
-    /// <summary>
-    /// 批量下载文件
-    /// </summary>
-    public async static Task<BatchDownloadResult> DownloadAsync<TFile>(
+    public static Task<BatchDownloadResult> DownloadAsync<TFile>(
         BatchDownloadOptions<TFile> options,
         CancellationToken cancellationToken,
         IProgress<int>? progress = null)
     {
-        return await DownloadAsync(options, cancellationToken, progress, BatchDownloadRuntime.Default);
+        return DownloadAsync(options, cancellationToken, progress, BatchDownloadRuntime.Default);
     }
 
-    async internal static Task<BatchDownloadResult> DownloadAsync<TFile>(
+    internal static async Task<BatchDownloadResult> DownloadAsync<TFile>(
         BatchDownloadOptions<TFile> options,
         CancellationToken cancellationToken,
         IProgress<int>? progress,
@@ -115,7 +77,7 @@ public static class BatchDownloader
     {
         var files = BatchDownloadPreparation.PrepareFiles(options);
         var totalCount = files.Count;
-        
+
         if (totalCount == 0)
         {
             return new BatchDownloadResult(0, 0, 0);
@@ -157,7 +119,7 @@ public static class BatchDownloader
                 }
                 catch (Exception ex)
                 {
-                    s_logger.Error(ex, "下载失败");
+                    s_logger.Error(ex, "Download failed.");
                     progressTracker.RecordFailed();
                 }
             }
@@ -169,62 +131,53 @@ public static class BatchDownloader
         }
         catch (OperationCanceledException)
         {
-            s_logger.Debug("下载已被取消");
+            s_logger.Debug("Download canceled.");
             throw;
         }
 
-        // 确保报告最终进度
         if (!cancellationToken.IsCancellationRequested)
         {
             progressTracker.ReportCompleted();
         }
+
         return progressTracker.CreateResult();
     }
 
-    async private static Task<FileProcessResult> ProcessFileAsync<TFile>(
+    private static async Task<FileProcessResult> ProcessFileAsync<TFile>(
         BatchDownloadOptions<TFile> options,
         PreparedBatchFile<TFile> file,
         BatchDownloadRuntime runtime,
         CancellationToken cancellationToken)
     {
-        // 检查是否需要跳过已有文件
         if (File.Exists(file.SavePath))
         {
             cancellationToken.ThrowIfCancellationRequested();
             var skipReason = BatchDownloadSkipEvaluator.GetSkipReason(file, options, runtime, cancellationToken);
             if (skipReason != null)
             {
-                s_logger.Debug($"{file.DisplayName} 已存在（{skipReason}），跳过下载");
+                s_logger.Debug($"{file.DisplayName} already exists ({skipReason}), skipping.");
                 return FileProcessResult.Skipped;
             }
         }
 
-        s_logger.Debug($"下载 {file.DisplayName}");
+        s_logger.Debug($"Downloading {file.DisplayName}");
 
-        // 下载文件
-        await runtime.DownloadFileAsync(file.DownloadUrl, file.SavePath, cancellationToken, options.MaxRetries);
-
-        // 下载后校验
-        if (!string.IsNullOrEmpty(file.Hash))
+        var tempPath = CreateTemporaryDownloadPath(file.SavePath);
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var actualHash = runtime.ComputeSha1(file.SavePath, cancellationToken);
-            if (actualHash != file.Hash)
-            {
-                s_logger.Warn($"{file.DisplayName} 校验失败，预期 {file.Hash}，实际 {actualHash}，重新下载中");
-                File.Delete(file.SavePath);
-                await runtime.DownloadFileAsync(file.DownloadUrl, file.SavePath, cancellationToken, options.MaxRetries);
-                cancellationToken.ThrowIfCancellationRequested();
-                actualHash = runtime.ComputeSha1(file.SavePath, cancellationToken);
-                if (actualHash != file.Hash)
-                {
-                    s_logger.Error($"{file.DisplayName} 在重新下载后仍校验失败");
-                    throw new InvalidOperationException($"SHA1 mismatch for {file.DisplayName}");
-                }
-            }
+            await DownloadAndValidateFileAsync(file, tempPath, options, runtime, cancellationToken);
+            PromoteDownloadedFile(tempPath, file.SavePath);
+            return FileProcessResult.Downloaded;
         }
-
-        return FileProcessResult.Downloaded;
+        catch (Exception ex) when (file.IgnoreNotFound && IsNotFoundDownloadFailure(ex))
+        {
+            s_logger.Info($"{file.DisplayName} returned 404 from an optional source and will be skipped.");
+            return FileProcessResult.Skipped;
+        }
+        finally
+        {
+            TryDeleteFile(tempPath);
+        }
     }
 
     internal static void PreCreateDirectories(IEnumerable<string> directories)
@@ -237,14 +190,11 @@ public static class BatchDownloader
             }
             catch
             {
-                // 忽略创建失败，继续执行
+                // ignored
             }
         }
     }
 
-    /// <summary>
-    /// 优化的SHA1计算：使用同步方式但分块读取，减少异步开销
-    /// </summary>
     internal static string ComputeSha1Fast(string filePath, CancellationToken cancellationToken)
     {
         var fileInfo = new FileInfo(filePath);
@@ -259,22 +209,21 @@ public static class BatchDownloader
             BufferSize = bufferSize,
             Options = FileOptions.SequentialScan
         });
-        
-        // 分块读取，避免大文件一次性加载
-        var buffer = new byte[bufferSize];
 
-        int bytesRead;
+        var buffer = new byte[bufferSize];
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            bytesRead = stream.Read(buffer, 0, buffer.Length);
+            var bytesRead = stream.Read(buffer, 0, buffer.Length);
             if (bytesRead <= 0)
+            {
                 break;
+            }
 
             sha1.TransformBlock(buffer, 0, bytesRead, buffer, 0);
         }
+
         sha1.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-        
         return BitConverter.ToString(sha1.Hash!).Replace("-", "").ToLowerInvariant();
     }
 
@@ -291,11 +240,12 @@ public static class BatchDownloader
         };
     }
 
-    async internal static Task DownloadFileAsync(string url, string savePath, CancellationToken cancellationToken, int maxRetries = 3)
+    internal static async Task DownloadFileAsync(string url, string savePath, CancellationToken cancellationToken, int maxRetries = 3)
     {
         Exception? lastException = null;
-        
-        for (int retry = 0; retry <= maxRetries; retry++)
+        var tempPath = CreateTemporaryDownloadPath(savePath);
+
+        for (var retry = 0; retry <= maxRetries; retry++)
         {
             try
             {
@@ -307,28 +257,111 @@ public static class BatchDownloader
                 response.EnsureSuccessStatusCode();
 
                 await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                await using var fileStream = File.Create(savePath);
+                await using var fileStream = File.Create(tempPath);
                 await contentStream.CopyToAsync(fileStream, cancellationToken);
+                await fileStream.FlushAsync(cancellationToken);
+                PromoteDownloadedFile(tempPath, savePath);
                 return;
             }
             catch (Exception ex) when (retry < maxRetries && !cancellationToken.IsCancellationRequested)
             {
                 lastException = ex;
-                s_logger.Debug($"下载失败 (重试 {retry + 1}/{maxRetries + 1}): {ex.Message}");
-                
-                if (File.Exists(savePath))
-                {
-                    try { File.Delete(savePath); }
-                    catch
-                    {
-                        // ignored
-                    }
-                }
-                
+                s_logger.Debug($"Download failed (retry {retry + 1}/{maxRetries + 1}): {ex.Message}");
+                TryDeleteFile(tempPath);
                 await Task.Delay(500 * (retry + 1), cancellationToken);
             }
         }
-        
-        throw lastException ?? new InvalidOperationException($"下载 {url} 在 {maxRetries + 1} 次重试后失败");
+
+        TryDeleteFile(tempPath);
+        throw lastException ?? new InvalidOperationException($"Failed to download {url} after {maxRetries + 1} attempts.");
+    }
+
+    private static async Task DownloadAndValidateFileAsync<TFile>(
+        PreparedBatchFile<TFile> file,
+        string tempPath,
+        BatchDownloadOptions<TFile> options,
+        BatchDownloadRuntime runtime,
+        CancellationToken cancellationToken)
+    {
+        await runtime.DownloadFileAsync(file.DownloadUrl, tempPath, cancellationToken, options.MaxRetries);
+
+        if (string.IsNullOrEmpty(file.Hash) && (file.Hashes == null || file.Hashes.Count == 0))
+        {
+            return;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var actualHash = runtime.ComputeSha1(tempPath, cancellationToken);
+        if (BatchDownloadSkipEvaluator.MatchesAnyHash(actualHash, file.Hash, file.Hashes))
+        {
+            return;
+        }
+
+        s_logger.Warn($"{file.DisplayName} failed hash validation after download, retrying once.");
+        TryDeleteFile(tempPath);
+        await runtime.DownloadFileAsync(file.DownloadUrl, tempPath, cancellationToken, options.MaxRetries);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        actualHash = runtime.ComputeSha1(tempPath, cancellationToken);
+        if (BatchDownloadSkipEvaluator.MatchesAnyHash(actualHash, file.Hash, file.Hashes))
+        {
+            return;
+        }
+
+        s_logger.Error($"{file.DisplayName} still failed hash validation after retry.");
+        throw new InvalidOperationException($"SHA1 mismatch for {file.DisplayName}");
+    }
+
+    private static string CreateTemporaryDownloadPath(string savePath)
+    {
+        var directory = Path.GetDirectoryName(savePath);
+        var fileName = Path.GetFileName(savePath);
+        var tempFileName = $"{fileName}.{Guid.NewGuid():N}.download";
+        return string.IsNullOrWhiteSpace(directory)
+            ? tempFileName
+            : Path.Combine(directory, tempFileName);
+    }
+
+    private static void PromoteDownloadedFile(string sourcePath, string destinationPath)
+    {
+        var directory = Path.GetDirectoryName(destinationPath);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        if (File.Exists(destinationPath))
+        {
+            File.Replace(sourcePath, destinationPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+            return;
+        }
+
+        File.Move(sourcePath, destinationPath);
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch
+        {
+            // ignored
+        }
+    }
+
+    private static bool IsNotFoundDownloadFailure(Exception ex)
+    {
+        if (ex is HttpRequestException requestException &&
+            requestException.StatusCode == HttpStatusCode.NotFound)
+        {
+            return true;
+        }
+
+        return ex.InnerException != null && IsNotFoundDownloadFailure(ex.InnerException);
     }
 }

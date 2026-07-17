@@ -63,11 +63,12 @@ public class DownloadMinecraftPagePresentationTests
     [Fact]
     public void TryCreateWizardContext_ReturnsNullWithoutRoot()
     {
-        Assert.Null(DownloadMinecraftPagePresentation.TryCreateWizardContext(null, "1.20.6"));
+        var version = CreateItem("1.20.6", GameVersionDisplayType.Release);
+        Assert.Null(DownloadMinecraftPagePresentation.TryCreateWizardContext(null, version));
 
-        var context = DownloadMinecraftPagePresentation.TryCreateWizardContext("C:\\Games\\.minecraft", "1.20.6");
+        var context = DownloadMinecraftPagePresentation.TryCreateWizardContext("C:\\Games\\.minecraft", version);
 
-        Assert.Equal(new DownloadMinecraftWizardContext("C:\\Games\\.minecraft", "1.20.6"), context);
+        Assert.Equal(new DownloadMinecraftWizardContext("C:\\Games\\.minecraft", "1.20.6", GameVersionDisplayType.Release), context);
     }
 
     [Fact]

@@ -29,6 +29,24 @@ public class LibraryInfo : ILibraryInfo
     [JsonPropertyName("name")]
     public required string Name { get; set; }
 
+    [JsonPropertyName("url")]
+    public string? Url { get; set; }
+
+    [JsonPropertyName("sha1")]
+    public string? Sha1 { get; set; }
+
+    [JsonPropertyName("size")]
+    public long? Size { get; set; }
+
+    [JsonPropertyName("checksums")]
+    public List<string>? Checksums { get; set; }
+
+    [JsonPropertyName("clientreq")]
+    public bool? ClientReq { get; set; }
+
+    [JsonPropertyName("serverreq")]
+    public bool? ServerReq { get; set; }
+
     [JsonPropertyName("path")]
     public string? Path { get; set; }
 
@@ -40,9 +58,28 @@ public class LibraryInfo : ILibraryInfo
 
     [JsonPropertyName("downloads")]
     public LibraryDownloadInfo? Downloads { get; set; }
+
+    [JsonPropertyName("extract")]
+    public LibraryExtractInfo? Extract { get; set; }
     
     [JsonPropertyName("rules")]
     public List<CompatibilityRule>? Rules { get; set; }
+
+    public string? GetPreferredSha1()
+    {
+        if (!string.IsNullOrWhiteSpace(Sha1))
+        {
+            return Sha1;
+        }
+
+        return Checksums?.FirstOrDefault(checksum => !string.IsNullOrWhiteSpace(checksum));
+    }
+}
+
+public class LibraryExtractInfo
+{
+    [JsonPropertyName("exclude")]
+    public List<string>? Exclude { get; set; }
 }
 
 public class SimpleLibraryInfo : ILibraryInfo
@@ -67,6 +104,25 @@ public class SimpleLibraryInfo : ILibraryInfo
 
     [JsonPropertyName("sha512")]
     public string? Sha512 { get; set; }
+
+    [JsonPropertyName("checksums")]
+    public List<string>? Checksums { get; set; }
+
+    [JsonPropertyName("clientreq")]
+    public bool? ClientReq { get; set; }
+
+    [JsonPropertyName("serverreq")]
+    public bool? ServerReq { get; set; }
+
+    public string? GetPreferredSha1()
+    {
+        if (!string.IsNullOrWhiteSpace(Sha1))
+        {
+            return Sha1;
+        }
+
+        return Checksums?.FirstOrDefault(checksum => !string.IsNullOrWhiteSpace(checksum));
+    }
 }
 
 public class LibraryDownloadInfo
@@ -92,6 +148,7 @@ public class LibraryInfoConverter : JsonConverter<ILibraryInfo>
 
         if (jsonObject.TryGetProperty("downloads", out _) ||
             jsonObject.TryGetProperty("natives", out _) ||
+            jsonObject.TryGetProperty("extract", out _) ||
             jsonObject.TryGetProperty("rules", out _) ||
             jsonObject.TryGetProperty("path", out _))
         {
