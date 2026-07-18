@@ -243,7 +243,8 @@ public static class BatchDownloader
     internal static async Task DownloadFileAsync(string url, string savePath, CancellationToken cancellationToken, int maxRetries = 3)
     {
         Exception? lastException = null;
-        var tempPath = CreateTemporaryDownloadPath(savePath);
+        var useDirectWrite = savePath.EndsWith(".download", StringComparison.OrdinalIgnoreCase);
+        var tempPath = useDirectWrite ? savePath : CreateTemporaryDownloadPath(savePath);
 
         for (var retry = 0; retry <= maxRetries; retry++)
         {
@@ -260,7 +261,12 @@ public static class BatchDownloader
                 await using var fileStream = File.Create(tempPath);
                 await contentStream.CopyToAsync(fileStream, cancellationToken);
                 await fileStream.FlushAsync(cancellationToken);
-                PromoteDownloadedFile(tempPath, savePath);
+
+                if (!useDirectWrite)
+                {
+                    PromoteDownloadedFile(tempPath, savePath);
+                }
+
                 return;
             }
             catch (Exception ex) when (retry < maxRetries && !cancellationToken.IsCancellationRequested)

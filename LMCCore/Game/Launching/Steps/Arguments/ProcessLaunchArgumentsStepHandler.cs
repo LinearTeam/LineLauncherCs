@@ -428,30 +428,16 @@ public sealed class ProcessLaunchArgumentsStepHandler : IGameLaunchStepHandler
     {
         return libraryInfo switch
         {
-            SimpleLibraryInfo simpleLibrary => HasNativeClassifier(simpleLibrary.Name),
-            LibraryInfo libInfo => HasNativeClassifier(libInfo.Name) ||
-                                   IsNativeLibraryPath(libInfo.Path) ||
-                                   IsNativeLibraryPath(libInfo.Downloads?.Artifact?.Path),
+            SimpleLibraryInfo => false,
+            LibraryInfo libInfo => HasExplicitNativeMetadata(libInfo),
             _ => false
         };
     }
 
-    private static bool HasNativeClassifier(string? libraryName)
+    private static bool HasExplicitNativeMetadata(LibraryInfo libraryInfo)
     {
-        if (string.IsNullOrWhiteSpace(libraryName))
-        {
-            return false;
-        }
-
-        var parts = libraryName.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return parts.Length > 3 &&
-               parts.Skip(3).Any(part => part.Contains("natives", StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static bool IsNativeLibraryPath(string? path)
-    {
-        return !string.IsNullOrWhiteSpace(path) &&
-               Path.GetFileName(path).Contains("-natives-", StringComparison.OrdinalIgnoreCase);
+        return libraryInfo.Natives is { Count: > 0 } &&
+               libraryInfo.Downloads?.Classifiers is { Count: > 0 };
     }
 
     private sealed record ClassPathCandidate(string DependencyKey, string? Version, string Path);

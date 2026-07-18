@@ -241,6 +241,23 @@ public class BatchDownloaderTests : IDisposable
         Assert.Equal("existing", await File.ReadAllTextAsync(savePath));
     }
 
+    [Fact]
+    public async Task DownloadFileAsync_WritesDirectlyWhenTargetIsTemporaryDownloadPath()
+    {
+        using var scope = new TestFileSystemScope();
+        var savePath = scope.GetPath("asset.json.download");
+
+        HttpUtils.Transport = new DelegateHttpRequestTransport((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("payload", Encoding.UTF8, "application/json")
+            }));
+
+        await BatchDownloader.DownloadFileAsync("https://example.com/asset", savePath, CancellationToken.None, maxRetries: 0);
+
+        Assert.Equal("payload", await File.ReadAllTextAsync(savePath));
+    }
+
     public void Dispose()
     {
         HttpUtils.ResetTransportForTesting();

@@ -21,7 +21,7 @@ namespace LineLauncherCs.Tests;
 public class ProcessLaunchArgumentsStepHandlerTests
 {
     [Fact]
-    public void BuildClassPaths_ExcludesNativeLibrariesAndAppendsVersionJar()
+    public void BuildClassPaths_ExcludesOnlyLibrariesWithExplicitNativeMetadata()
     {
         var rootPath = @"E:\games\.minecraft";
         var versionJarPath = Path.Combine(rootPath, "versions", "1.21.1-test", "1.21.1-test.jar");
@@ -89,8 +89,9 @@ public class ProcessLaunchArgumentsStepHandlerTests
         Assert.Equal(
             [
                 Path.Combine(rootPath, "libraries", "com", "example", "alpha", "1.0.0", "alpha-1.0.0.jar"),
+                Path.Combine(rootPath, "libraries", "org", "lwjgl", "lwjgl-glfw", "3.3.3", "lwjgl-glfw-3.3.3-natives-windows.jar"),
                 Path.Combine(rootPath, "libraries", "com", "example", "beta", "2.0.0", "beta-2.0.0.jar"),
-                Path.Combine(rootPath, "libraries", "org", "lwjgl", "lwjgl-opengl", "3.3.3", "lwjgl-opengl-3.3.3.jar"),
+                Path.Combine(rootPath, "libraries", "com", "example", "natives-only", "1.0.0-natives-windows", "natives-only-1.0.0-natives-windows.jar"),
                 versionJarPath
             ],
             classPaths);
