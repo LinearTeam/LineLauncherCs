@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>LMC.ExampleExtension</AssemblyName>
+        <RootNamespace>LMC.ExampleExtension</RootNamespace>
+        <ExtensionPackageId>lmc.example.extension</ExtensionPackageId>
+        <ExtensionPackageVersion>1.0.0</ExtensionPackageVersion>
+        <ExtensionLauncherVersionRange>[3.0.0,4.0.0)</ExtensionLauncherVersionRange>
+        <ExtensionEntryType>LMC.ExampleExtension.Runtime.ExampleExtension</ExtensionEntryType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LMC.Extensions\LMC.Extensions.csproj" />
+      <ProjectReference Include="..\LMCUI\LMCUI.csproj" />
+    </ItemGroup>
+
+    <Target Name="BuildLextPackage" AfterTargets="Build">
+        <PropertyGroup>
+            <ExtensionPackageDirectory>$(TargetDir)LMC.ExampleExtension.Package\</ExtensionPackageDirectory>
+            <ExtensionPackageLibDirectory>$(ExtensionPackageDirectory)lib\</ExtensionPackageLibDirectory>
+            <ExtensionManifestPath>$(ExtensionPackageDirectory)manifest.json</ExtensionManifestPath>
+            <ExtensionPackagePath>$(TargetDir)LMC.ExampleExtension.lext</ExtensionPackagePath>
+        </PropertyGroup>
+
+        <RemoveDir Directories="$(ExtensionPackageDirectory)" />
+        <Delete Files="$(ExtensionPackagePath)" ContinueOnError="true" />
+        <MakeDir Directories="$(ExtensionPackageLibDirectory)" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExtensionPackageLibDirectory)" />
+
+        <ItemGroup>
+            <_ExtensionManifestLines Include="{" />
+            <_ExtensionManifestLines Include="  &quot;id&quot;: &quot;$(ExtensionPackageId)&quot;," />
+            <_ExtensionManifestLines Include="  &quot;name&quot;: &quot;LMC Example Extension&quot;," />
+            <_ExtensionManifestLines Include="  &quot;version&quot;: &quot;$(ExtensionPackageVersion)&quot;," />
+            <_ExtensionManifestLines Include="  &quot;entryAssembly&quot;: &quot;$(TargetFileName)&quot;," />
+            <_ExtensionManifestLines Include="  &quot;entryType&quot;: &quot;$(ExtensionEntryType)&quot;," />
+            <_ExtensionManifestLines Include="  &quot;launcherVersionRange&quot;: &quot;$(ExtensionLauncherVersionRange)&quot;," />
+            <_ExtensionManifestLines Include="  &quot;description&quot;: &quot;Example extension for LMC.&quot;," />
+            <_ExtensionManifestLines Include="  &quot;authors&quot;: [&quot;LinearTeam&quot;]," />
+            <_ExtensionManifestLines Include="  &quot;dependencies&quot;: []" />
+            <_ExtensionManifestLines Include="}" />
+        </ItemGroup>
+
+        <WriteLinesToFile
+            File="$(ExtensionManifestPath)"
+            Lines="@(_ExtensionManifestLines)"
+            Overwrite="true" />
+        <ZipDirectory
+            SourceDirectory="$(ExtensionPackageDirectory)"
+            DestinationFile="$(ExtensionPackagePath)"
+            Overwrite="true" />
+        <RemoveDir Directories="$(ExtensionPackageDirectory)" />
+    </Target>
+
+</Project>

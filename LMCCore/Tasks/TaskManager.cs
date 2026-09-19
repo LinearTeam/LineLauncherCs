@@ -14,6 +14,8 @@
 
 using LMCCore.Tasks.Model;
 using LMC.Basic.Logging;
+using LMC.Extensions.Hooks.Context;
+using LMC.Extensions.Runtime;
 
 namespace LMCCore.Tasks;
 
@@ -180,6 +182,10 @@ public class TaskManager(int maxConcurrency) : IDisposable
 
         Signal();
         ParentTaskAdded?.Invoke(parent);
+        LMCExtensionHost.Current.AfterParentTaskAdded(new TaskExtensionContext
+        {
+            ParentName = parent.Name
+        });
         return parent;
     }
 
@@ -407,6 +413,105 @@ public class TaskManager(int maxConcurrency) : IDisposable
             .Where(sibling => sibling.Id != subTask.Id)
             .All(sibling => sibling.IsFinished);
     }
+
+    private async Task ExecuteTaskAsync(SubTaskBase task)
+    {
+        try
+        {
+            await task.ExecuteAsync().ConfigureAwait(false);
+        }
+        catch
+        {
+            // TaskBase/ParentTask already owns state transition and fault propagation.
+        }
+        finally
+        {
+            lock (_syncRoot)
+            {
+                _activeTasks.Remove(task);
+            }
+            TryReleaseSemaphore();
+            Signal();
+        }
+    }
+
+    private bool CanExecute(SubTaskBase task)
+    {
+        if (task.IsFinished)
+        {
+            return false;
+        }
+
+        lock (_syncRoot)
+        {
+            if (_faultedParents.Contains(task.Parent) || task.Parent.State == TaskState.Canceled)
+            {
+                return false;
+            }
+        }
+
+        return AreDependenciesSatisfied(task);
+    }
+
+    private void DependencyCompleted(SubTaskBase _)
+    {
+        lock (_syncRoot)
+        {
+            EnqueueReadyTasksUnsafe();
+        }
+
+        Signal();
+    }
+
+    private void EnqueueReadyTasksUnsafe()
+    {
+        foreach (var parent in _parents.ToArray())
+        {
+            if (parent.State != TaskState.Waiting)
+            {
+                continue;
+            }
+
+            foreach (var subTask in parent.SubTasks.ToArray())
+            {
+                RegisterDependencyHandlersUnsafe(subTask);
+                TryEnqueueUnsafe(subTask);
+            }
+        }
+    }
+
+    private void RegisterDependencyHandlersUnsafe(SubTaskBase subTask)
+    {
+        foreach (var dependency in subTask.Dependencies)
+        {
+            dependency.Completed -= DependencyCompleted;
+            dependency.Completed += DependencyCompleted;
+        }
+    }
+
+    private void TryEnqueueUnsafe(SubTaskBase subTask)
+    {
+        if (_isStopping || _resourcesDisposed || subTask.IsFinished || subTask.IsExecuting || _queuedTasks.Contains(subTask) || _activeTasks.Contains(subTask))
+        {
+            return;
+        }
+
+        if (_faultedParents.Contains(subTask.Parent) || subTask.Parent.State == TaskState.Canceled)
+        {
+            return;
+        }
+
+        if (!AreDependenciesSatisfied(subTask))
+        {
+            return;
+        }
+
+        _queue.Enqueue(subTask, subTask.Priority);
+        _queuedTasks.Add(subTask);
+    }
+
+    private static bool AreDependenciesSatisfied(SubTaskBase subTask) =>
+        subTask.Dependencies.All(dependency => dependency.State == TaskState.Completed);
 
     public void Dispose()
     {

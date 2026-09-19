@@ -125,6 +125,30 @@ public class SimpleLibraryInfo : ILibraryInfo
     }
 }
 
+public class SimpleLibraryInfo : ILibraryInfo
+{
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
+
+    [JsonPropertyName("url")]
+    public string? Url { get; set; }
+
+    [JsonPropertyName("sha1")]
+    public string? Sha1 { get; set; }
+
+    [JsonPropertyName("size")]
+    public long? Size { get; set; }
+
+    [JsonPropertyName("md5")]
+    public string? Md5 { get; set; }
+
+    [JsonPropertyName("sha256")]
+    public string? Sha256 { get; set; }
+
+    [JsonPropertyName("sha512")]
+    public string? Sha512 { get; set; }
+}
+
 public class LibraryDownloadInfo
 {
     [JsonPropertyName("artifact")]

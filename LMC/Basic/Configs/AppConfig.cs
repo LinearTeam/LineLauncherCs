@@ -45,6 +45,8 @@ public class AppConfig {
 
     public DownloadSourcePolicy DefaultVersionManifestSource { get; set; } = DownloadSourcePolicy.BmclapiFirst;
     public DownloadSourcePolicy DefaultFileDownloadSource { get; set; } = DownloadSourcePolicy.BmclapiFirst;
+
+    public List<string> DisabledExtensionIds { get; set; } = [];
 }
 
 public enum DownloadSourcePolicy

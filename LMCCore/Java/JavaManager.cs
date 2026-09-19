@@ -409,6 +409,14 @@ public static class JavaManager {
         }
     }
 
+    internal static void ResetForTesting()
+    {
+        lock (s_javaInfoCacheLock)
+        {
+            s_javaInfoCache.Clear();
+        }
+    }
+
     private static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     private static bool IsMacOS() => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
     private static bool IsLinux() => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);

@@ -111,7 +111,7 @@ public class SubTask<T>(
         {
             State = TaskState.Canceled;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             FailureException = ex;
             s_logger.Error(ex, $"子任务失败: {Name} (Parent: {Parent.Name}, Id: {Id})");

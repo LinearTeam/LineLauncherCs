@@ -19,7 +19,10 @@ using Avalonia.Threading;
 
 namespace LMCUI;
 
+using System.IO;
+using Extensions;
 using I18n;
+using LMC.Extensions.Runtime;
 using LMCCore.Tasks;
 using LMC.LifeCycle;
 
@@ -31,6 +34,13 @@ public partial class App : Application
         Startup.Initialize();
         Dispatcher.UIThread.UnhandledException += OnUiThreadUnhandledException;
         I18nManager.Instance.LoadAllLanguages();
+        LMCExtensionHost.InitializeCurrent(
+            LMC.Current.Version,
+            Path.Combine(LMC.Current.LMCPath, "extensions"),
+            LMC.Current.Config.DisabledExtensionIds,
+            new LMCExtensionLoggerFactory(),
+            new LMCExtensionUIApi());
+        LMCExtensionHost.Current.NotifyHostInitializing();
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -39,7 +49,8 @@ public partial class App : Application
         {
             desktop.MainWindow = new MainWindow();
         }
-        
+
+        LMCExtensionHost.Current.NotifyHostInitialized();
         TaskManager.Instance.Start();
         base.OnFrameworkInitializationCompleted();
     }

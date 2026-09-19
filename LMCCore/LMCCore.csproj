@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\LMC.Extensions\LMC.Extensions.csproj" />
       <ProjectReference Include="..\LMC\LMC.csproj" />
     </ItemGroup>
 

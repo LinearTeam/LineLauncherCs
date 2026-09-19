@@ -24,6 +24,8 @@ using LMCCore.Game.Model.LocalVersion;
 using LMCCore.Game.Model.Validation;
 using LMCCore.Game.Versioning.Discovery;
 using LMCCore.Game.Versioning.Validation;
+using LMC.Extensions.Hooks.Context;
+using LMC.Extensions.Runtime;
 
 namespace LMCCore.Game.Versioning;
 
@@ -61,9 +63,20 @@ public class VersionManager(
 
     public void AddManagedRoot(string path)
     {
+        var normalizedPath = ManagedGameRootService.EnsureExistingDirectory(path);
+        var context = new ManagedRootExtensionContext
+        {
+            RootPath = normalizedPath
+        };
+        if (!LMCExtensionHost.Current.BeforeManagedRootAdd(context))
+        {
+            throw new InvalidOperationException("Messages.Extensions.ManagedRootAdd.Cancelled");
+        }
+
         MigrateLegacyLaunchVersionSelection(GetSelectedRoot());
-        CreateRootService().AddManagedRoot(path);
+        CreateRootService().AddManagedRoot(normalizedPath);
         SynchronizeLegacyLaunchVersionSelection();
+        LMCExtensionHost.Current.AfterManagedRootAdded(context);
     }
 
     public bool RemoveManagedRoot(string path)
@@ -80,9 +93,14 @@ public class VersionManager(
 
     public void SetSelectedRoot(string path)
     {
+        var normalizedPath = ManagedGameRootService.EnsureExistingDirectory(path);
         MigrateLegacyLaunchVersionSelection(GetSelectedRoot());
-        CreateRootService().SetSelectedRoot(path);
+        CreateRootService().SetSelectedRoot(normalizedPath);
         SynchronizeLegacyLaunchVersionSelection();
+        LMCExtensionHost.Current.AfterSelectedRootChanged(new ManagedRootExtensionContext
+        {
+            RootPath = normalizedPath
+        });
     }
 
     public ManagedGameRoot? GetSelectedRoot()
@@ -183,6 +201,12 @@ public class VersionManager(
         {
             s_versionScanCache[normalizedRootPath] = snapshot;
         }
+
+        LMCExtensionHost.Current.AfterVersionsScanned(new VersionScanExtensionContext
+        {
+            RootPath = rootPath,
+            VersionIds = snapshot.Select(version => version.VersionName).ToList().AsReadOnly()
+        });
 
         return snapshot;
     }
@@ -403,6 +427,12 @@ public class VersionManager(
                 {
                     StartUnknownVersionRefresh(normalizedRootPath);
                 }
+
+                LMCExtensionHost.Current.AfterVersionsScanned(new VersionScanExtensionContext
+                {
+                    RootPath = rootPath,
+                    VersionIds = snapshot.Select(version => version.VersionName).ToList().AsReadOnly()
+                });
 
                 return snapshot;
             }

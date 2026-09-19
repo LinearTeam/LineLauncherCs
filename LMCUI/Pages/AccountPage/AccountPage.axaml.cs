@@ -240,6 +240,15 @@ public partial class AccountPage : PageBase
             AccountItemsControl.ItemsSource = presentation.Accounts.ToList();
         });
     }
+
+    private async Task ApplyAccountListAsync(AccountListPresentation presentation)
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            acclist.Description = I18nManager.Instance.GetString(presentation.DescriptionKey);
+            acclist.ItemsSource = presentation.Accounts.ToList();
+        });
+    }
 }
 
 public class AuthlibDescriptionConverter : IMultiValueConverter

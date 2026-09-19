@@ -12,6 +12,7 @@
             <AccountPage>账号管理</AccountPage>
             <SettingsPage>设置</SettingsPage>
             <HelpPage>帮助</HelpPage>
+            <LMCExampleExtension>扩展示例</LMCExampleExtension>
         </NavItems>
     </MainWindow>
     
@@ -676,6 +677,14 @@
                 </Steps>
             </OAuth>
         </AccountManager>
+        <Extensions>
+            <AccountAdd>
+                <Cancelled>扩展取消了添加账户操作。</Cancelled>
+            </AccountAdd>
+            <ManagedRootAdd>
+                <Cancelled>扩展取消了添加游戏目录操作。</Cancelled>
+            </ManagedRootAdd>
+        </Extensions>
         <AccountPage>
             <CopyUuid>
                 <Title>复制成功</Title>
