@@ -1,4 +1,4 @@
-﻿// Copyright 2025-2026 LinearTeam
+// Copyright 2025-2026 LinearTeam
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,19 +14,9 @@
 
 namespace LMC.Basic.Configs;
 
-using System.Collections.Generic;
-
-public class Secrets
+public enum NewVersionConfigSource
 {
-    public string Token { get; set; } = string.Empty;
-    public Dictionary<string, string> Extra { get; set; } = new();
+    VersionJson,
+    VersionFolder,
+    LMCDataDirectory
 }
-/*
- * 这里描述Secrets中Extra的结构:
- * {
- *   Accounts: [] // List<Account>的Json序列化结果
- * }
- *
- *
- * 
- */

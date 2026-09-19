@@ -16,11 +16,22 @@ namespace LMCCore.Tasks.Model;
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using LMC.Basic.Logging;
 
-public abstract class SubTaskBase(string name, int priority, ParentTask parent, IEnumerable<SubTaskBase>? deps)
-    : TaskBase(name)
+public abstract class SubTaskBase(
+    string name,
+    int priority,
+    ParentTask parent,
+    IEnumerable<SubTaskBase>? deps,
+    bool waitForSiblingTasksToComplete = false,
+    string? translationKey = null,
+    IReadOnlyList<object?>? translationArgs = null)
+    : TaskBase(name, translationKey, translationArgs)
 {
+    public event Action<SubTaskBase>? Completed;
+    private int _completionSignaled;
     private int _progress = -1;
     public int Progress
     {
@@ -36,7 +47,23 @@ public abstract class SubTaskBase(string name, int priority, ParentTask parent, 
     public int Priority { get; } = priority;
     public IReadOnlyList<SubTaskBase> Dependencies { get; } = deps?.ToList() ?? new List<SubTaskBase>();
     public ParentTask Parent { get; } = parent;
+    public bool WaitForSiblingTasksToComplete { get; } = waitForSiblingTasksToComplete;
 
+    protected void OnCompleted()
+    {
+        if (Interlocked.Exchange(ref _completionSignaled, 1) == 0)
+        {
+            Completed?.Invoke(this);
+        }
+    }
+
+    protected override void OnCancel()
+    {
+        if (State == TaskState.Canceled)
+        {
+            OnCompleted();
+        }
+    }
 }
 
 public class SubTask<T>(
@@ -44,9 +71,13 @@ public class SubTask<T>(
     int priority,
     ParentTask parent,
     IEnumerable<SubTaskBase>? deps,
-    Func<CancellationToken, Dictionary<SubTaskBase, object>, IProgress<int>, Task<T>> execute)
-    : SubTaskBase(name, priority, parent, deps)
+    Func<CancellationToken, Dictionary<SubTaskBase, object>, IProgress<int>, Task<T>> execute,
+    bool waitForSiblingTasksToComplete = false,
+    string? translationKey = null,
+    IReadOnlyList<object?>? translationArgs = null)
+    : SubTaskBase(name, priority, parent, deps, waitForSiblingTasksToComplete, translationKey, translationArgs)
 {
+    private readonly static Logger s_logger = new("TaskSystem.SubTask");
 
     public T? Result { get; private set; }
 
@@ -54,6 +85,7 @@ public class SubTask<T>(
 
     public async override Task ExecuteAsync()
     {
+        IsExecuting = true;
         try
         {
             State = TaskState.Running;
@@ -71,6 +103,7 @@ public class SubTask<T>(
             });
 
             Result = await execute(Cts.Token, deps, progress);
+            Cts.Token.ThrowIfCancellationRequested();
             State = TaskState.Completed;
             Progress = 100;
         }
@@ -80,9 +113,19 @@ public class SubTask<T>(
         }
         catch (Exception ex)
         {
+            FailureException = ex;
+            s_logger.Error(ex, $"子任务失败: {Name} (Parent: {Parent.Name}, Id: {Id})");
             State = TaskState.Faulted;
             Parent.OnSubTaskFaulted(this);
             throw;
+        }
+        finally
+        {
+            IsExecuting = false;
+            if (IsFinished)
+            {
+                OnCompleted();
+            }
         }
     }
 }

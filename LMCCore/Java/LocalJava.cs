@@ -15,8 +15,9 @@
 namespace LMCCore.Java;
 
 public class LocalJava {
-    public string Path { get; set; }
-    public Version Version { get; set; }
+    public required string Path { get; set; }
+    public required Version Version { get; set; }
     public string? Implementor { get; set; }
     public bool IsJdk { get; set; }
+    public bool Is64Bit { get; set; }
 }

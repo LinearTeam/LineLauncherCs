@@ -11,23 +11,15 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+using LMCCore.Game.Model;
+using LMCCore.Game.Versioning.Configuration.Support;
+using LMCCore.Utils;
 
-namespace LMCUI.Pages.SettingsPage;
+namespace LMCCore.Game.Versioning.Configuration;
 
-using LMC;
-using I18n;
-
-public partial class AboutPage : PageBase
+public interface IVersionConfigSource
 {
-    public AboutPage() : base("Pages.AboutPage.Title", "AboutPage")
-    {
-        InitializeComponent();
-        Loaded += OnLoaded;
-    }
+    VersionConfigSourceType SourceType { get; }
 
-    private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        var versionFormat = I18nManager.Instance.GetString("Pages.AboutPage.AboutLauncherExpander.VersionDescription");
-        AboutLauncherExpander.Description = string.Format(versionFormat, Current.VersionType, Current.Version, Current.BuildNumber);
-    }
+    JsonUtils? TryLoad(LocalGameVersionEntry version, VersionConfigFileCache cache);
 }

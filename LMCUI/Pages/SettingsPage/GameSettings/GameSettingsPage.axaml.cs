@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 
 namespace LMCUI.Pages.SettingsPage.GameSettings;
 
@@ -34,54 +35,115 @@ using LMC.Basic;
 using LMC.Basic.Configs;
 using LMC.Basic.Logging;
 using LMCCore.Java;
+using LMCCore.Game.Launching.Configuration;
 using Utils;
 
 public partial class GameSettingsPage : PageBase {
     private ObservableCollection<JavaItem> _javaItems = new();
     private readonly Logger _logger = new Logger("GameSettingsPage");
-    
+    private readonly DispatcherTimer _launchSettingsSaveTimer;
+    private readonly DispatcherTimer _memoryInfoTimer;
+    private bool _isLoadingLaunchSettings;
+    private bool _hasPendingLaunchSettingsSave;
+    private bool _isSavingLaunchSettings;
+    private bool _isPageLoaded;
+    private bool _isUpdatingMemoryControls;
+
     public GameSettingsPage() : base(I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.Title"), "GameSettingsPage") {
         InitializeComponent();
+        _launchSettingsSaveTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(400)
+        };
+        _launchSettingsSaveTimer.Tick += LaunchSettingsSaveTimer_OnTick;
+        _memoryInfoTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(1)
+        };
+        _memoryInfoTimer.Tick += MemoryInfoTimer_OnTick;
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
     async private void OnLoaded(object? sender, RoutedEventArgs e) {
+        _isPageLoaded = true;
         await LoadConfigs();
+        if (!_isPageLoaded)
+        {
+            return;
+        }
+
         SearchStatus.Text = "";
+        _memoryInfoTimer.Start();
+    }
+
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
+    {
+        _isPageLoaded = false;
+        _memoryInfoTimer.Stop();
+        FlushLaunchSettingsSave();
     }
 
     async private Task LoadConfigs() {
-        await Dispatcher.UIThread.InvokeAsync(async () =>
-        {
-            await RefreshJavaItems();
-            AutoSelectJavaToggleSwitch.IsChecked = Current.Config.AutoSelectJava;
-        });
+        await RefreshJavaItems();
+        AutoSelectJavaToggleSwitch.IsChecked = Current.Config.AutoSelectJava;
+        LoadLaunchSettings();
     }
 
     async private Task RefreshJavaItems()
     {
-        await Dispatcher.UIThread.InvokeAsync(RefreshJavaItemsInternal);
-    }
-    async private Task RefreshJavaItemsInternal()
-    {
         try
         {
-            var list = new List<JavaItem>();
-            var javas = new List<string>(Current.Config.JavaPaths);
-            foreach (var path in javas)
+            var javaPaths = Current.Config.JavaPaths.ToArray();
+            var javaInfos = new List<LocalJava>(javaPaths.Length);
+            var invalidPaths = new List<string>();
+            foreach (var javaPath in javaPaths)
             {
-                var lj = await JavaManager.GetJavaInfo(path);
-                list.Add(new JavaItem()
+                try
                 {
-                    Path = lj.Path,
-                    Header =
-                        $"{(lj.IsJdk ? "JDK" : "JRE")}-{lj.Version} {lj.Implementor} {(Current.Config.SelectedJavaPath.Equals(path) ? $"({I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.JavaListItem.Enabled")})" : "")}",
-                    IsSelected = Current.Config.SelectedJavaPath.Equals(path)
-                });
+                    var javaInfo = await JavaManager.TryGetJavaInfo(javaPath);
+                    if (javaInfo != null)
+                    {
+                        javaInfos.Add(javaInfo);
+                        continue;
+                    }
+
+                    invalidPaths.Add(javaPath);
+                }
+                catch (Exception ex)
+                {
+                    invalidPaths.Add(javaPath);
+                    _logger.Warn($"忽略失效 Java 路径 {javaPath}: {ex.Message}");
+                }
             }
-            
-            jle.Header = I18nManager.Instance.GetString(list.Count == 0 ? "Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.EmptyHeader" : "Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.Header");
-            list.ForEach(ji => ji.Foreground = (ji.IsSelected ? Brushes.LawnGreen : Foreground)!);
-            _javaItems = new ObservableCollection<JavaItem>(list);
+
+            if (invalidPaths.Count > 0)
+            {
+                foreach (var invalidPath in invalidPaths)
+                {
+                    Current.Config.JavaPaths.Remove(invalidPath);
+                }
+
+                if (invalidPaths.Any(path => string.Equals(
+                        path,
+                        Current.Config.SelectedJavaPath,
+                        StringComparison.OrdinalIgnoreCase)))
+                {
+                    Current.Config.SelectedJavaPath = string.Empty;
+                }
+
+                await Task.Run(() => ConfigManager.Save("app", Current.Config));
+            }
+
+            var items = GameSettingsPagePresentation.BuildJavaItems(
+                GameSettingsPagePresentation.BuildJavaItemViewData(
+                    javaInfos,
+                    Current.Config.SelectedJavaPath,
+                    I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.JavaListItem.Enabled")),
+                Brushes.LawnGreen,
+                Foreground!);
+
+            jle.Header = I18nManager.Instance.GetString(GameSettingsPagePresentation.GetJavaListHeaderKey(items.Count));
+            _javaItems = new ObservableCollection<JavaItem>(items);
             jle.ItemsSource = _javaItems;
         }
         catch (Exception ex)
@@ -89,52 +151,62 @@ public partial class GameSettingsPage : PageBase {
             _logger.Error(ex, "Refreshing Java Items");
         }
     }
-    private void SelectJava_Click(object? sender, RoutedEventArgs e) {
-        var button = (Button)sender;
-        var java = button.Tag.ToString();
+    async private void SelectJava_Click(object? sender, RoutedEventArgs e) {
+        if (sender is not Button { Tag: string java })
+        {
+            return;
+        }
+
         _logger.Info($"用户选择Java: {java}");
         
         if (Current.Config.JavaPaths.Contains(java))
         {
             Current.Config.SelectedJavaPath = java;
-            ConfigManager.Save("app", Current.Config);
+            await Task.Run(() => ConfigManager.Save("app", Current.Config));
             _logger.Info("选择成功");
-            Task.Run(RefreshJavaItems);
+            await RefreshJavaItems();
             return;
         }
         _logger.Warn("选择失败 (1)");
-        Task.Run(RefreshJavaItems);
+        await RefreshJavaItems();
     }
-    private void RemoveJava_Click(object? sender, RoutedEventArgs e) {
-        var button = (Button)sender;
-        var java = button.Tag.ToString();
+    async private void RemoveJava_Click(object? sender, RoutedEventArgs e) {
+        if (sender is not Button { Tag: string java })
+        {
+            return;
+        }
+
         _logger.Info($"用户移除Java: {java}");
         
         if (Current.Config.JavaPaths.Contains(java))
         {
-            JavaManager.RemoveJava(java);
+            await Task.Run(() => JavaManager.RemoveJava(java));
             _logger.Info("移除成功");
-            _ = Task.Run(async () => await RefreshJavaItems());
+            await RefreshJavaItems();
             return;
         }
         _logger.Warn("移除失败 (1)");
-        _ = Task.Run(async () => await RefreshJavaItems());
+        await RefreshJavaItems();
         
     }
     async private void SearchJava_Click(object? sender, RoutedEventArgs e) {
         var progress = new Action<TaskCallbackInfo>(info => {
-            SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchProgress",
-                info.Progress, info.Total, I18nManager.Instance.GetString(info.Message));
+            Dispatcher.UIThread.Post(() =>
+            {
+                SearchStatus.Text = I18nManager.Instance.GetString(
+                    "Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchProgress",
+                    info.Progress,
+                    info.Total,
+                    I18nManager.Instance.GetString(info.Message));
+            });
         });
 
         var button = (Button)sender!;
         button.IsEnabled = false;
         
         try {
-            var javas = await JavaManager.SearchJava(progress);
-            foreach (var java in javas) {
-                await JavaManager.AddJava(java);
-            }
+            var javas = await Task.Run(() => JavaManager.SearchJava(progress));
+            await Task.Run(() => JavaManager.AddJavasAsync(javas));
             SearchStatus.Text = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.StatusText.SearchSuccess");
         }
         catch (Exception ex) {
@@ -147,7 +219,11 @@ public partial class GameSettingsPage : PageBase {
         }
     }
     private void JavaItemExpander_Click(object? sender, RoutedEventArgs e) {
-        var path = ((FASettingsExpanderItem)sender!).Tag!.ToString();
+        if (sender is not FASettingsExpanderItem { Tag: string path })
+        {
+            return;
+        }
+
         path = Path.GetFullPath(path);
         CrossPlatformUtils.OpenFolderInExplorer(path);
     }
@@ -165,11 +241,7 @@ public partial class GameSettingsPage : PageBase {
             });
             var file = files.FirstOrDefault();
             if (file == null) { return; }
-            var root = Path.GetDirectoryName(file.Path.LocalPath);
-            if (root.EndsWith("bin"))
-            {
-                root = Path.GetDirectoryName(root);
-            }
+            var root = GameSettingsPagePresentation.ResolveJavaRootPath(file.Path.LocalPath);
 
             await Task.Run(() => JavaManager.AddJava(root));
 
@@ -186,11 +258,211 @@ public partial class GameSettingsPage : PageBase {
     {
         var isChecked = AutoSelectJavaToggleSwitch.IsChecked ?? true;
 
-        await Task.Run(() =>
+        Current.Config.AutoSelectJava = isChecked;
+        ScheduleLaunchSettingsSave();
+    }
+
+    private void LoadLaunchSettings()
+    {
+        _isLoadingLaunchSettings = true;
+        try
         {
-            Current.Config.AutoSelectJava = isChecked;
-            ConfigManager.Save("app", Current.Config);
-        });
+            var launchConfig = Current.Config.GameLaunch ??= new GameLaunchConfig();
+            UpdateMemoryUsage();
+            SetMemoryControlsValue(launchConfig.MaxMemoryMb);
+            AutoAllocateMemoryToggle.IsChecked = launchConfig.AutoAllocateMemory;
+            JvmArgumentsTextBox.Text = launchConfig.JvmArguments;
+            WrapperArgumentsTextBox.Text = launchConfig.WrapperArguments;
+            GameArgumentsTextBox.Text = launchConfig.GameArguments;
+            UpdateMemoryControlState();
+        }
+        finally
+        {
+            _isLoadingLaunchSettings = false;
+        }
+    }
+
+    private void MemoryInfoTimer_OnTick(object? sender, EventArgs e)
+    {
+        UpdateMemoryUsage();
+    }
+
+    private void UpdateMemoryUsage()
+    {
+        var memoryInfo = SystemMemoryInfoProvider.GetCurrent();
+        var totalMemoryMb = Math.Max(1024, memoryInfo.TotalBytes / 1024 / 1024);
+        MemorySettingsExpander.Description = I18nManager.Instance.GetString(
+            "Pages.SettingsPage.GameSettingsPage.LaunchSettings.Memory.DescriptionWithUsage",
+            totalMemoryMb,
+            memoryInfo.UsedBytes / 1024 / 1024,
+            memoryInfo.AvailableBytes / 1024 / 1024,
+            GetMemoryUsagePercentage(memoryInfo));
+        var maximum = Math.Max(512, totalMemoryMb);
+        _isUpdatingMemoryControls = true;
+        try
+        {
+            MaxMemorySlider.Maximum = maximum;
+            MaxMemoryNumericUpDown.Maximum = maximum;
+        }
+        finally
+        {
+            _isUpdatingMemoryControls = false;
+        }
+    }
+
+    private static double GetMemoryUsagePercentage(SystemMemoryInfo memoryInfo)
+    {
+        return memoryInfo.TotalBytes <= 0
+            ? 0
+            : memoryInfo.UsedBytes * 100d / memoryInfo.TotalBytes;
+    }
+
+    private void AutoAllocateMemoryToggle_OnIsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        if (_isLoadingLaunchSettings)
+        {
+            return;
+        }
+
+        var launchConfig = Current.Config.GameLaunch ??= new GameLaunchConfig();
+        launchConfig.AutoAllocateMemory = AutoAllocateMemoryToggle.IsChecked ?? true;
+        UpdateMemoryControlState();
+        ScheduleLaunchSettingsSave();
+    }
+
+    private void MaxMemorySlider_OnValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (_isLoadingLaunchSettings || _isUpdatingMemoryControls)
+        {
+            return;
+        }
+
+        ApplyMemoryValue((int)Math.Round(e.NewValue));
+    }
+
+    private void JvmArgumentsTextBox_OnTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        UpdateLaunchArgumentConfig(config => config.JvmArguments = JvmArgumentsTextBox.Text ?? string.Empty);
+    }
+
+    private void WrapperArgumentsTextBox_OnTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        UpdateLaunchArgumentConfig(config => config.WrapperArguments = WrapperArgumentsTextBox.Text ?? string.Empty);
+    }
+
+    private void GameArgumentsTextBox_OnTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        UpdateLaunchArgumentConfig(config => config.GameArguments = GameArgumentsTextBox.Text ?? string.Empty);
+    }
+
+    private void UpdateLaunchArgumentConfig(Action<GameLaunchConfig> update)
+    {
+        if (_isLoadingLaunchSettings)
+        {
+            return;
+        }
+
+        var launchConfig = Current.Config.GameLaunch ??= new GameLaunchConfig();
+        update(launchConfig);
+        ScheduleLaunchSettingsSave();
+    }
+
+    private void UpdateMemoryControlState()
+    {
+        var isManualAllocationEnabled = !(AutoAllocateMemoryToggle.IsChecked ?? true);
+        MemoryManualSettingsItem.IsEnabled = isManualAllocationEnabled;
+        MaxMemorySlider.IsEnabled = isManualAllocationEnabled;
+        MaxMemoryNumericUpDown.IsEnabled = isManualAllocationEnabled;
+    }
+
+    private void ScheduleLaunchSettingsSave()
+    {
+        _hasPendingLaunchSettingsSave = true;
+        _launchSettingsSaveTimer.Stop();
+        _launchSettingsSaveTimer.Start();
+    }
+
+    private void LaunchSettingsSaveTimer_OnTick(object? sender, EventArgs e)
+    {
+        _launchSettingsSaveTimer.Stop();
+        FlushLaunchSettingsSave();
+    }
+
+    private void FlushLaunchSettingsSave()
+    {
+        _launchSettingsSaveTimer.Stop();
+        if (!_hasPendingLaunchSettingsSave || _isSavingLaunchSettings)
+        {
+            return;
+        }
+
+        _isSavingLaunchSettings = true;
+        _ = SaveLaunchSettingsAsync();
+    }
+
+    async private Task SaveLaunchSettingsAsync()
+    {
+        try
+        {
+            do
+            {
+                _hasPendingLaunchSettingsSave = false;
+                await Task.Run(() => ConfigManager.Save("app", Current.Config));
+            } while (_hasPendingLaunchSettingsSave);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Saving game launch settings");
+        }
+        finally
+        {
+            _isSavingLaunchSettings = false;
+            if (_hasPendingLaunchSettingsSave)
+            {
+                FlushLaunchSettingsSave();
+            }
+        }
+    }
+    private void MaxMemoryNumericUpDown_OnValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
+    {
+        if (_isLoadingLaunchSettings || _isUpdatingMemoryControls || e.NewValue is null)
+        {
+            return;
+        }
+
+        ApplyMemoryValue((int)Math.Round(e.NewValue.Value));
+    }
+
+    private void SetMemoryControlsValue(int memoryMb)
+    {
+        var clampedValue = Math.Clamp(
+            memoryMb,
+            (int)MaxMemorySlider.Minimum,
+            (int)MaxMemorySlider.Maximum);
+
+        _isUpdatingMemoryControls = true;
+        try
+        {
+            MaxMemorySlider.Value = clampedValue;
+            MaxMemoryNumericUpDown.Value = clampedValue;
+        }
+        finally
+        {
+            _isUpdatingMemoryControls = false;
+        }
+    }
+
+    private void ApplyMemoryValue(int memoryMb)
+    {
+        var clampedValue = Math.Clamp(
+            memoryMb,
+            (int)MaxMemorySlider.Minimum,
+            (int)MaxMemorySlider.Maximum);
+        SetMemoryControlsValue(clampedValue);
+
+        var launchConfig = Current.Config.GameLaunch ??= new GameLaunchConfig();
+        launchConfig.MaxMemoryMb = clampedValue;
+        ScheduleLaunchSettingsSave();
     }
 }
 

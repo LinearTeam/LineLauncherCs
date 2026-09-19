@@ -1,0 +1,442 @@
+// Copyright 2025-2026 LinearTeam
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Threading;
+using FluentAvalonia.UI.Controls;
+using LMC.Basic.Logging;
+using LMCCore.Tasks;
+using LMCCore.Tasks.Model;
+using LMCUI.I18n;
+
+namespace LMCUI.Pages.TaskPage;
+
+public partial class TaskPage : PageBase
+{
+    private readonly Logger _logger = new("TaskPage");
+    private readonly ObservableCollection<ParentTask> _taskList = [];
+    private readonly Dictionary<Guid, ParentTaskControls> _parentControls = [];
+    private readonly Dictionary<Guid, (FASettingsExpanderItem Item, StackPanel ContentPanel, StackPanel FooterPanel, ProgressBar ProgressBar)> _subTaskControls = [];
+    
+    // UI更新批处理机制
+    private readonly Queue<Action> _pendingUiUpdates = [];
+    private readonly object _uiUpdateLock = new();
+    private DispatcherTimer? _uiUpdateTimer;
+
+    private sealed class ParentTaskControls
+    {
+        public required FASettingsExpander Expander { get; init; }
+        public required StackPanel HeaderPanel { get; init; }
+        public required StackPanel FooterPanel { get; init; }
+        public required TextBlock CountTextBlock { get; init; }
+        public Button? ActionButton { get; set; }
+        public ParentTaskActionButtonMode ActionButtonMode { get; set; }
+    }
+
+    public TaskPage() : base("Pages.TaskPage.Title", "TaskPage")
+    {
+        InitializeComponent();
+        TaskListView.Instance = this;
+        
+        // 初始化UI更新批处理定时器
+        _uiUpdateTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(16) // ~60fps
+        };
+        _uiUpdateTimer.Tick += ProcessUiUpdates;
+
+        Loaded += (_, _) =>
+        {
+            RefreshTaskList();
+            _uiUpdateTimer?.Start();
+            // 监听 TaskManager 的新任务添加事件
+            TaskManager.Instance.ParentTaskAdded += OnParentTaskAdded;
+        };
+        
+        Unloaded += (_, _) =>
+        {
+            _uiUpdateTimer?.Stop();
+            TaskManager.Instance.ParentTaskAdded -= OnParentTaskAdded;
+        };
+    }
+
+    private void OnParentTaskAdded(ParentTask parent)
+    {
+        // 在 UI 线程上添加新任务
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_taskList.Any(t => t.Id == parent.Id))
+                return;
+            
+            _taskList.Insert(0, parent);
+            parent.PropertyChanged += Parent_PropertyChanged;
+
+            foreach (var sub in parent.SubTasks)
+            {
+                sub.PropertyChanged += SubTask_PropertyChanged;
+            }
+
+            // 只为新任务创建 UI，不重建整个列表
+            if (parent.State is not TaskState.Canceled and not TaskState.Completed)
+            {
+                var expander = CreateParentTaskExpander(parent);
+                TaskList.Children.Insert(0, expander);
+            }
+        });
+    }
+
+    /// <summary>
+    /// 批量处理待执行的UI更新，减少线程切换和UI刷新次数
+    /// </summary>
+    private void ProcessUiUpdates(object? sender, EventArgs e)
+    {
+        List<Action> updates;
+        lock (_uiUpdateLock)
+        {
+            if (_pendingUiUpdates.Count == 0)
+                return;
+            
+            updates = _pendingUiUpdates.ToList();
+            _pendingUiUpdates.Clear();
+        }
+        
+        foreach (var update in updates)
+        {
+            update();
+        }
+    }
+
+    /// <summary>
+    /// 将UI操作加入批处理队列
+    /// </summary>
+    private void QueueUiUpdate(Action update)
+    {
+        lock (_uiUpdateLock)
+        {
+            _pendingUiUpdates.Enqueue(update);
+        }
+    }
+
+    private void RefreshTaskList()
+    {
+        var currentParents = TaskManager.Instance.GetParents();
+        var diff = TaskPagePresentation.DiffParents(_taskList, currentParents);
+
+        foreach (var parent in diff.AddedParents)
+        {
+            _taskList.Insert(0, parent);
+            parent.PropertyChanged += Parent_PropertyChanged;
+
+            foreach (var sub in parent.SubTasks)
+            {
+                sub.PropertyChanged += SubTask_PropertyChanged;
+            }
+        }
+
+        foreach (var parent in diff.RemovedParents)
+        {
+            parent.PropertyChanged -= Parent_PropertyChanged;
+            foreach (var sub in parent.SubTasks)
+            {
+                sub.PropertyChanged -= SubTask_PropertyChanged;
+            }
+            _taskList.Remove(parent);
+        }
+
+        RebuildTaskList();
+    }
+
+    private void Parent_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (sender is not ParentTask parent)
+            return;
+
+        QueueUiUpdate(() =>
+        {
+            if (!_parentControls.TryGetValue(parent.Id, out var controls))
+                return;
+
+            switch (e.PropertyName)
+            {
+                case nameof(TaskBase.State):
+                    UpdateParentStateIcon(controls.HeaderPanel, parent.State);
+                    UpdateParentActionButton(controls, parent);
+                    if (TaskPagePresentation.ShouldRemoveParentTask(parent))
+                    {
+                        RemoveParentTask(parent);
+                    }
+                    break;
+
+                case nameof(ParentTask.CompletedCount):
+                case nameof(ParentTask.TotalCount):
+                    controls.CountTextBlock.Text = $"{parent.CompletedCount} / {parent.TotalCount}";
+                    break;
+            }
+        });
+    }
+
+    private void SubTask_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (sender is not SubTaskBase subTask)
+            return;
+
+        if (!_subTaskControls.TryGetValue(subTask.Id, out var controls))
+            return;
+
+        switch (e.PropertyName)
+        {
+            case nameof(TaskBase.State):
+                QueueUiUpdate(() =>
+                {
+                    if (!_subTaskControls.TryGetValue(subTask.Id, out var c))
+                        return;
+                    UpdateSubTaskStateIcon(c.Item, c.ContentPanel, subTask);
+                    UpdateSubTaskProgress(c.Item, c.ProgressBar, subTask);
+                    UpdateParentStateBasedOnSubTasks(subTask.Parent);
+                    if (TaskPagePresentation.ShouldRemoveParentTask(subTask.Parent))
+                    {
+                        RemoveParentTask(subTask.Parent);
+                    }
+                });
+                break;
+
+            case nameof(TaskBase.IsExecuting):
+                QueueUiUpdate(() =>
+                {
+                    if (TaskPagePresentation.ShouldRemoveParentTask(subTask.Parent))
+                    {
+                        RemoveParentTask(subTask.Parent);
+                    }
+                });
+                break;
+                
+            case nameof(SubTask<object>.Progress):
+                // 进度变化时立即更新，不节流（任务完成时需要立即显示100%）
+                QueueUiUpdate(() =>
+                {
+                    if (!_subTaskControls.TryGetValue(subTask.Id, out var c))
+                        return;
+                    UpdateSubTaskProgress(c.Item, c.ProgressBar, subTask);
+                });
+                break;
+        }
+    }
+
+    private void UpdateSubTaskProgress(FASettingsExpanderItem item, ProgressBar progressBar, SubTaskBase subTask)
+    {
+        var hasProgress = subTask.Progress >= 0;
+        progressBar.IsIndeterminate = !hasProgress;
+        progressBar.ShowProgressText = hasProgress;
+        progressBar.Value = hasProgress ? subTask.Progress : 0;
+        progressBar.IsVisible = subTask.State == TaskState.Running;
+    }
+
+    private void UpdateParentStateBasedOnSubTasks(ParentTask parent)
+    {
+        if (!_parentControls.TryGetValue(parent.Id, out var controls))
+            return;
+
+        var state = TaskPagePresentation.GetParentDisplayState(parent);
+        UpdateParentStateIcon(controls.HeaderPanel, state);
+        controls.CountTextBlock.Text = $"{parent.CompletedCount} / {parent.TotalCount}";
+        UpdateParentActionButton(controls, parent, state);
+    }
+
+    private void RebuildTaskList()
+    {
+        TaskList.Children.Clear();
+        _parentControls.Clear();
+        _subTaskControls.Clear();
+
+        foreach (var parent in TaskPagePresentation.BuildVisibleParents(_taskList))
+        {
+            var expander = CreateParentTaskExpander(parent);
+            TaskList.Children.Add(expander);
+        }
+    }
+
+    private FASettingsExpander CreateParentTaskExpander(ParentTask parent)
+    {
+        var displayState = TaskPagePresentation.GetParentDisplayState(parent);
+        var headerPanel = TaskItemFactory.CreateHeaderPanel(parent, displayState);
+
+        var expander = new FASettingsExpander
+        {
+            Header = headerPanel,
+            IsExpanded = true
+        };
+
+        var footer = TaskItemFactory.CreateFooterPanel(parent);
+        expander.Footer = footer;
+
+        var countText = (TextBlock)footer.Children.First();
+        var controls = new ParentTaskControls
+        {
+            Expander = expander,
+            HeaderPanel = headerPanel,
+            FooterPanel = footer,
+            CountTextBlock = countText
+        };
+        _parentControls[parent.Id] = controls;
+
+        foreach (var item in parent.SubTasks.Select(CreateSubTaskItem))
+        {
+            expander.Items.Add(item);
+        }
+
+        UpdateParentActionButton(controls, parent, displayState);
+
+        return expander;
+    }
+
+    private void UpdateParentStateIcon(StackPanel headerPanel, TaskState state)
+    {
+        if (headerPanel.Children.Count > 0 && headerPanel.Children[0] is Control oldIcon)
+        {
+            var index = headerPanel.Children.IndexOf(oldIcon);
+            headerPanel.Children[index] = TaskItemFactory.CreateStateControl(state);
+        }
+    }
+
+    private void UpdateParentActionButton(ParentTaskControls controls, ParentTask parent)
+    {
+        UpdateParentActionButton(controls, parent, TaskPagePresentation.GetParentDisplayState(parent));
+    }
+
+    private void UpdateParentActionButton(ParentTaskControls controls, ParentTask parent, TaskState state)
+    {
+        var targetMode = TaskPagePresentation.GetParentActionButtonMode(state);
+        if (controls.ActionButtonMode == targetMode && controls.ActionButton?.Tag == parent)
+        {
+            return;
+        }
+
+        if (controls.ActionButton != null)
+        {
+            controls.ActionButton.Click -= CancelParentTask;
+            controls.ActionButton.Click -= DismissParentTask;
+            controls.FooterPanel.Children.Remove(controls.ActionButton);
+            controls.ActionButton = null;
+            controls.ActionButtonMode = ParentTaskActionButtonMode.None;
+        }
+
+        if (targetMode == ParentTaskActionButtonMode.None)
+        {
+            return;
+        }
+
+        var actionButton = targetMode == ParentTaskActionButtonMode.Cancel
+            ? TaskItemFactory.CreateCancelButton(parent)
+            : TaskItemFactory.CreateConfirmButton(parent);
+
+        if (targetMode == ParentTaskActionButtonMode.Cancel)
+            actionButton.Click += CancelParentTask;
+        else
+            actionButton.Click += DismissParentTask;
+
+        controls.FooterPanel.Children.Add(actionButton);
+        controls.ActionButton = actionButton;
+        controls.ActionButtonMode = targetMode;
+    }
+
+    private void CancelParentTask(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: ParentTask parent } button)
+        {
+            _logger.Info($"用户取消任务: {parent.Name}");
+            button.IsEnabled = false;
+            parent.Cancel();
+        }
+    }
+
+    private void DismissParentTask(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: ParentTask parent })
+        {
+            RemoveParentTask(parent);
+        }
+    }
+
+    private void RemoveParentTask(ParentTask parent)
+    {
+        if (!_parentControls.TryGetValue(parent.Id, out var controls))
+            return;
+
+        if (controls.ActionButton != null)
+        {
+            controls.ActionButton.Click -= CancelParentTask;
+            controls.ActionButton.Click -= DismissParentTask;
+        }
+
+        parent.PropertyChanged -= Parent_PropertyChanged;
+        foreach (var sub in parent.SubTasks)
+        {
+            sub.PropertyChanged -= SubTask_PropertyChanged;
+        }
+
+        TaskManager.Instance.RemoveParent(parent);
+        _taskList.Remove(parent);
+        _parentControls.Remove(parent.Id);
+        TaskList.Children.Remove(controls.Expander);
+    }
+
+    private FASettingsExpanderItem CreateSubTaskItem(SubTaskBase subTask)
+    {
+        var contentPanel = TaskItemFactory.CreateSubTaskContentPanel(subTask);
+
+        var item = new FASettingsExpanderItem
+        {
+            Content = contentPanel,
+            IsEnabled = subTask.State is TaskState.Waiting or TaskState.Running
+        };
+
+        var footerPanel = TaskItemFactory.CreateSubTaskFooterPanel(subTask);
+        var progressBar = (ProgressBar)footerPanel.Children.First();
+        item.Footer = footerPanel;
+
+        _subTaskControls[subTask.Id] = (item, contentPanel, footerPanel, progressBar);
+
+        return item;
+    }
+
+    private void UpdateSubTaskStateIcon(FASettingsExpanderItem? item, StackPanel contentPanel, SubTaskBase subTask)
+    {
+        if (contentPanel.Children.Count > 0 && contentPanel.Children[0] is Control oldIcon)
+        {
+            var index = contentPanel.Children.IndexOf(oldIcon);
+            contentPanel.Children[index] = TaskItemFactory.CreateStateControl(subTask.State);
+        }
+        else
+        {
+            contentPanel.Children.Insert(0, TaskItemFactory.CreateStateControl(subTask.State));
+        }
+
+        if (item != null)
+        {
+            item.IsEnabled = subTask.State is TaskState.Waiting or TaskState.Running;
+        }
+    }
+
+    public static class TaskListView
+    {
+        public static TaskPage? Instance { get; set; }
+    }
+}

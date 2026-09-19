@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMC.Basic.Configs;
+using LMC.Basic.Configs.Security;
 
 namespace LMC.Basic.Logging;
 
@@ -55,17 +56,16 @@ public class Logger
             {
                 FileName = Path.Combine(logDir, "${date:format=yyyy-MM-dd}-${cached:${date}:cached=true:inner=${counter:DailyCounter}.log}"),
                 Layout = "${longdate} [${level}] [${logger}] ${message}",
-                // ArchiveOldFileOnStartup = true,
-                ArchiveAboveSize = 10485760,
-                ArchiveSuffixFormat = "#",
-                MaxArchiveFiles = 100,
-                ArchiveEvery = FileArchivePeriod.Day
+                KeepFileOpen = false,
+                AutoFlush = true
             };
 
             var latestTarget = new FileTarget("latestTarget")
             {
                 FileName = Path.Combine(logDir, "latest.log"),
                 Layout = "${longdate} [${level}] [${logger}] ${message}",
+                KeepFileOpen = false,
+                AutoFlush = true
             };
 
             var consoleTarget = new ConsoleTarget("console")
@@ -96,11 +96,7 @@ public class Logger
     }
     private static string ReplaceSensitiveData(string msg)
     {
-        foreach (var kv in SecretsManager.SensitiveData)
-        {
-            if(!string.IsNullOrWhiteSpace(kv.Key)) msg = msg.Replace(kv.Key, kv.Value);
-        }
-        return msg;
+        return SecretsManager.SensitiveData.Where(kv => !string.IsNullOrWhiteSpace(kv.Key)).Aggregate(msg, (current, kv) => current.Replace(kv.Key, kv.Value));
     }
     public void Info(string msg) => _nlogLogger.Info(ReplaceSensitiveData(msg));
     public void Error(string msg) => _nlogLogger.Error(ReplaceSensitiveData(msg));
@@ -120,6 +116,4 @@ public class Logger
     }
 
     public void Close() => LogManager.Shutdown();
-        
-    ~Logger() => Close();
 }

@@ -12,19 +12,25 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media;
 using FluentAvalonia.UI.Windowing;
+using LMCCore.Game.Versioning;
 
 namespace LMCUI.Controls;
 
 public class LineSplashScreen : IFAApplicationSplashScreen
 {
-    
+    public event EventHandler? Completed;
+
     public async Task RunTasks(CancellationToken cancellationToken)
     {
+        new VersionManager().StartWarmSelectedRootVersions();
+
         await ((LineSplashScreenContent)SplashScreenContent).InitializeAsync(cancellationToken);
+        Completed?.Invoke(this, EventArgs.Empty);
     }
 
     public string AppName { get; init; }

@@ -8,12 +8,14 @@
              xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
              xmlns:i18n="clr-namespace:LMCUI.I18n"
              xmlns:lmc="clr-namespace:LMC;assembly=LMC"
+             xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="LMCUI.Pages.SettingsPage.AboutPage">
+             x:Class="LMCUI.Pages.SettingsPage.About.AboutPage">
     
     <Grid Margin="60, 20, 40, 30">
         <ScrollViewer>
-            <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Vertical"
+                        behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
                 <ui:FASettingsExpander Name="AboutLauncherExpander" Header="{i18n:I18nBinding Key=Pages.AboutPage.AboutLauncherExpander.Header}" IsExpanded="True">
                     <ui:FASettingsExpander.IconSource>
                         <ui:FAImageIconSource Source="/Assets/ico.png"/>
@@ -42,7 +44,12 @@
                     </ui:FASettingsExpander.Items>
                 </ui:FASettingsExpander>
                 <Grid Height="5"/>
-                <ui:FASettingsExpander></ui:FASettingsExpander>
+                <ui:FASettingsExpander IsClickEnabled="True"
+                                     Header="{i18n:I18nBinding Key=Pages.AboutPage.CopyrightExpander.Header}"
+                                     Description="{i18n:I18nBinding Key=Pages.AboutPage.CopyrightExpander.Description}"
+                                     IconSource="Code"
+                                     ActionIconSource="ChevronRight"
+                                     Click="CopyrightExpander_OnClick"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

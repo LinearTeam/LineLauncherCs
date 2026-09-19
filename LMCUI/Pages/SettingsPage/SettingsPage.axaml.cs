@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMCUI.Navigation;
+using LMCUI.Navigation.Model;
 using LMCUI.Pages.SettingsPage.LauncherSettings;
 
 namespace LMCUI.Pages.SettingsPage;
@@ -37,7 +38,7 @@ public partial class SettingsPage : PageBase
     }
     private void AboutExpander_OnClick(object? sender, RoutedEventArgs e)
     {
-        MainWindow.NavigatePage(new PageNavigateWay(typeof(AboutPage), 
+        MainWindow.NavigatePage(new PageNavigateWay(typeof(About.AboutPage), 
             MainWindow.Instance.mnv.SettingsItem), NavigateType.Append);
     }
 }

@@ -6,6 +6,8 @@ This is its C# version repository. For the Visual Basic version, please refer to
 
 The term "LMC" mentioned below refers to the C# version repository.
 
+~~This project contains a lot AI Generated codes because I am the only developer basicly and I am lazy~~
+
 ## Introduction
 ### History
 The current `main` branch you are viewing is developed based on [Avalonia](https://docs.avaloniaui.net/). This UI framework differs from WPF, enabling native .NET cross-platform capabilities while maintaining UI design patterns similar to WPF.
@@ -16,9 +18,9 @@ LMC previously had a WPF version located in the `wpf` branch. Due to WPF's lack 
 - ~~Project reconstruction~~
 - ~~Basic UI~~
 - ~~Java management~~
-- Help Center
+- ~~Help Center~~
 - Version management
-- Account management
+- ~~Account management~~
 - OOBE
 - Game downloads
 - Game launching
@@ -103,3 +105,14 @@ Most can be found in the [.NET License Information](https://github.com/dotnet/co
 - [Moq](https://github.com/moq/moq) 
 
   Developed by the Moq team, open-sourced under the [BSD 3-Clause](https://licenses.nuget.org/BSD-3-Clause) license
+
+### Special Thanks
+Some Minecraft-related implementation references open-source launchers such as [HMCL](https://github.com/HMCL-dev/HMCL/), [MultiMC](https://github.com/MultiMC/Launcher), [PCL2](https://github.com/Hex-Dragon/PCL2/), and [Prism Launcher](https://github.com/PrismLauncher/PrismLauncher), as well as public materials from [Minecraft Wiki](https://zh.minecraft.wiki/) and [wiki.vg](https://wiki.vg/).
+
+Furthermore, the code from [TT702/Forge-InstallProcessor.NET](https://github.com/TT702/Forge-InstallProcessor.NET) was referenced.
+
+[BMCLAPI](https://bmclapi2.bangbang93.com/) is also utilized as a mirror source.
+
+Additionally, public materials from the [Minecraft Wiki](https://zh.minecraft.wiki/w/%E6%95%99%E7%BC%96%E5%86%99%E5%90%AF%E5%8A%A8%E5%99%A8) and [wiki.vg](https://wiki.vg/) were consulted.
+
+The UI Design of some pages referenced [Fluent Launcher](https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/), it's open-sourced under the [MIT](https://licenses.nuget.org/MIT) LICENSE.

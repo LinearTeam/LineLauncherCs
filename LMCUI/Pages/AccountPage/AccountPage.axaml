@@ -10,6 +10,7 @@
                 xmlns:model="clr-namespace:LMCCore.Account.Model;assembly=LMCCore"
                 xmlns:currentPage="clr-namespace:LMCUI.Pages.AccountPage"
                 xmlns:add="clr-namespace:LMCUI.Pages.AccountPage.AddAccount"
+                xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                 x:Class="LMCUI.Pages.AccountPage.AccountPage">
     <pages:PageBase.Resources>
@@ -19,134 +20,146 @@
     </pages:PageBase.Resources>
     <Grid Margin="60, 20, 40, 30">
         <ScrollViewer>
-            <StackPanel Orientation="Vertical">
-                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Header}"
-                                     Description="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Description}" 
-                                     Name="acclist" IconSource="BulletList" ActionIconSource="ChevronRight">
-                    <ui:FASettingsExpander.DataTemplates>
-    <!-- MicrosoftAccount -->
-            <DataTemplate DataType="model:MicrosoftAccount">
-                <ui:FASettingsExpanderItem
-                    Description="{Binding Uuid}"
-                    IsClickEnabled="False">
-                    <ui:FASettingsExpanderItem.IconSource>
-                        <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
-                    </ui:FASettingsExpanderItem.IconSource>
-                    <ui:FASettingsExpanderItem.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Name}" />
-                            <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Microsoft}" />
-                        </StackPanel>
-                    </ui:FASettingsExpanderItem.Content>
-                    <ui:FASettingsExpanderItem.Footer>
-                        <StackPanel Orientation="Horizontal" Spacing="3">
-                            <Button Click="Button_CopyUuid">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Copy" />
-                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}" />
-                                </StackPanel>
-                            </Button>
-                            <Button>
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Refresh" />
-                                    <TextBlock/>
-                                </StackPanel>
-                            </Button>
-                            <Button Click="Button_Delete">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Delete" Foreground="Red" />
-                                    <TextBlock />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </ui:FASettingsExpanderItem.Footer>
-                </ui:FASettingsExpanderItem>
-            </DataTemplate>
+            <StackPanel Orientation="Vertical"
+                        Spacing="1"
+                        behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
+                <Label Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Header}" />
+                <TextBlock Name="AccountListDescription"
+                           Margin="0,0,0,8"
+                           Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Description}"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <ItemsControl Name="AccountItemsControl">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="1"
+                                        behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.DataTemplates>
+                        <DataTemplate DataType="model:MicrosoftAccount">
+                            <ui:FASettingsExpander IsExpanded="False"
+                                                   Description="{Binding Uuid}"
+                                                   RenderOptions.BitmapInterpolationMode="None">
+                                <ui:FASettingsExpander.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Microsoft}" />
+                                    </StackPanel>
+                                </ui:FASettingsExpander.Header>
+                                <ui:FASettingsExpander.IconSource>
+                                    <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}" />
+                                </ui:FASettingsExpander.IconSource>
+                                <ui:FASettingsExpander.Items>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Click="Button_CopyUuid"
+                                                    Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyText}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.RefreshAccountText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.RefreshText}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.DeleteAccountText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Click="Button_Delete"
+                                                    Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.DeleteText}"
+                                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                </ui:FASettingsExpander.Items>
+                            </ui:FASettingsExpander>
+                        </DataTemplate>
 
-            <!-- OfflineAccount -->
-            <DataTemplate DataType="model:OfflineAccount">
-                <ui:FASettingsExpanderItem
-                    Description="{Binding Uuid}"
-                    IsClickEnabled="False">
-                    <ui:FASettingsExpanderItem.IconSource>
-                        <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
-                    </ui:FASettingsExpanderItem.IconSource>
-                    <ui:FASettingsExpanderItem.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Name}" />
-                            <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Offline}" />
-                        </StackPanel>
-                    </ui:FASettingsExpanderItem.Content>
-                    <ui:FASettingsExpanderItem.Footer>
-                        <StackPanel Orientation="Horizontal" Spacing="3">
-                            <Button Click="Button_CopyUuid">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Copy" />
-                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}" />
-                                </StackPanel>
-                            </Button>
-                            <Button Click="Button_Delete" >
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Delete" Foreground="Red" />
-                                    <TextBlock />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </ui:FASettingsExpanderItem.Footer>
-                </ui:FASettingsExpanderItem>
-            </DataTemplate>
+                        <DataTemplate DataType="model:OfflineAccount">
+                            <ui:FASettingsExpander IsExpanded="False"
+                                                   Description="{Binding Uuid}"
+                                                   RenderOptions.BitmapInterpolationMode="None">
+                                <ui:FASettingsExpander.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Offline}" />
+                                    </StackPanel>
+                                </ui:FASettingsExpander.Header>
+                                <ui:FASettingsExpander.IconSource>
+                                    <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}" />
+                                </ui:FASettingsExpander.IconSource>
+                                <ui:FASettingsExpander.Items>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Click="Button_CopyUuid"
+                                                    Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyText}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.DeleteAccountText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Click="Button_Delete"
+                                                    Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.DeleteText}"
+                                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                </ui:FASettingsExpander.Items>
+                            </ui:FASettingsExpander>
+                        </DataTemplate>
 
-            <!-- AuthlibAccount -->
-            <DataTemplate DataType="model:AuthlibAccount">
-                <ui:FASettingsExpanderItem
-                    IsClickEnabled="False">
-                    <ui:FASettingsExpanderItem.IconSource>
-                        <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}"/>
-                    </ui:FASettingsExpanderItem.IconSource>
-                    <ui:FASettingsExpanderItem.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Name}" />
-                            <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Authlib}" />
-                        </StackPanel>
-                    </ui:FASettingsExpanderItem.Content>
-                    <ui:FASettingsExpanderItem.Description>
-                        <MultiBinding Converter="{StaticResource AuthlibDescriptionConverter}">
-                            <Binding Path="Username" />
-                            <Binding Path="Uuid" />
-                        </MultiBinding>
-                    </ui:FASettingsExpanderItem.Description>
-                    <ui:FASettingsExpanderItem.Footer>
-                        <StackPanel Orientation="Horizontal" Spacing="3">
-                            <Button Click="Button_CopyUsername">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Mail" />
-                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUsernameText}" />
-                                </StackPanel>
-                            </Button>
-                            <Button Click="Button_CopyUuid">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Copy" />
-                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}" />
-                                </StackPanel>
-                            </Button>
-                            <Button>
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Refresh" />
-                                    <TextBlock/>
-                                </StackPanel>
-                            </Button>
-                            <Button Click="Button_Delete" >
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:FASymbolIcon Symbol="Delete" Foreground="Red" />
-                                    <TextBlock />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </ui:FASettingsExpanderItem.Footer>
-                </ui:FASettingsExpanderItem>
-            </DataTemplate>
-                    </ui:FASettingsExpander.DataTemplates>
-                </ui:FASettingsExpander>
+                        <DataTemplate DataType="model:AuthlibAccount">
+                            <ui:FASettingsExpander IsExpanded="False"
+                                                   RenderOptions.BitmapInterpolationMode="None">
+                                <ui:FASettingsExpander.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.AccountTypeSuffix.Authlib}" />
+                                    </StackPanel>
+                                </ui:FASettingsExpander.Header>
+                                <ui:FASettingsExpander.Description>
+                                    <MultiBinding Converter="{StaticResource AuthlibDescriptionConverter}">
+                                        <Binding Path="Username" />
+                                        <Binding Path="Uuid" />
+                                    </MultiBinding>
+                                </ui:FASettingsExpander.Description>
+                                <ui:FASettingsExpander.IconSource>
+                                    <ui:FAImageIconSource Source="{Binding AvatarBase64, Converter={StaticResource Base64ToImageConverter}}" />
+                                </ui:FASettingsExpander.IconSource>
+                                <ui:FASettingsExpander.Items>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUsernameText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Click="Button_CopyUsername"
+                                                    Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyText}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyUuidText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Click="Button_CopyUuid"
+                                                    Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.CopyText}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.RefreshAccountText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.RefreshText}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                    <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                               Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.DeleteAccountText}">
+                                        <ui:FASettingsExpanderItem.Footer>
+                                            <Button Click="Button_Delete"
+                                                    Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.DeleteText}"
+                                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+                                        </ui:FASettingsExpanderItem.Footer>
+                                    </ui:FASettingsExpanderItem>
+                                </ui:FASettingsExpander.Items>
+                            </ui:FASettingsExpander>
+                        </DataTemplate>
+                    </ItemsControl.DataTemplates>
+                </ItemsControl>
                 <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountExpander.Header}"
                                      Description="{i18n:I18nBinding Key=Pages.AccountPage.AddAccountExpander.Description}"
                                      IconSource="AddFriend">

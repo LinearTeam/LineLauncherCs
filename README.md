@@ -6,6 +6,8 @@
 
 下文所述的LMC均指代C#版本仓库。
 
+~~由于基本上只有我一个人开发，而且我比较懒，所以该项目会掺杂相当的AI成分~~
+
 ## 简介
 ### 历史
 您目前所在的`main`分支是基于[Avalonia](https://docs.avaloniaui.net/)开发的，此UI框架不同于WPF，它支持在.NET原生的跨平台能力上实现与WPF相似的UI设计。
@@ -16,9 +18,9 @@ LMC曾有一个WPF版本，位于`wpf`分支下。由于WPF的无法跨平台等
  - ~~重建项目~~
  - ~~基础UI~~
  - ~~Java管理~~
- - 帮助库
+ - ~~帮助库~~
  - 版本管理
- - 账号管理
+ - ~~账号管理~~
  - OOBE
  - 下载游戏
  - 启动游戏
@@ -102,3 +104,14 @@ LineLauncherCs/
 - [Moq](https://github.com/moq/moq) 
 
   由 Moq 团队开发，使用[BSD 3-Clause](https://licenses.nuget.org/BSD-3-Clause)协议开源
+
+### 特别感谢
+Minecraft 相关实现部分参考了 [HMCL](https://github.com/HMCL-dev/HMCL/)、[MultiMC](https://github.com/MultiMC/Launcher)、[PCL2](https://github.com/Hex-Dragon/PCL2/) 和 [Prism Launcher](https://github.com/PrismLauncher/PrismLauncher) 等开源启动器，以及 [Minecraft Wiki](https://zh.minecraft.wiki/) 和 [wiki.vg](https://wiki.vg/) 等平台的公开资料。
+
+同时，还参考了[TT702的Forge安装处理器](https://github.com/TT702/Forge-InstallProcessor.NET)的代码。
+
+同时使用了[BMCLAPI](https://bmclapi2.bangbang93.com/)作为镜像源。
+
+同时也参考了[Minecraft Wiki](https://zh.minecraft.wiki/w/%E6%95%99%E7%A8%8B/%E7%BC%96%E5%86%99%E5%90%AF%E5%8A%A8%E5%99%A8)和 [wiki.vg](https://wiki.vg/) 中的公开资料。
+
+部分页面的UI设计参考了[Fluent Launcher](https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/)，其使用[MIT](https://licenses.nuget.org/MIT)协议开源。

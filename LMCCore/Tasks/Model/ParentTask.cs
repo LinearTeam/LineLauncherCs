@@ -19,22 +19,56 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-public class ParentTask(string name) : TaskBase(name)
+public class ParentTask : TaskBase
 {
+    private readonly TaskManager _manager;
+    private readonly static string s_cascadeCancellationReason = "Canceled because another subtask failed.";
+
+    public ParentTask(
+        string name,
+        string? translationKey = null,
+        IReadOnlyList<object?>? translationArgs = null)
+        : this(name, TaskManager.Instance, translationKey, translationArgs)
+    {
+    }
+
+    internal ParentTask(
+        string name,
+        TaskManager manager,
+        string? translationKey = null,
+        IReadOnlyList<object?>? translationArgs = null)
+        : base(name, translationKey, translationArgs)
+    {
+        _manager = manager;
+    }
+
     public List<SubTaskBase> SubTasks { get; } = new();
 
     public int CompletedCount => SubTasks.Count(s => s.State == TaskState.Completed);
     public int TotalCount => SubTasks.Count;
     public string ProgressText => $"{CompletedCount}/{TotalCount}";
+    public SubTaskBase? FirstFaultedSubTask => SubTasks.FirstOrDefault(subTask => subTask.State == TaskState.Faulted);
 
     public SubTask<T> CreateSubTask<T>(
         string name,
         int priority,
         Func<CancellationToken, Dictionary<SubTaskBase, object>, IProgress<int>, Task<T>> execute,
-        IEnumerable<SubTaskBase>? dependencies = null)
+        IEnumerable<SubTaskBase>? dependencies = null,
+        bool waitForSiblingTasksToComplete = false,
+        string? translationKey = null,
+        IReadOnlyList<object?>? translationArgs = null)
     {
-        var subTask = new SubTask<T>(name, priority, this, dependencies, execute);
+        var subTask = new SubTask<T>(
+            name,
+            priority,
+            this,
+            dependencies,
+            execute,
+            waitForSiblingTasksToComplete,
+            translationKey,
+            translationArgs);
         SubTasks.Add(subTask);
+        _manager.OnSubTaskAdded(subTask);
         return subTask;
     }
 
@@ -42,22 +76,30 @@ public class ParentTask(string name) : TaskBase(name)
 
     protected override void OnCancel()
     {
+        CancelRemainingSubTasks();
+    }
+
+    internal void OnSubTaskFaulted(SubTaskBase faulted)
+    {
+        FailureException ??= faulted.FailureException;
+        State = TaskState.Faulted;
+        CancelRemainingSubTasks();
+        
+        // 通知 TaskManager 注册此父任务为失败
+        _manager.RegisterFaultedParent(this);
+    }
+
+    private void CancelRemainingSubTasks()
+    {
         // 异步取消子任务，避免在UI线程上同步遍历大量子任务导致冻结
         _ = Task.Run(() =>
         {
             foreach (var sub in SubTasks.Where(s => !s.IsFinished))
             {
-                sub.Cancel();
+                sub.Cancel(s_cascadeCancellationReason);
             }
-        });
-    }
 
-    internal void OnSubTaskFaulted(SubTaskBase faulted)
-    {
-        State = TaskState.Faulted;
-        Cancel(); // 级联取消
-        
-        // 通知 TaskManager 注册此父任务为失败
-        TaskManager.Instance.RegisterFaultedParent(this);
+            _manager.Signal();
+        });
     }
 }

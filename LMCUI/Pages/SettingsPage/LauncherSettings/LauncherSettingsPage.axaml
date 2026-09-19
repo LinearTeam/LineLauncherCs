@@ -13,7 +13,8 @@
     
     <Grid Margin="60, 20, 40, 30">
         <ScrollViewer>
-            <StackPanel Orientation="Vertical" Spacing="1">
+            <StackPanel Orientation="Vertical" Spacing="1"
+                        behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
                 <Label Content="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.Title}" Margin="0, 20"/>
                 <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Header}"
                                      Description="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Description}" IconSource="Globe">

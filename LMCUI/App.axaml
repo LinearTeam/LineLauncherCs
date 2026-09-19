@@ -5,6 +5,7 @@
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              xmlns:uip="using:FluentAvalonia.UI.Controls.Primitives"
              xmlns:utils="clr-namespace:LMCUI.Utils"
+             xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
 
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -12,6 +13,12 @@
     <Application.Styles>
         <FluentTheme />
         <sty:FluentAvaloniaTheme />
+        <Style Selector="ScrollViewer">
+            <Setter Property="behaviors:SmoothScrollViewerBehavior.IsEnabled" Value="True" />
+        </Style>
+        <Style Selector="ScrollViewer.smooth-scroll-active ui|FASettingsExpanderItem:allowClick:pointerover /template/ Border#Root">
+            <Setter Property="Background" Value="{DynamicResource ExpanderHeaderBackground}" />
+        </Style>
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>

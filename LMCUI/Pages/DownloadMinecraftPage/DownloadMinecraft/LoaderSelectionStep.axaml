@@ -1,0 +1,58 @@
+<downloadMinecraft:DownloadMinecraftStep xmlns="https://github.com/avaloniaui"
+                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                             xmlns:i18n="clr-namespace:LMCUI.I18n"
+                             xmlns:local="clr-namespace:LMCUI.Pages.DownloadMinecraftPage"
+                             xmlns:ui="using:FluentAvalonia.UI.Controls"
+                             xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
+                             xmlns:downloadMinecraft="clr-namespace:LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft"
+                             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="420"
+                             x:Class="LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft.LoaderSelectionStep">
+    <StackPanel Orientation="Vertical" Spacing="8"
+                behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
+        <TextBlock Text="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Title}" FontSize="20" FontWeight="Bold"/>
+        <TextBlock Text="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Description}" TextWrapping="Wrap"/>
+
+        <StackPanel x:Name="LoadingStatus" Orientation="Horizontal" Spacing="8" Margin="0,4,0,4">
+            <ui:FAProgressRing x:Name="LoadingRing" Width="16" Height="16" IsActive="False" VerticalAlignment="Center" />
+            <TextBlock Text="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.LoadingHint}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <ui:FAInfoBar x:Name="LoadWarning"
+                      Severity="Warning" IsOpen="False" IsClosable="False"
+                      Title="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.LoadFailedTitle}"
+                      Message="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.LoadFailedMessage}" />
+        <Button x:Name="RetryButton" HorizontalAlignment="Left" IsVisible="False"
+                Content="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Retry}"
+                Click="RetryButton_OnClick" />
+
+        <ui:FASettingsExpander x:Name="FabricExpander"
+                               Header="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Fabric.Header}"
+                               Description="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Fabric.Description}">
+            <ui:FASettingsExpander.Footer>
+                <ComboBox x:Name="FabricComboBox" SelectionChanged="ComboBox_OnSelectionChanged"/>
+            </ui:FASettingsExpander.Footer>
+        </ui:FASettingsExpander>
+
+        <ui:FASettingsExpander x:Name="ForgeExpander"
+                               Header="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Forge.Header}"
+                               Description="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Forge.Description}">
+            <ui:FASettingsExpander.Footer>
+                <ComboBox x:Name="ForgeComboBox" SelectionChanged="ComboBox_OnSelectionChanged"/>
+            </ui:FASettingsExpander.Footer>
+        </ui:FASettingsExpander>
+
+        <ui:FASettingsExpander x:Name="OptiFineExpander"
+                               Header="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.OptiFine.Header}"
+                               Description="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.OptiFine.Description}">
+            <ui:FASettingsExpander.Footer>
+                <ComboBox x:Name="OptiFineComboBox" SelectionChanged="ComboBox_OnSelectionChanged"/>
+            </ui:FASettingsExpander.Footer>
+        </ui:FASettingsExpander>
+
+        <TextBlock x:Name="ValidationText" Foreground="{DynamicResource SystemFillColorCautionBrush}" IsVisible="False" TextWrapping="Wrap"/>
+    </StackPanel>
+</downloadMinecraft:DownloadMinecraftStep>

@@ -1,0 +1,40 @@
+<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="LMCUI.Pages.VersionManagePage.VersionDetailPage">
+    <Grid Margin="60,20,40,30">
+        <ScrollViewer>
+            <StackPanel MaxWidth="1000"
+                        Orientation="Vertical"
+                        Spacing="1"
+                        behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
+                <ui:FASettingsExpander Name="VersionSummaryExpander"
+                                       IsClickEnabled="False"
+                                       IsExpanded="False">
+                    <ui:FASettingsExpander.IconSource>
+                        <ui:FAImageIconSource />
+                    </ui:FASettingsExpander.IconSource>
+                    <ui:FASettingsExpander.Footer>
+                        <Button Click="RenameVersionButton_OnClick"
+                                ToolTip.Tip="{i18n:I18nBinding Key=Pages.VersionDetailPage.Summary.Rename}">
+                            <ui:FASymbolIcon Symbol="Edit" />
+                        </Button>
+                    </ui:FASettingsExpander.Footer>
+                </ui:FASettingsExpander>
+
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.VersionDetailPage.GameSettingsNav.Header}"
+                                       Description="{i18n:I18nBinding Key=Pages.VersionDetailPage.GameSettingsNav.Description}"
+                                       IconSource="Games"
+                                       ActionIconSource="ChevronRight"
+                                       IsClickEnabled="True"
+                                       Click="GameSettingsExpander_OnClick" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</pages:PageBase>

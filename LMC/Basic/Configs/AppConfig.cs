@@ -24,9 +24,31 @@ public class AppConfig {
 
     public string SelectedJavaPath { get; set; } = string.Empty;
 
+    public List<string> ManagedGameRootPaths { get; set; } = [];
+
+    public string SelectedGameRootPath { get; set; } = string.Empty;
+
+    public string SelectedLaunchVersionName { get; set; } = string.Empty;
+
+    public Dictionary<string, string> SelectedLaunchVersionsByGameRoot { get; set; } = [];
+
+    public string SelectedLaunchAccountKey { get; set; } = string.Empty;
+
     public bool AutoSelectJava { get; set; } = true;
+
+    public GameLaunchConfig GameLaunch { get; set; } = new();
+
     public string SelectedLanguage { get; set; } = "zh-CN";
-    
-    
+
+    public NewVersionConfigSource DefaultVersionConfigSourceForNewInstalls { get; set; } =
+        NewVersionConfigSource.VersionJson;
+
+    public DownloadSourcePolicy DefaultVersionManifestSource { get; set; } = DownloadSourcePolicy.BmclapiFirst;
+    public DownloadSourcePolicy DefaultFileDownloadSource { get; set; } = DownloadSourcePolicy.BmclapiFirst;
+}
+
+public enum DownloadSourcePolicy
+{
+    BmclapiFirst, OfficialFirst
 }
 

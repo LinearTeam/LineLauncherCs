@@ -19,23 +19,24 @@ using LMC;
 using LMC.Basic;
 using LMC.Basic.Configs;
 using LMC.Basic.Logging;
+using LMCCore.Java.Discovery;
+using LMCCore.Game.Model;
 using Microsoft.Win32;
 
 public static class JavaManager {
     private readonly static Logger s_logger = new("JavaManager");
 
     private readonly static object s_configLock = new object();
+    private readonly static object s_javaInfoCacheLock = new object();
+    private readonly static Dictionary<string, LocalJava> s_javaInfoCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly static JavaDirectoryScanner s_directoryScanner = new(IsValidJavaRoot, s_logger);
 
     public async static Task AddJava(string javaPath, Action<TaskCallbackInfo>? callback = null, bool force = false) {
         callback ??= _ => {};
 
         int prcId = new Random().Next(100, 999);
         
-        javaPath = Path.GetFullPath(javaPath);
-        if (javaPath.EndsWith(Path.DirectorySeparatorChar))
-        {
-            javaPath = javaPath[..^1];
-        }
+        javaPath = JavaPathNormalizer.NormalizeRootPath(javaPath);
         s_logger.Debug($"[添加 Java/{prcId}] : {javaPath}");
 
         
@@ -61,7 +62,7 @@ public static class JavaManager {
     }
 
     public static void RemoveJava(string javaPath) {
-        javaPath = Path.GetFullPath(javaPath);
+        javaPath = JavaPathNormalizer.NormalizeRootPath(javaPath);
         s_logger.Info($"禁用Java : {javaPath}");
 
         lock (s_configLock) {
@@ -72,51 +73,151 @@ public static class JavaManager {
         }
         
     }
+
+    public async static Task AddJavasAsync(IEnumerable<string> javaPaths)
+    {
+        var normalizedPaths = JavaPathNormalizer.DistinctNormalizedRoots(javaPaths);
+
+        var validPaths = new List<string>(normalizedPaths.Count);
+        foreach (var javaPath in normalizedPaths)
+        {
+            if (await IsValidJavaRoot(javaPath))
+            {
+                validPaths.Add(javaPath);
+                continue;
+            }
+
+            s_logger.Warn($"批量添加时忽略无效 Java 路径: {javaPath}");
+        }
+
+        lock (s_configLock)
+        {
+            foreach (var javaPath in validPaths)
+            {
+                if (!Current.Config.JavaPaths.Contains(javaPath))
+                {
+                    Current.Config.JavaPaths.Add(javaPath);
+                }
+            }
+
+            ConfigManager.Save("app", Current.Config);
+        }
+    }
     
     public async static Task<LocalJava> GetJavaInfo(string path) {
-        path = Path.GetFullPath(path);
+        path = JavaPathNormalizer.NormalizeRootPath(path);
+        lock (s_javaInfoCacheLock)
+        {
+            if (s_javaInfoCache.TryGetValue(path, out var cachedJava))
+            {
+                return cachedJava;
+            }
+        }
+
         s_logger.Info($"获取Java信息：{path}");
         var release = Path.Combine(path, "release");
         s_logger.Debug($"release 文件路径: {release}");
         var lines = await File.ReadAllLinesAsync(release);
-        var ve = 
-            (from l in lines
-            where l.Replace("=", ":").StartsWith("JAVA_VERSION:", StringComparison.OrdinalIgnoreCase)
-            select l).ToArray();
-        s_logger.Debug($"过滤的版本字符串: {string.Join(", ", ve)}");
-        LocalJava java = new()
-        {
-            Path = path,
-            Version = Version.Parse(ve.First()
-                .Replace("=",":")
-                .Replace("JAVA_VERSION:", "", StringComparison.OrdinalIgnoreCase)
-                .Replace("_",".")  //1.8.0_51
-                .Replace("\"", ""))
-        };
-
-        var impl = 
-            (from l in lines
-            where l.Replace("=", ":").StartsWith("IMPLEMENTOR:", StringComparison.OrdinalIgnoreCase)
-            select l).ToArray();
-        
-        s_logger.Debug($"过滤的发行商字符串: {string.Join(", ", impl)}");
-
-        if (impl.Any())
-        {
-            java.Implementor = impl.First()
-                .Replace("=",":")
-                .Replace("IMPLEMENTOR:", "", StringComparison.OrdinalIgnoreCase)
-                .Replace("\"", "");
-        }
-        
-        java.IsJdk = File.Exists(Path.Combine(path, "bin", IsWindows() ? "javac.exe" : "javac"));
+        LocalJava java = JavaInstallationInfoParser.Parse(path, lines, IsWindows());
         
         s_logger.Debug(@$"最终Java：
 路径：{path}
 版本：{java.Version}
 发行商：{java.Implementor}
 是否是JDK：{java.IsJdk}");
+        lock (s_javaInfoCacheLock)
+        {
+            s_javaInfoCache[path] = java;
+        }
         return java;
+    }
+
+    public async static Task<LocalJava?> TryGetJavaInfo(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        path = JavaPathNormalizer.NormalizeRootPath(path);
+        if (!await IsValidJavaRoot(path))
+        {
+            return null;
+        }
+
+        return await GetJavaInfo(path);
+    }
+
+    public static async Task<LocalJava> SelectJavaAsync(
+        IEnumerable<string> javaPaths,
+        string? selectedJavaPath,
+        bool autoSelectJava,
+        LocalGameVersionEntry? gameVersion = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(javaPaths);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!autoSelectJava)
+        {
+            if (string.IsNullOrWhiteSpace(selectedJavaPath))
+            {
+                throw new InvalidOperationException("No Java runtime has been selected.");
+            }
+
+            var manuallySelectedJava = await TryGetJavaInfo(selectedJavaPath);
+            return manuallySelectedJava
+                   ?? throw new InvalidOperationException("The selected Java runtime is unavailable.");
+        }
+
+        var availableJavas = new List<LocalJava>();
+        foreach (var javaPath in javaPaths)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var java = await TryGetJavaInfo(javaPath);
+            if (java != null)
+            {
+                availableJavas.Add(java);
+            }
+        }
+
+        if (gameVersion == null)
+        {
+            return availableJavas
+                       .OrderBy(java => Array.IndexOf([21, 17, 8], java.Version.Major) is var index && index >= 0
+                           ? index
+                           : int.MaxValue)
+                       .ThenByDescending(java => java.Is64Bit)
+                       .ThenBy(java => java.IsJdk)
+                       .ThenByDescending(java => java.Version)
+                       .FirstOrDefault()
+                   ?? throw new InvalidOperationException("No available Java runtime was found.");
+        }
+
+        var requirement = JavaCompatibilityPolicy.Resolve(gameVersion);
+        var compatibleJavas = availableJavas
+            .Where(java => JavaCompatibilityPolicy.IsCompatible(java, requirement))
+            .ToList();
+        if (Environment.Is64BitOperatingSystem && compatibleJavas.Any(java => java.Is64Bit))
+        {
+            compatibleJavas = compatibleJavas.Where(java => java.Is64Bit).ToList();
+        }
+
+        var selectedJava = compatibleJavas
+                   .OrderBy(java => Math.Abs(java.Version.Major - requirement.PreferredMajor))
+                   .ThenBy(java => java.IsJdk)
+                   .ThenByDescending(java => java.Version)
+                   .FirstOrDefault()
+               ?? throw new InvalidOperationException(
+                   requirement.MaximumMajor == null
+                       ? $"No compatible Java runtime was found. Java {requirement.MinimumMajor} or newer is required."
+                       : $"No compatible Java runtime was found. Java {requirement.MinimumMajor} through " +
+                         $"{requirement.MaximumMajor} is required.");
+
+        s_logger.Info(
+            $"自动选择 Java {selectedJava.Version}，版本要求为 Java {requirement.MinimumMajor}" +
+            (requirement.MaximumMajor == null ? " 或更高版本" : $" - {requirement.MaximumMajor}"));
+        return selectedJava;
     }
     
     #pragma warning disable CA1416
@@ -253,7 +354,7 @@ public static class JavaManager {
         {
             if (Directory.Exists(dir))
             {
-                await ScanDirectoryRecursively(dir, paths);
+                await s_directoryScanner.ScanDirectoryRecursivelyAsync(dir, paths);
             }
         }
     }
@@ -267,36 +368,12 @@ public static class JavaManager {
 
         if (Directory.Exists(mcRuntimePath))
         {
-            await ScanDirectoryRecursively(mcRuntimePath, paths);
+            await s_directoryScanner.ScanDirectoryRecursivelyAsync(mcRuntimePath, paths);
         }
     }
 
     async private static Task FindViaCurrentDirectory(HashSet<string> paths) {
-        await ScanDirectoryRecursively(Directory.GetCurrentDirectory(), paths);
-    }
-
-    async private static Task ScanDirectoryRecursively(string directory, HashSet<string> paths, int depth = 0) {
-        if(depth >= 4) return;
-        if (!Directory.Exists(directory))
-        {
-            return;
-        }
-
-        try
-        {
-            if (await IsValidJavaRoot(directory))
-            {
-                s_logger.Info($"[Java 搜索] Dir: {directory}");
-                paths.Add(Path.GetFullPath(directory));
-                return;
-            }
-
-            foreach (string subdir in Directory.GetDirectories(directory))
-            {
-                await ScanDirectoryRecursively(subdir, paths, depth+1);
-            }
-        }
-        catch(Exception ex) { s_logger.Error(ex, "Scan directory for Java"); }
+        await s_directoryScanner.ScanDirectoryRecursivelyAsync(Directory.GetCurrentDirectory(), paths);
     }
 
     async private static Task<bool> IsValidJavaRoot(string path) {
@@ -306,6 +383,12 @@ public static class JavaManager {
         }
 
         string javaExe = Path.Combine(path, "bin", IsWindows() ? "java.exe" : "java");
+        string releaseFile = Path.Combine(path, "release");
+        if (!File.Exists(javaExe) || !File.Exists(releaseFile))
+        {
+            return false;
+        }
+
         try
         {
             await GetJavaInfo(path);
@@ -315,7 +398,15 @@ public static class JavaManager {
             s_logger.Debug($"无效 Java : {path} ({ex.Message})");
             return false;
         }
-        return File.Exists(javaExe);
+        return true;
+    }
+
+    internal static void ResetForTesting()
+    {
+        lock (s_javaInfoCacheLock)
+        {
+            s_javaInfoCache.Clear();
+        }
     }
 
     private static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);

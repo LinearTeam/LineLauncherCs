@@ -1,0 +1,145 @@
+<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
+                xmlns:gameSettings="clr-namespace:LMCUI.Pages.SettingsPage.GameSettings"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="LMCUI.Pages.VersionManagePage.VersionGameSettingsPage">
+    <Grid Margin="60,20,40,30">
+        <Grid.Resources>
+            <DataTemplate DataType="{x:Type gameSettings:JavaItem}" x:Key="JavaItemDT">
+                <ui:FASettingsExpanderItem Description="{Binding Path=Path}" IsClickEnabled="True"
+                                           ActionIconSource="OpenFolder" Tag="{Binding Path=Path}"
+                                           Click="JavaItemExpander_Click">
+                    <ui:FASettingsExpanderItem.Content>
+                        <TextBlock Text="{Binding Path=Header}" Foreground="{Binding Path=Foreground}" />
+                    </ui:FASettingsExpanderItem.Content>
+                    <behaviors:HoverFooterBehavior.FooterContentTemplate>
+                        <ControlTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,5,0" Spacing="3">
+                                <Button Tag="{Binding Path=Path}"
+                                        Content="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.JavaListItem.SelectButton}"
+                                        Classes="accent" Click="SelectJava_Click" />
+                                <Button Tag="{Binding Path=Path}" Click="RemoveJava_Click">
+                                    <ui:FASymbolIcon Symbol="Delete" Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+                                </Button>
+                            </StackPanel>
+                        </ControlTemplate>
+                    </behaviors:HoverFooterBehavior.FooterContentTemplate>
+                </ui:FASettingsExpanderItem>
+            </DataTemplate>
+        </Grid.Resources>
+        <ScrollViewer>
+            <StackPanel MaxWidth="1000" Orientation="Vertical" Spacing="1"
+                        behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
+                <ui:FASettingsExpander Name="UseGlobalGameSettingsExpander"
+                                       Header="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.UseGlobal.Header}"
+                                       Description="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.UseGlobal.Description}"
+                                       IconSource="Settings">
+                    <ui:FASettingsExpander.Footer>
+                        <ToggleSwitch Name="UseGlobalGameSettingsToggle"
+                                      IsCheckedChanged="UseGlobalGameSettingsToggle_OnIsCheckedChanged"
+                                      OffContent="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.UseGlobal.Off}"
+                                      OnContent="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.UseGlobal.On}" />
+                    </ui:FASettingsExpander.Footer>
+                </ui:FASettingsExpander>
+
+                <Label Content="{i18n:I18nBinding Key=Pages.VersionDetailPage.JavaRuntime.Title}" Margin="0,20" />
+                <ui:FASettingsExpander Name="JavaListExpander" IconSource="BulletList"
+                                       Header="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.Header}"
+                                       Description="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.Description}"
+                                       ItemTemplate="{StaticResource JavaItemDT}" />
+                <ui:FASettingsExpander Name="ImportJavaExpander"
+                                       Header="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.Header}"
+                                       IconSource="Add" ActionIconSource="NewFolder"
+                                       Description="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.Description}"
+                                       IsClickEnabled="True" Click="AddJava_Click">
+                    <ui:FASettingsExpander.Footer>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Name="JavaSearchStatus" VerticalAlignment="Center" />
+                            <Button Margin="0,0,5,0" Click="SearchJava_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="1">
+                                    <ui:FASymbolIcon Symbol="Zoom" />
+                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.ImportExpander.Footer.SearchButton}" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ui:FASettingsExpander.Footer>
+                </ui:FASettingsExpander>
+                <ui:FASettingsExpander Name="AutoSelectJavaExpander"
+                                       Header="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.AutoSelectExpander.Header}"
+                                       IconSource="Games"
+                                       Description="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.AutoSelectExpander.Description}">
+                    <ui:FASettingsExpander.Footer>
+                        <ToggleSwitch Name="AutoSelectJavaToggleSwitch" IsCheckedChanged="AutoSelectJava_Changed"
+                                      OffContent="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.AutoSelectExpander.Footer.ToggleSwitchButton.OffContent}"
+                                      OnContent="{i18n:I18nBinding Key=Pages.SettingsPage.GameSettingsPage.JavaRuntime.AutoSelectExpander.Footer.ToggleSwitchButton.OnContent}" />
+                    </ui:FASettingsExpander.Footer>
+                </ui:FASettingsExpander>
+
+                <Label Content="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Title}" Margin="0,20" />
+                <ui:FASettingsExpander Name="MemorySettingsExpander"
+                                       Header="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Memory.Header}"
+                                       Description="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Memory.Description}"
+                                       IconSource="SaveLocal">
+                    <ui:FASettingsExpander.Footer>
+                        <ToggleSwitch Name="AutoAllocateMemoryToggle" IsCheckedChanged="AutoAllocateMemoryToggle_OnIsCheckedChanged"
+                                      OffContent="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Memory.AutoAllocate.Off}"
+                                      OnContent="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Memory.AutoAllocate.On}" />
+                    </ui:FASettingsExpander.Footer>
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem Name="MemoryManualSettingsItem" IsClickEnabled="False">
+                            <ui:FASettingsExpanderItem.Content>
+                                <Grid Margin="0,4" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <TextBlock Text="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Memory.ManualAllocation}"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <Slider Name="MaxMemorySlider" Grid.Column="1" VerticalAlignment="Center" MinWidth="80"
+                                            Minimum="512" Maximum="32768" TickFrequency="512" IsSnapToTickEnabled="True"
+                                            ValueChanged="MaxMemorySlider_OnValueChanged" />
+                                    <NumericUpDown Name="MaxMemoryNumericUpDown" Grid.Column="2" Width="132" MinWidth="132"
+                                                   MaxWidth="132" Height="36" MinHeight="36" MaxHeight="36" VerticalAlignment="Center"
+                                                   HorizontalAlignment="Right" HorizontalContentAlignment="Right"
+                                                   VerticalContentAlignment="Center" Padding="8,0,4,0" TextAlignment="Right"
+                                                   Minimum="512" Increment="512" FormatString="0" ShowButtonSpinner="True"
+                                                   ValueChanged="MaxMemoryNumericUpDown_OnValueChanged" />
+                                </Grid>
+                            </ui:FASettingsExpanderItem.Content>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
+                <ui:FASettingsExpander Name="ArgumentsSettingsExpander"
+                                       Header="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Arguments.Header}"
+                                       Description="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Arguments.Description}"
+                                       IsExpanded="False">
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                   Content="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Arguments.Jvm.Header}"
+                                                   Description="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Arguments.Jvm.Description}">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <TextBox Name="JvmArgumentsTextBox" MinWidth="160" MaxWidth="480" TextChanged="JvmArgumentsTextBox_OnTextChanged" />
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                   Content="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Arguments.Wrapper.Header}"
+                                                   Description="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Arguments.Wrapper.Description}">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <TextBox Name="WrapperArgumentsTextBox" MinWidth="160" MaxWidth="480" TextChanged="WrapperArgumentsTextBox_OnTextChanged" />
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                   Content="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Arguments.Game.Header}"
+                                                   Description="{i18n:I18nBinding Key=Pages.VersionDetailPage.LaunchSettings.Arguments.Game.Description}">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <TextBox Name="GameArgumentsTextBox" MinWidth="160" MaxWidth="480" TextChanged="GameArgumentsTextBox_OnTextChanged" />
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</pages:PageBase>

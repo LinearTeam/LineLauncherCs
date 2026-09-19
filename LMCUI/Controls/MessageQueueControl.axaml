@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LMCUI.Controls.MessageQueueControl">
 
@@ -10,5 +11,6 @@
                 HorizontalAlignment="Center" 
                 VerticalAlignment="Top" 
                 Margin="0,10,0,0"
-                Spacing="5"/>
+                Spacing="5"
+                behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True" />
 </UserControl>

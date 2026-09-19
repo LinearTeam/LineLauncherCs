@@ -15,6 +15,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 
 namespace LMCUI;
 
@@ -27,7 +28,8 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        Startup.Initialize().Wait();
+        Startup.Initialize();
+        Dispatcher.UIThread.UnhandledException += OnUiThreadUnhandledException;
         I18nManager.Instance.LoadAllLanguages();
     }
 
@@ -41,5 +43,9 @@ public partial class App : Application
         TaskManager.Instance.Start();
         base.OnFrameworkInitializationCompleted();
     }
-    
+
+    private static void OnUiThreadUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        CrashReportManager.TryWriteReport(e.Exception, "Dispatcher.UIThread.UnhandledException", true);
+    }
 }

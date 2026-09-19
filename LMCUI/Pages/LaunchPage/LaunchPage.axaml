@@ -1,22 +1,289 @@
-﻿<pages:PageBase xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i18n="clr-namespace:LMCUI.I18n"
-             xmlns:pages="clr-namespace:LMCUI.Pages"
-             xmlns:ui="using:FluentAvalonia.UI.Controls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="LMCUI.Pages.LaunchPage.LaunchPage">
+<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:launch="clr-namespace:LMCUI.Pages.LaunchPage"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                mc:Ignorable="d"
+                d:DesignWidth="800"
+                d:DesignHeight="450"
+                x:Class="LMCUI.Pages.LaunchPage.LaunchPage">
 
-    <Grid>
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-            <TextBlock Text="{i18n:I18nBinding Key=Pages.LaunchPage.WelcomeMessage}" 
-                       FontSize="24" 
-                       HorizontalAlignment="Center" 
-                       Margin="0,0,0,20" />
+    <pages:PageBase.Styles>
+        <Style Selector="Button.launch-stop">
+            <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+        </Style>
+        <Style Selector="Button.launch-stop:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+        </Style>
+        <Style Selector="Button.launch-stop:pressed">
+            <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+        </Style>
+    </pages:PageBase.Styles>
 
-            <Button Name="InstallVanillaButton" Content="安装 Minecraft 1.21" Click="InstallVanillaButton_Click" />
-            <Button Name="NavigateToTaskPageButton" Content="查看任务页面" Click="NavigateToTaskPageButton_Click" />
-        </StackPanel>
+    <Grid Margin="60,20,40,30" RowDefinitions="*,Auto">
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <HyperlinkButton Name="AccountButton"
+                             Grid.Column="0"
+                             MinHeight="48"
+                             Padding="8,4"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Center"
+                             HorizontalContentAlignment="Left"
+                             VerticalContentAlignment="Center"
+                             Click="AccountButton_OnClick">
+                <Grid MaxWidth="280" ColumnDefinitions="40,*" ColumnSpacing="8">
+                    <Border Name="AccountAvatarHost"
+                            Width="40"
+                            Height="40"
+                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                            CornerRadius="4"
+                            ClipToBounds="True">
+                        <Border.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.10" />
+                            </Transitions>
+                        </Border.Transitions>
+                        <ui:FAIconSourceElement Name="AccountAvatarIcon"
+                                                RenderOptions.BitmapInterpolationMode="None" />
+                    </Border>
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Spacing="1">
+                        <TextBlock Name="AccountIdText"
+                                   MaxWidth="232"
+                                   Text="{i18n:I18nBinding Key=Pages.LaunchPage.NoAccount}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Name="AccountTypeText"
+                                   MaxWidth="232"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   FontSize="12"
+                                   TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Grid>
+            </HyperlinkButton>
+
+            <StackPanel Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Spacing="4">
+                <Button Name="LaunchGameButton"
+                        Height="48"
+                        Classes="accent"
+                        Click="LaunchGameButton_Click">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="10">
+                        <Border Name="LaunchStopIcon"
+                                Width="12"
+                                Height="12"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                                IsVisible="False" />
+                        <TextBlock Name="LaunchButtonText"
+                                   Text="{i18n:I18nBinding Key=Pages.LaunchPage.SelectVersion}"
+                                   TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Button>
+                <Button Name="VersionSelectorButton"
+                        Width="48"
+                        Height="48"
+                        ToolTip.Tip="{i18n:I18nBinding Key=Pages.LaunchPage.SelectVersion}"
+                        PointerPressed="VersionSelectorButton_OnPointerPressed"
+                        Click="VersionSelectorButton_OnClick">
+                    <ui:FASymbolIcon Symbol="ChevronUp" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Popup Name="VersionSelectionPopup"
+               Placement="TopEdgeAlignedRight"
+               IsLightDismissEnabled="True"
+               Opened="VersionSelectionPopup_OnOpened">
+            <Border Name="VersionSelectionPanel"
+                    Padding="6"
+                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource ControlCornerRadius}"
+                    ClipToBounds="True"
+                    Opacity="0">
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+                    </Transitions>
+                </Border.Transitions>
+                <Border.RenderTransform>
+                    <TranslateTransform Y="12">
+                        <TranslateTransform.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Y" Duration="0:0:0.18" />
+                            </Transitions>
+                        </TranslateTransform.Transitions>
+                    </TranslateTransform>
+                </Border.RenderTransform>
+                <StackPanel>
+                    <ListBox Name="VersionSelectionListBox"
+                             MaxHeight="328"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             SelectionChanged="VersionSelectionListBox_OnSelectionChanged"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="10,0,8,0" />
+                                <Setter Property="Margin" Value="0,1" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="launch:LaunchVersionOption">
+                                <Grid MinHeight="56" ColumnDefinitions="40,*,Auto" ColumnSpacing="10">
+                                    <Border Width="40"
+                                            Height="40"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                            CornerRadius="4">
+                                        <Image Source="{Binding Icon}"
+                                               RenderOptions.BitmapInterpolationMode="None"
+                                               Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Spacing="2">
+                                        <TextBlock Text="{Binding VersionName}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding VersionSummary}"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <ui:FASymbolIcon Grid.Column="2"
+                                                     Margin="0,0,4,0"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                     Symbol="ChevronRight" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <StackPanel Name="VersionSelectionLoadingIndicator"
+                                Margin="10,8,10,6"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="False">
+                        <ui:FAProgressRing Name="VersionSelectionLoadingRing"
+                                           Width="16"
+                                           Height="16"
+                                           IsActive="False"
+                                           IsIndeterminate="True" />
+                        <TextBlock Name="VersionSelectionLoadingText"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Text="{i18n:I18nBinding Key=Pages.LaunchPage.VersionSelection.Loading}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Popup Name="AccountSelectionPopup"
+               Placement="TopEdgeAlignedLeft"
+               IsLightDismissEnabled="True"
+               Opened="AccountSelectionPopup_OnOpened">
+            <Border Name="AccountSelectionPanel"
+                    Padding="6"
+                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource ControlCornerRadius}"
+                    ClipToBounds="True"
+                    Opacity="0">
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+                    </Transitions>
+                </Border.Transitions>
+                <Border.RenderTransform>
+                    <TranslateTransform Y="12">
+                        <TranslateTransform.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Y" Duration="0:0:0.18" />
+                            </Transitions>
+                        </TranslateTransform.Transitions>
+                    </TranslateTransform>
+                </Border.RenderTransform>
+                <Grid RowDefinitions="*,Auto">
+                    <ListBox Name="AccountSelectionListBox"
+                             MaxHeight="328"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             SelectionChanged="AccountSelectionListBox_OnSelectionChanged"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="10,0,8,0" />
+                                <Setter Property="Margin" Value="0,1" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="launch:LaunchAccountOption">
+                                <Grid MinHeight="56" ColumnDefinitions="40,*" ColumnSpacing="10">
+                                    <Border Width="40"
+                                            Height="40"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                            CornerRadius="4"
+                                            ClipToBounds="True">
+                                        <Image Source="{Binding Avatar}"
+                                               RenderOptions.BitmapInterpolationMode="None"
+                                               Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Spacing="2">
+                                        <TextBlock Text="{Binding Account.Name}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding AccountTypeText}"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button Grid.Row="1"
+                            Margin="2,6,2,0"
+                            HorizontalContentAlignment="Left"
+                            Click="ManageAccountsButton_OnClick">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ui:FASymbolIcon Symbol="ViewAll" />
+                            <TextBlock Text="{i18n:I18nBinding Key=Pages.LaunchPage.AccountSelection.ManageAccounts}" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+        </Popup>
     </Grid>
 </pages:PageBase>

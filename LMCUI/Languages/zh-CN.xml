@@ -16,6 +16,12 @@
     </MainWindow>
     
     <Pages>
+        <VersionSummary>
+            <Minecraft>Minecraft {0}</Minecraft>
+            <Fabric>Fabric</Fabric>
+            <Forge>Forge</Forge>
+            <OptiFine>OptiFine</OptiFine>
+        </VersionSummary>
         <AccountPage>
             <Title>账户管理</Title>
             <AccountListExpander>
@@ -27,8 +33,13 @@
                     <Offline> (离线账户)</Offline>
                     <Authlib> (第三方账户)</Authlib>
                 </AccountTypeSuffix>
-                <CopyUuidText> 复制 UUID</CopyUuidText>
-                <CopyUsernameText> 复制用户名</CopyUsernameText>
+                <CopyUuidText>复制 UUID</CopyUuidText>
+                <CopyUsernameText>复制用户名</CopyUsernameText>
+                <CopyText>复制</CopyText>
+                <RefreshText>刷新</RefreshText>
+                <DeleteText>删除</DeleteText>
+                <RefreshAccountText>刷新账户</RefreshAccountText>
+                <DeleteAccountText>删除账户</DeleteAccountText>
             </AccountListExpander>
             <AddAccountExpander>
                 <Header>添加账户</Header>
@@ -143,6 +154,35 @@
                         </Footer>
                     </AutoSelectExpander>
                 </JavaRuntime>
+                <LaunchSettings>
+                    <Title>启动设置</Title>
+                    <Memory>
+                        <Header>游戏内存</Header>
+                        <Description>配置 Minecraft 启动时可使用的最大内存。</Description>
+                        <DescriptionWithUsage>系统内存 {0} MB，当前已使用 {1} MB，空闲 {2} MB，已占用 {3:F1}%。</DescriptionWithUsage>
+                        <ManualAllocation>最大内存 (MB)</ManualAllocation>
+                        <AutoAllocate>
+                            <On>自动分配</On>
+                            <Off>手动分配</Off>
+                        </AutoAllocate>
+                    </Memory>
+                    <Arguments>
+                        <Header>启动参数</Header>
+                        <Description>为所有游戏版本配置附加启动参数。</Description>
+                        <Jvm>
+                            <Header>JVM 虚拟机参数</Header>
+                            <Description>追加在 Java 可执行文件后的参数，例如 -Dfile.encoding=utf-8。</Description>
+                        </Jvm>
+                        <Wrapper>
+                            <Header>包装参数</Header>
+                            <Description>替换 Java 可执行文件前的启动命令，例如 sh。</Description>
+                        </Wrapper>
+                        <Game>
+                            <Header>游戏参数</Header>
+                            <Description>追加在 Minecraft 主类后的参数。</Description>
+                        </Game>
+                    </Arguments>
+                </LaunchSettings>
             </GameSettingsPage>
             <LauncherSettingsPage>
                 <Title>启动器设置</Title>
@@ -165,17 +205,281 @@
         <LaunchPage>
             <Title>启动</Title>
             <WelcomeMessage>欢迎使用 Line Launcher</WelcomeMessage>
+            <Loading>正在加载本地版本和账户...</Loading>
+            <AccountSelection>
+                <ManageAccounts>管理账户</ManageAccounts>
+            </AccountSelection>
+            <VersionSelection>
+                <Loading>正在加载其他版本...</Loading>
+            </VersionSelection>
+            <LoadingButton>加载中...</LoadingButton>
+            <LoadFailed>加载启动信息失败：{0}</LoadFailed>
+            <DownloadGame>下载游戏</DownloadGame>
+            <TerminateGame>终止游戏</TerminateGame>
+            <SelectVersion>选择游戏版本</SelectVersion>
+            <SelectVersionHint>请选择要启动的游戏版本。</SelectVersionHint>
+            <NoVersions>当前游戏目录没有可启动的版本，点击下载游戏开始安装。</NoVersions>
+            <NoAccount>暂无账户</NoAccount>
+            <NoAccountHint>请先选择或添加一个账户。</NoAccountHint>
+            <Steps>
+                <PreLaunchCheck>启动前检查</PreLaunchCheck>
+                <DownloadMissingFiles>补全资源文件</DownloadMissingFiles>
+                <ProcessAccount>处理账户</ProcessAccount>
+                <ProcessLaunchArguments>处理启动参数</ProcessLaunchArguments>
+                <ExtractLocalLibraries>解压本地库文件</ExtractLocalLibraries>
+                <StartGame>启动游戏进程</StartGame>
+                <WaitForGameWindow>等待游戏窗口出现</WaitForGameWindow>
+            </Steps>
+            <Status>
+                <Starting>正在启动游戏...</Starting>
+                <Canceling>正在取消启动...</Canceling>
+                <LaunchingStep>正在执行第 {0}/{1} 步：{2}</LaunchingStep>
+                <WindowDetected>游戏已启动，已检测到游戏窗口。</WindowDetected>
+                <WindowNotDetected>游戏已启动，但暂未检测到游戏窗口。</WindowNotDetected>
+                <LaunchFailed>启动失败：{0}</LaunchFailed>
+                <LaunchCanceled>启动已取消。</LaunchCanceled>
+            </Status>
+            <LaunchDialog>
+                <Title>启动游戏</Title>
+                <Cancel>取消</Cancel>
+                <Confirm>确定</Confirm>
+            </LaunchDialog>
         </LaunchPage>
+
+        <DownloadMinecraftPage>
+            <Title>下载游戏</Title>
+            <Wizard>
+                <Title>下载版本 - {0}</Title>
+                <PreviousButton>上一步</PreviousButton>
+                <NextButton>下一步</NextButton>
+                <FinishButton>完成</FinishButton>
+                <Errors>
+                    <NoRootTitle>未选择游戏目录</NoRootTitle>
+                    <NoRootContent>请先在版本管理页选择当前使用的 .minecraft 文件夹。</NoRootContent>
+                </Errors>
+                <Steps>
+                    <LoaderSelectionStep>
+                        <Title>选择加载器版本</Title>
+                        <Description>可选装 Fabric、Forge 或 OptiFine；不选择则安装原版。</Description>
+                        <None>不安装</None>
+                        <Loading>加载中...</Loading>
+                        <LoadingHint>正在获取加载器版本，可直接下一步安装原版。</LoadingHint>
+                        <LoadFailedTitle>加载器版本获取失败</LoadFailedTitle>
+                        <LoadFailedMessage>可继续安装原版，或重试以选择加载器。</LoadFailedMessage>
+                        <Retry>重试</Retry>
+                        <Fabric>
+                            <Header>Fabric 版本</Header>
+                            <Description>Fabric 可用版本列表。</Description>
+                        </Fabric>
+                        <Forge>
+                            <Header>Forge 版本</Header>
+                            <Description>Forge 可用版本列表。</Description>
+                        </Forge>
+                        <OptiFine>
+                            <Header>OptiFine 版本</Header>
+                            <Description>OptiFine 可用版本列表。</Description>
+                        </OptiFine>
+                        <Validation>
+                            <FabricOptiFineWarning>Fabric和OptiFine需要OptiFabric以正常工作，同时兼容性较差。</FabricOptiFineWarning>
+                        </Validation>
+                    </LoaderSelectionStep>
+                    <VersionNameStep>
+                        <Title>设置版本名称</Title>
+                        <Description>请输入要安装的版本名称。</Description>
+                        <SelectedVersion>目标版本：{0}</SelectedVersion>
+                        <Watermark>输入版本名称...</Watermark>
+                        <Validation>
+                            <Empty>请输入版本名称。</Empty>
+                            <InvalidPath>版本名称不是合法的路径名称。</InvalidPath>
+                            <AlreadyExists>当前 versions 目录中已存在同名版本/文件夹。</AlreadyExists>
+                        </Validation>
+                    </VersionNameStep>
+                </Steps>
+            </Wizard>
+            <Filters>
+                <Title>过滤</Title>
+                <ActiveCount>过滤 ({0})</ActiveCount>
+                <Release>正式版</Release>
+                <Snapshot>快照版</Snapshot>
+                <AprilFools>愚人节版</AprilFools>
+                <Old>远古版</Old>
+            </Filters>
+            <Latest>
+                <ReleaseHeader>最新正式版</ReleaseHeader>
+                <SnapshotHeader>最新快照版</SnapshotHeader>
+            </Latest>
+            <Search>
+                <Watermark>搜索版本 ID...</Watermark>
+            </Search>
+            <Types>
+                <Release>正式版</Release>
+                <Snapshot>快照版</Snapshot>
+                <AprilFools>愚人节版</AprilFools>
+                <Old>远古版</Old>
+            </Types>
+            <Dialog>
+                <Title>版本信息 - {0}</Title>
+                <CloseButton>关闭</CloseButton>
+                <VersionId>版本 ID：{0}</VersionId>
+                <VersionType>版本类型：{0}</VersionType>
+                <ReleaseTime>发布时间：{0}</ReleaseTime>
+                <Placeholder>原版下载安装流程暂未在此页面实现，当前仅提供版本浏览、搜索与筛选。</Placeholder>
+            </Dialog>
+            <Empty>
+                <NoMatchingVersions>当前没有符合条件的版本。</NoMatchingVersions>
+            </Empty>
+            <Errors>
+                <LoadFailedTitle>加载版本列表失败</LoadFailedTitle>
+                <LoadFailedContent>获取版本清单失败：{0}</LoadFailedContent>
+            </Errors>
+            <Loading>正在加载版本列表...</Loading>
+        </DownloadMinecraftPage>
 
         <TaskPage>
             <Title>任务管理</Title>
             <CancelButton>取消</CancelButton>
             <ConfirmButton>确定</ConfirmButton>
+            <Tasks>
+                <GameInstall>
+                    <Parent>安装 Minecraft {0}</Parent>
+                    <Finalize>结束安装</Finalize>
+                    <Fabric>
+                        <GetVersionInfo>获取 Fabric 版本信息</GetVersionInfo>
+                    </Fabric>
+                    <Forge>
+                        <DownloadInstaller>下载 Forge 安装器</DownloadInstaller>
+                        <DownloadLibraries>下载 Forge 依赖库</DownloadLibraries>
+                        <RunProcessors>执行 Forge 安装处理器</RunProcessors>
+                    </Forge>
+                    <OptiFine>
+                        <Install>安装 OptiFine</Install>
+                    </OptiFine>
+                    <Vanilla>
+                        <GetVersionInfo>获取版本信息</GetVersionInfo>
+                        <DownloadClientFile>下载客户端文件</DownloadClientFile>
+                        <DownloadLibraries>下载原版依赖库</DownloadLibraries>
+                        <DownloadAssets>下载原版资源文件</DownloadAssets>
+                    </Vanilla>
+                </GameInstall>
+            </Tasks>
         </TaskPage>
 
         <VersionManagePage>
             <Title>版本管理</Title>
+            <CommandBar>
+                <InstallVersion>安装版本</InstallVersion>
+                <SwitchMinecraftFolder>切换目录</SwitchMinecraftFolder>
+            </CommandBar>
+            <CurrentRoot>
+                <Header>当前游戏目录</Header>
+                <Description>当前正在查看的 .minecraft 目录</Description>
+                <VersionCount>共 {0} 个版本</VersionCount>
+                <OpenFolder>打开当前游戏目录</OpenFolder>
+            </CurrentRoot>
+            <RootDialog>
+                <Title>选择 .minecraft 文件夹</Title>
+                <Add>添加</Add>
+                <Delete>删除</Delete>
+                <Cancel>取消</Cancel>
+                <Confirm>确定</Confirm>
+                <PickFolderTitle>请选择 .minecraft 文件夹</PickFolderTitle>
+            </RootDialog>
+            <VersionType>
+                <Release>正式版</Release>
+                <Snapshot>快照版</Snapshot>
+                <AprilFools>愚人节版</AprilFools>
+                <Old>远古版</Old>
+                <Error>错误版本</Error>
+                <UnknownClientVersion>未知版本</UnknownClientVersion>
+            </VersionType>
+            <VersionStatus>
+                <Valid>版本结构正常</Valid>
+                <MissingJar>错误：缺少版本 JAR</MissingJar>
+                <MissingJson>错误：缺少版本 JSON</MissingJson>
+                <InvalidJson>错误：版本 JSON 格式无效</InvalidJson>
+            </VersionStatus>
+            <InvalidVersions>
+                <Title>检测到异常版本</Title>
+                <Content>以下版本存在异常：{0}</Content>
+            </InvalidVersions>
+            <EmptyState>
+                <NoRootHeader>未选择游戏目录</NoRootHeader>
+                <NoRootDescription>请先通过顶部命令栏选择一个 .minecraft 文件夹。</NoRootDescription>
+                <NoRootPath>当前没有已选中的游戏目录。</NoRootPath>
+                <NoRootVersions>当前没有可用的游戏目录，因此无法显示版本列表。</NoRootVersions>
+                <NoVersions>当前目录下没有可识别的版本。</NoVersions>
+                <Loading>正在扫描版本...</Loading>
+            </EmptyState>
+            <Errors>
+                <SwitchRootTitle>切换目录失败</SwitchRootTitle>
+                <SwitchRootContent>切换 .minecraft 文件夹失败：{0}</SwitchRootContent>
+                <AddRootTitle>添加目录失败</AddRootTitle>
+                <AddRootContent>添加 .minecraft 文件夹失败：{0}</AddRootContent>
+                <ScanFailedTitle>扫描版本失败</ScanFailedTitle>
+                <ScanFailedContent>扫描版本失败：{0}</ScanFailedContent>
+            </Errors>
         </VersionManagePage>
+        <VersionDetailPage>
+            <Title>版本详情 - {0}</Title>
+            <Summary>
+                <Description>版本 ID：{0}</Description>
+                <Rename>重命名版本</Rename>
+            </Summary>
+            <GameSettingsNav>
+                <Header>游戏设置</Header>
+                <Description>配置此版本的 Java、内存和启动参数。</Description>
+            </GameSettingsNav>
+            <JavaRuntime>
+                <Title>Java 运行时</Title>
+            </JavaRuntime>
+            <RenameDialog>
+                <Title>重命名版本</Title>
+                <Confirm>确定</Confirm>
+                <Cancel>取消</Cancel>
+                <InvalidName>版本名称包含非法字符或使用了系统保留名称。</InvalidName>
+                <Failed>无法重命名版本：{0}</Failed>
+                <SuccessTitle>重命名完成</SuccessTitle>
+                <SuccessContent>版本已重命名为“{0}”。</SuccessContent>
+            </RenameDialog>
+            <LaunchSettings>
+                <Title>版本启动设置</Title>
+                <UseGlobal>
+                    <Header>使用全局游戏设置</Header>
+                    <Description>启用后使用设置页面中的游戏设置，关闭后可以为此版本单独配置。</Description>
+                    <On>全局设置</On>
+                    <Off>版本设置</Off>
+                </UseGlobal>
+                <Memory>
+                    <Header>游戏内存</Header>
+                    <Description>覆盖全局的游戏内存设置。</Description>
+                    <DescriptionWithUsage>系统内存 {0} MB，当前已使用 {1} MB，空闲 {2} MB，已占用 {3:F1}%。</DescriptionWithUsage>
+                    <ManualAllocation>最大内存 (MB)</ManualAllocation>
+                    <AutoAllocate>
+                        <On>自动分配</On>
+                        <Off>手动分配</Off>
+                    </AutoAllocate>
+                </Memory>
+                <Arguments>
+                    <Header>启动参数</Header>
+                    <Description>覆盖全局的游戏启动参数。</Description>
+                    <Jvm>
+                        <Header>JVM 虚拟机参数</Header>
+                        <Description>追加在 Java 可执行文件后的参数。</Description>
+                    </Jvm>
+                    <Wrapper>
+                        <Header>包装参数</Header>
+                        <Description>替换 Java 可执行文件前的启动命令。</Description>
+                    </Wrapper>
+                    <Game>
+                        <Header>游戏参数</Header>
+                        <Description>追加在 Minecraft 主类后的参数。</Description>
+                    </Game>
+                </Arguments>
+            </LaunchSettings>
+        </VersionDetailPage>
+        <VersionGameSettingsPage>
+            <Title>游戏设置 - {0}</Title>
+        </VersionGameSettingsPage>
 
         <HelpPage>
             <Title>帮助中心</Title>
@@ -192,6 +496,10 @@
                 <Header>关于 Line (Minecraft) Launcher</Header>
                 <VersionDescription>版本 {0}-{1} Build-{2}</VersionDescription>
             </AboutLauncherExpander>
+            <CopyrightExpander>
+                <Header>版权声明</Header>
+                <Description>查看项目与第三方依赖的版权说明</Description>
+            </CopyrightExpander>
             <Author>
                 <Name>Huangyu (皇鱼)</Name>
                 <Description>LMC C#版的主要作者与维护者。</Description>
@@ -199,6 +507,120 @@
                 <Blog>Huangyu's Blog</Blog>
             </Author>
         </AboutPage>
+
+        <CopyrightPage>
+            <Title>版权声明</Title>
+            <Items>
+                <SystemGroup>
+                    <Title>System 包与 .NET 运行时</Title>
+                    <Description>Microsoft 提供的 .NET 及 System 命名空间相关组件。</Description>
+                </SystemGroup>
+                <System>
+                    <Title>System / .NET</Title>
+                    <Description>部分遵循 MIT，部分遵循 .NET 库许可证。</Description>
+                </System>
+                <AvaloniaGroup>
+                    <Title>Avalonia 包</Title>
+                    <Description>AvaloniaUI 团队开发的跨平台 UI 依赖。</Description>
+                </AvaloniaGroup>
+                <Avalonia>
+                    <Title>Avalonia</Title>
+                    <Description>MIT 许可。</Description>
+                </Avalonia>
+                <AvaloniaDesktop>
+                    <Title>Avalonia.Desktop</Title>
+                    <Description>MIT 许可。</Description>
+                </AvaloniaDesktop>
+                <AvaloniaThemesFluent>
+                    <Title>Avalonia.Themes.Fluent</Title>
+                    <Description>MIT 许可。</Description>
+                </AvaloniaThemesFluent>
+                <AvaloniaFontsInter>
+                    <Title>Avalonia.Fonts.Inter</Title>
+                    <Description>MIT 许可。</Description>
+                </AvaloniaFontsInter>
+                <AvaloniaDiagnostics>
+                    <Title>Avalonia.Diagnostics</Title>
+                    <Description>MIT 许可。</Description>
+                </AvaloniaDiagnostics>
+                <FluentAvaloniaGroup>
+                    <Title>FluentAvalonia 包</Title>
+                    <Description>由 amwx 开发的 Fluent 风格扩展。</Description>
+                </FluentAvaloniaGroup>
+                <FluentAvalonia>
+                    <Title>FluentAvaloniaUI</Title>
+                    <Description>MIT 许可。</Description>
+                </FluentAvalonia>
+                <OtherGroup>
+                    <Title>其他包</Title>
+                    <Description>其余第三方依赖库。</Description>
+                </OtherGroup>
+                <NLog>
+                    <Title>NLog</Title>
+                    <Description>由 NLog 团队开发，BSD 3-Clause。</Description>
+                </NLog>
+                <MicrosoftNetTestSdk>
+                    <Title>Microsoft.NET.Test.Sdk</Title>
+                    <Description>由 Microsoft 开发，MIT 许可。</Description>
+                </MicrosoftNetTestSdk>
+                <Xunit>
+                    <Title>xunit</Title>
+                    <Description>由 xUnit 团队开发，Apache-2.0。</Description>
+                </Xunit>
+                <XunitRunnerVisualStudio>
+                    <Title>xunit.runner.visualstudio</Title>
+                    <Description>由 xUnit 团队开发，Apache-2.0。</Description>
+                </XunitRunnerVisualStudio>
+                <CoverletCollector>
+                    <Title>coverlet.collector</Title>
+                    <Description>由 Coverlet 团队开发，MIT 许可。</Description>
+                </CoverletCollector>
+                <Moq>
+                    <Title>Moq</Title>
+                    <Description>由 Moq 团队开发，BSD 3-Clause。</Description>
+                </Moq>
+                <SpecialThanksGroup>
+                    <Title>特别感谢</Title>
+                    <Description>项目开发与资料参考来源。</Description>
+                </SpecialThanksGroup>
+                <HMCL>
+                    <Title>HMCL</Title>
+                    <Description>Minecraft 相关实现的重要参考。以GPL v3开源。</Description>
+                </HMCL>
+                <PCL2>
+                    <Title>PCL2</Title>
+                    <Description>Minecraft 相关实现的重要参考。无具体开源协议（有说明性条款的ARR）。</Description>
+                </PCL2>
+                <MultiMC>
+                    <Title>MultiMC</Title>
+                    <Description>Minecraft 相关实现参考。</Description>
+                </MultiMC>
+                <PrismLauncher>
+                    <Title>Prism Launcher</Title>
+                    <Description>Minecraft 相关实现参考。</Description>
+                </PrismLauncher>
+                <TT702ForgeInstallProcessor>
+                    <Title>TT702 Forge Install Processor.NET</Title>
+                    <Description>Forge 安装处理器参考代码。</Description>
+                </TT702ForgeInstallProcessor>
+                <BMCLAPI>
+                    <Title>BMCLAPI</Title>
+                    <Description>国内镜像源支持。</Description>
+                </BMCLAPI>
+                <MinecraftWiki>
+                    <Title>Minecraft Wiki</Title>
+                    <Description>游戏相关信息参考。</Description>
+                </MinecraftWiki>
+                <WikiVg>
+                    <Title>wiki.vg</Title>
+                    <Description>Minecraft 协议与格式公开资料参考。</Description>
+                </WikiVg>
+                <FluentLauncher>
+                    <Title>Fluent Launcher</Title>
+                    <Description>部分 UI 设计参考。以MIT开源。</Description>
+                </FluentLauncher>
+            </Items>
+        </CopyrightPage>
 
         <SettingsPage>
             <AboutPageNav>
@@ -255,6 +677,10 @@
             </OAuth>
         </AccountManager>
         <AccountPage>
+            <CopyUuid>
+                <Title>复制成功</Title>
+                <Content>UUID 已复制</Content>
+            </CopyUuid>
             <Errors>
                 <FailedToRefreshAccountList>
                     <Title>错误</Title>
@@ -262,6 +688,12 @@
                 </FailedToRefreshAccountList>
             </Errors>
         </AccountPage>
+        <LaunchPage>
+            <GameClosed>
+                <Title>游戏已关闭</Title>
+                <Content>游戏进程已由启动器关闭。</Content>
+            </GameClosed>
+        </LaunchPage>
     </Messages>
     <Enums>
         <AccountType>

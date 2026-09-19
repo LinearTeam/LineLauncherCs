@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
@@ -30,12 +29,11 @@ namespace LMCUI.Controls;
 public partial class MessageQueueControl : UserControl
 {
     private readonly static Logger s_logger = new Logger("MessageQueueControl");
-    private readonly Queue<IMessageItem> _messageQueue = new Queue<IMessageItem>();
-    private readonly Dictionary<string, Timer> _messageTimers = new Dictionary<string, Timer>();
+    private readonly MessageQueueState _queueState = new();
+    private readonly Dictionary<string, IMessageItem> _messages = [];
+    private readonly Dictionary<string, DispatcherTimer> _messageTimers = [];
+    private readonly HashSet<string> _removingMessages = [];
     private bool _isProcessing;
-    private int _currentInfoBarCount;
-    private int _currentTeachingTipCount;
-    private readonly SemaphoreSlim _animationLock = new SemaphoreSlim(1, 1);
 
     public static MessageQueueControl Instance { get; private set; } = null!;
 
@@ -65,7 +63,16 @@ public partial class MessageQueueControl : UserControl
 
         if (isClosable)
         {
-            infoBar.Closed += (_, _) => RemoveMessage(messageId);
+            infoBar.Closing += (_, args) =>
+            {
+                if (_removingMessages.Contains(messageId))
+                {
+                    return;
+                }
+
+                args.Cancel = true;
+                RemoveMessage(messageId);
+            };
         }
 
         var messageItem = new InfoBarMessageItem
@@ -75,7 +82,8 @@ public partial class MessageQueueControl : UserControl
             Control = infoBar
         };
 
-        _messageQueue.Enqueue(messageItem);
+        _messages[messageId] = messageItem;
+        _queueState.Enqueue(new MessageQueueItemState(messageId, MessageQueueItemKind.InfoBar, duration));
         ProcessQueue();
 
         return messageId;
@@ -93,7 +101,8 @@ public partial class MessageQueueControl : UserControl
             Control = teachingTip
         };
 
-        _messageQueue.Enqueue(messageItem);
+        _messages[messageId] = messageItem;
+        _queueState.Enqueue(new MessageQueueItemState(messageId, MessageQueueItemKind.TeachingTip, duration));
         ProcessQueue();
 
         return messageId;
@@ -122,7 +131,8 @@ public partial class MessageQueueControl : UserControl
             Control = teachingTip
         };
 
-        _messageQueue.Enqueue(messageItem);
+        _messages[messageId] = messageItem;
+        _queueState.Enqueue(new MessageQueueItemState(messageId, MessageQueueItemKind.TeachingTip, duration));
         ProcessQueue();
 
         return messageId;
@@ -130,65 +140,58 @@ public partial class MessageQueueControl : UserControl
 
     public void RemoveMessage(string messageId)
     {
-        if (_messageTimers.TryGetValue(messageId, out var timer))
+        if (!Dispatcher.UIThread.CheckAccess())
         {
-            timer.Dispose();
-            _messageTimers.Remove(messageId);
+            Dispatcher.UIThread.Post(() => RemoveMessage(messageId));
+            return;
         }
 
-        RemoveMessageFromUi(messageId);
+        StopMessageTimer(messageId);
+
+        if (!_messages.TryGetValue(messageId, out var message)
+            || _removingMessages.Contains(messageId))
+        {
+            return;
+        }
+
+        if (!_queueState.IsActive(messageId))
+        {
+            if (_queueState.Remove(messageId))
+            {
+                _messages.Remove(messageId);
+                ProcessQueue();
+            }
+
+            return;
+        }
+
+        _removingMessages.Add(messageId);
+        if (!MessagePanel.Children.Contains(message.Control))
+        {
+            CompleteMessageRemoval(messageId, message);
+            return;
+        }
+
+        StartMessageRemoval(messageId, message);
     }
 
     private void ProcessQueue()
     {
-        if (_isProcessing || _messageQueue.Count == 0)
+        if (_isProcessing)
             return;
 
         _isProcessing = true;
 
-        // 分开处理两种消息类型的限制
-        ProcessTeachingTips();
-        ProcessInfoBars();
+        foreach (var messageState in _queueState.DequeueDisplayable())
+        {
+            if (_messages.TryGetValue(messageState.Id, out var message))
+            {
+                AddMessageToUi(message);
+                ScheduleMessageExpiration(message);
+            }
+        }
 
         _isProcessing = false;
-    }
-
-    private void ProcessTeachingTips()
-    {
-        while (_messageQueue.Count > 0 && _messageQueue.Peek() is TeachingTipMessageItem)
-        {
-            if (_currentTeachingTipCount >= 1)
-                break;
-
-            var message = _messageQueue.Dequeue();
-            AddMessageToUi(message);
-
-            var timer = new Timer(_ => 
-            {
-                Dispatcher.UIThread.Post(() => RemoveMessage(message.Id));
-            }, null, message.Duration, Timeout.Infinite);
-
-            _messageTimers[message.Id] = timer;
-        }
-    }
-
-    private void ProcessInfoBars()
-    {
-        while (_messageQueue.Count > 0 && _messageQueue.Peek() is InfoBarMessageItem)
-        {
-            if (_currentInfoBarCount >= 3)
-                break;
-
-            var message = _messageQueue.Dequeue();
-            AddMessageToUi(message);
-
-            var timer = new Timer(_ => 
-            {
-                Dispatcher.UIThread.Post(() => RemoveMessage(message.Id));
-            }, null, message.Duration, Timeout.Infinite);
-
-            _messageTimers[message.Id] = timer;
-        }
     }
 
     private void AddMessageToUi(IMessageItem message)
@@ -196,7 +199,6 @@ public partial class MessageQueueControl : UserControl
         if (message is InfoBarMessageItem infoBarItem)
         {
             MessagePanel.Children.Add(infoBarItem.Control);
-            _currentInfoBarCount++;
             CreateFadeInAnimation(infoBarItem.Control);
         }
         else if (message is TeachingTipMessageItem teachingTipItem)
@@ -206,134 +208,130 @@ public partial class MessageQueueControl : UserControl
             teachingTipItem.Control.IsOpen = true;
             teachingTipItem.Control.Closed += (sender, _) =>
             {
-                if (sender.Tag is string tag) RemoveMessage(tag);
+                if (sender.Tag is not string tag)
+                {
+                    return;
+                }
+
+                if (!_removingMessages.Contains(tag))
+                {
+                    teachingTipItem.Control.IsOpen = true;
+                }
+
+                RemoveMessage(tag);
             };
             MessagePanel.Children.Add(teachingTipItem.Control);
-            _currentTeachingTipCount++;
             CreateFadeInAnimation(teachingTipItem.Control);
         }
     }
 
     private void CreateFadeInAnimation(Control control)
     {
-        var animation = new Animation
-        {
-            Duration = TimeSpan.FromMilliseconds(500),
-            FillMode = FillMode.Forward,
-            Easing = new CubicEaseOut()
-        };
-
-        animation.Children.Add(new KeyFrame
-        {
-            Setters = {
-                new Setter{ Property = OpacityProperty, Value = 0.0d }
-            },
-            Cue = new Cue(0.0d)
-        });
-
-        animation.Children.Add(new KeyFrame
-        {
-            Setters = {
-                new Setter { Property = OpacityProperty, Value = 1.0d }
-            },
-            Cue = new Cue(1.0d)
-        });
-
-        animation.RunAsync(control);
+        _ = CreateOpacityAnimation(
+            control,
+            0,
+            1,
+            TimeSpan.FromMilliseconds(220),
+            new CubicEaseOut()).RunAsync(control);
     }
 
-    async private void CreateFadeOutAndRemoveAnimation(Control control)
+    private async void StartMessageRemoval(string messageId, IMessageItem message)
     {
-        await _animationLock.WaitAsync();
         try
         {
-            var fadeAnimation = new Animation
-            {
-                Duration = TimeSpan.FromMilliseconds(500),
-                FillMode = FillMode.Forward,
-                Easing = new CubicEaseInOut()
-            };
-            
-            fadeAnimation.Children.Add(new KeyFrame
-            {
-                Setters = {
-                    new Setter { Property = OpacityProperty, Value = 1.0d }
-                },
-                Cue = new Cue(0.0d)
-            });
-            
-            fadeAnimation.Children.Add(new KeyFrame
-            {
-                Setters = {
-                    new Setter { Property = OpacityProperty, Value = 0.0d }
-                },
-                Cue = new Cue(1.0d)
-            });
-
-            var slideAnimation = new Animation
-            {
-                Duration = TimeSpan.FromMilliseconds(500),
-                FillMode = FillMode.Forward,
-                Easing = new CubicEaseInOut()
-            };
-
-            slideAnimation.Children.Add(new KeyFrame
-            {
-                Setters = {
-                    new Setter { Property = MarginProperty, Value = new Thickness(0) }
-                },
-                Cue = new Cue(0.0d)
-            });
-
-            slideAnimation.Children.Add(new KeyFrame
-            {
-                Setters = {
-                    new Setter { Property = MarginProperty, Value = new Thickness(0, -control.Bounds.Height, 0, 0) }
-                },
-                Cue = new Cue(1.0d)
-            });
-
-            // 并行运行动画
-            var fadeTask = fadeAnimation.RunAsync(control);
-            var slideTask = slideAnimation.RunAsync(control);
-            await Task.WhenAll(fadeTask, slideTask);
-            
-            // 等待动画完成后再移除控件
-            await Task.Delay(100);
-            
-            MessagePanel.Children.Remove(control);
-            
-            if (control is FAInfoBar)
-                _currentInfoBarCount--;
-            else if (control is FATeachingTip)
-                _currentTeachingTipCount--;
-            
-            ProcessQueue();
+            await CreateOpacityAnimation(
+                message.Control,
+                message.Control.Opacity,
+                0,
+                TimeSpan.FromMilliseconds(180),
+                new CubicEaseIn()).RunAsync(message.Control);
         }
-        finally
+        catch (Exception ex)
         {
-            _animationLock.Release();
+            s_logger.Error(ex, $"Animating message removal: {messageId}");
+        }
+
+        CompleteMessageRemoval(messageId, message);
+    }
+
+    private void CompleteMessageRemoval(string messageId, IMessageItem message)
+    {
+        if (message.Control is FAInfoBar infoBar)
+        {
+            infoBar.IsOpen = false;
+        }
+        else if (message.Control is FATeachingTip teachingTip)
+        {
+            teachingTip.IsOpen = false;
+            teachingTip.IsVisible = false;
+            teachingTip.IsEnabled = false;
+        }
+
+        MessagePanel.Children.Remove(message.Control);
+        _queueState.Remove(messageId);
+        _messages.Remove(messageId);
+        _removingMessages.Remove(messageId);
+        ProcessQueue();
+    }
+
+    private void ScheduleMessageExpiration(IMessageItem message)
+    {
+        if (message.Duration <= 0)
+        {
+            RemoveMessage(message.Id);
+            return;
+        }
+
+        var timer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(message.Duration)
+        };
+        void OnTimerTick(object? sender, EventArgs e)
+        {
+            timer.Stop();
+            timer.Tick -= OnTimerTick;
+            _messageTimers.Remove(message.Id);
+            RemoveMessage(message.Id);
+        }
+
+        timer.Tick += OnTimerTick;
+        _messageTimers[message.Id] = timer;
+        timer.Start();
+    }
+
+    private void StopMessageTimer(string messageId)
+    {
+        if (_messageTimers.Remove(messageId, out var timer))
+        {
+            timer.Stop();
         }
     }
 
-    private void RemoveMessageFromUi(string messageId)
+    private static Animation CreateOpacityAnimation(
+        Control control,
+        double from,
+        double to,
+        TimeSpan duration,
+        Easing easing)
     {
-        for (int i = MessagePanel.Children.Count - 1; i >= 0; i--)
+        control.Opacity = from;
+        var animation = new Animation
         {
-            var child = MessagePanel.Children[i];
-            if (child is FAInfoBar infoBar && infoBar.Tag as string == messageId)
-            {
-                infoBar.IsOpen = false;
-                CreateFadeOutAndRemoveAnimation(infoBar);
-                return;
-            }
-            else if (child is FATeachingTip teachingTip && teachingTip.Tag as string == messageId)
-            {
-                teachingTip.IsOpen = false;
-                CreateFadeOutAndRemoveAnimation(teachingTip);
-                return;
-            }
-        }
+            Duration = duration,
+            FillMode = FillMode.Forward,
+            Easing = easing
+        };
+        animation.Children.Add(new KeyFrame
+        {
+            Setters = { new Setter { Property = OpacityProperty, Value = from } },
+            Cue = new Cue(0)
+        });
+        animation.Children.Add(new KeyFrame
+        {
+            Setters = { new Setter { Property = OpacityProperty, Value = to } },
+            Cue = new Cue(1)
+        });
+        return animation;
     }
 }
 

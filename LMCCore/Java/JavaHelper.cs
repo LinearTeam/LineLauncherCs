@@ -23,7 +23,7 @@ public class JavaHelper
         if (Current.Config.JavaPaths == null) return null;
         foreach (var path in Current.Config.JavaPaths)
         {
-            var info = await JavaManager.GetJavaInfo(path);
+            var info = await JavaManager.TryGetJavaInfo(path);
             if (condition.Test(info))
             {
                 return info;

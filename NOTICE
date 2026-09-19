@@ -1,0 +1,162 @@
+Line Launcher (LineLauncherCs)
+NOTICE
+
+Copyright 2025-2026 LinearTeam
+
+English
+=======
+
+1. Project identity and repository history
+
+Line Launcher, LineLauncher, LineLauncherCs, and LMC identify the C# launcher
+and source repository covered by this notice. The current canonical repository
+for this distribution is:
+
+    https://github.com/LinearTeam/LineLauncherCs
+
+The Git history retained by this repository begins with commit
+f71531102798287351ccabf14806e1e08ca4dddc, authored under the Git identity
+"huangyu" on May 7, 2024. Historical documentation and Git records identify
+the following URL as an earlier hosting location of the repository:
+
+    https://github.com/IceCreamTeamICT/LineLauncherCs
+
+The current Avalonia-based development line begins with commit
+ca30d39a509d0c7e80123df04182adf4933f91ce, authored under the Git identity
+"tmdakm" on May 23, 2025.
+
+These historical statements record verifiable repository provenance only.
+They do not assert that IceCreamTeamICT and LinearTeam are the same legal
+entity, or that any copyright assignment, organizational succession, or
+transfer of ownership occurred between them.
+
+2. Authors and contributors
+
+The project's own credits identify Huangyu (皇鱼), whose GitHub account is
+"tmdakm", as the main author and maintainer of the C# edition. Historical
+commits use both "huangyu" and "tmdakm" as Git author identities.
+
+This identification does not describe Huangyu as the sole author or sole
+copyright owner. Other authors retain attribution for their contributions as
+recorded in the Git history and in any notices accompanying their work. The
+copyright line above reproduces the notice used by the current distribution;
+it does not by itself establish a transfer of every contributor's copyright.
+
+3. License scope
+
+The current distribution is made available under the Apache License, Version
+2.0. The complete license text is provided in LICENSE.txt and is available at:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+This NOTICE is informational and does not modify the Apache License. Earlier
+revisions in the repository history may contain different license texts or
+notices. Rights in a particular historical revision must be evaluated using
+the license and notices that accompany that revision; this NOTICE does not
+retroactively relicense such a revision.
+
+This notice concerns the C# repository and distribution. It makes no ownership
+or licensing claim concerning any separately distributed Visual Basic edition
+or material not contained in this repository.
+
+4. Third-party works and acknowledgements
+
+Minecraft-related implementation described by the project documentation is
+partly informed by open-source launchers including, but not limited to, HMCL,
+MultiMC, PCL2, and Prism Launcher, as well as public materials from Minecraft
+Wiki and wiki.vg. The documentation also acknowledges TT702's Forge
+InstallProcessor.NET, BMCLAPI, and Fluent Launcher as code, implementation,
+information, service, or design references, as applicable.
+Those acknowledgements do not imply endorsement, sponsorship, affiliation, or
+that every referenced work has been incorporated into this distribution.
+
+Third-party source code, libraries, assets, services, trademarks, and other
+materials remain subject to their respective licenses and terms. The Apache
+License for LineLauncher does not relicense third-party material. Where code
+has been copied, modified, or derived from another work, the original work's
+license and attribution requirements continue to apply. Dependency manifests,
+package metadata, source headers, and the project documentation provide
+additional third-party information.
+
+5. Names and affiliation
+
+Names of people, projects, organizations, and services are used for
+identification and attribution only. The Apache License grants no permission
+to use trade names, trademarks, service marks, or product names except as
+required for reasonable and customary description of the origin of the work.
+
+LineLauncher is an independent launcher. It is not an official Minecraft
+product and is not approved by, sponsored by, or affiliated with Mojang
+Studios or Microsoft.
+
+中文
+====
+
+1. 项目标识与仓库历史
+
+在本声明中，Line Launcher、LineLauncher、LineLauncherCs 与 LMC 均用于指代
+本声明所涵盖的 C# 启动器及其源代码仓库。本发行版本当前的规范仓库为：
+
+    https://github.com/LinearTeam/LineLauncherCs
+
+本仓库保留的 Git 历史始于提交
+f71531102798287351ccabf14806e1e08ca4dddc，该提交于 2024 年 5 月 7 日以
+Git 身份“huangyu”创作。历史文档与 Git 记录表明，下列地址曾是本仓库较早
+使用的托管位置：
+
+    https://github.com/IceCreamTeamICT/LineLauncherCs
+
+当前基于 Avalonia 的开发线始于提交
+ca30d39a509d0c7e80123df04182adf4933f91ce，该提交于 2025 年 5 月 23 日以
+Git 身份“tmdakm”创作。
+
+上述历史说明仅用于记录可核实的仓库来源，不表示 IceCreamTeamICT 与
+LinearTeam 是同一法律主体，也不表示二者之间发生过版权转让、组织继承或
+所有权转移。
+
+2. 作者与贡献者
+
+项目自身的署名信息将 Huangyu（皇鱼，其 GitHub 账号为“tmdakm”）标识为
+LMC C# 版的主要作者与维护者。历史提交同时使用过“huangyu”和“tmdakm”
+两个 Git 作者身份。
+
+该说明不表示 Huangyu 是唯一作者或唯一版权人。其他作者仍按 Git 历史以及
+其作品随附的声明获得相应贡献署名。上方版权行复现当前发行版本所使用的
+版权声明，其本身不构成所有贡献者均已转让版权的证明。
+
+3. 许可证范围
+
+当前发行版本依据 Apache License, Version 2.0 提供。完整许可证文本位于
+LICENSE.txt，也可从下列地址获取：
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+本 NOTICE 仅提供信息，不修改 Apache License。仓库历史中的较早修订可能
+包含不同的许可证文本或声明。特定历史修订所授予的权利，应以该修订随附的
+许可证和声明为准；本 NOTICE 不会追溯性地将该修订重新许可。
+
+本声明仅涉及 C# 仓库及其发行版本，不对任何单独发行的 Visual Basic 版本
+或本仓库未包含的材料提出所有权或许可方面的主张。
+
+4. 第三方作品与致谢
+
+项目文档所述的 Minecraft 相关实现，部分参考了包括但不限于 HMCL、MultiMC、
+PCL2、Prism Launcher 等开源启动器，以及 Minecraft Wiki、wiki.vg 等平台的
+公开资料。项目文档还根据各自适用的情况，将 TT702 的 Forge
+InstallProcessor.NET、BMCLAPI 与 Fluent Launcher 列为代码、实现、资料、服务
+或设计方面的参考。上述致谢不表示相关主体认可、赞助本项目或与本项目存在关联，
+也不表示每一项被提及的作品均已被纳入本发行版本。
+
+第三方源代码、库、资源、服务、商标及其他材料仍受其各自许可证与条款约束。
+LineLauncher 所使用的 Apache License 不会重新许可第三方材料。若代码复制、
+修改或派生自其他作品，原作品的许可证与署名要求仍然适用。依赖清单、软件包
+元数据、源文件头以及项目文档提供了更多第三方信息。
+
+5. 名称与关联关系
+
+本声明提及个人、项目、组织与服务的名称，仅用于识别和署名。除为合理、惯常
+地描述作品来源所必需的使用外，Apache License 不授予对商号、商标、服务标志
+或产品名称的使用许可。
+
+LineLauncher 是独立开发的启动器，不是 Minecraft 官方产品，未经 Mojang
+Studios 或 Microsoft 批准、赞助，亦不隶属于上述主体。

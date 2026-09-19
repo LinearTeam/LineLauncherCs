@@ -104,4 +104,8 @@ _We will translate it into Chinese after passed code reviewing._
 
 ## Testing
 
-This project currently does not have automated testing. All changes should be manually tested to ensure functionality is correct.
+Automated testing is located under the LineLauncherCs.Tests project,
+Ensure that you pass all existing tests before submitting.   
+In addition, all changes should be manually tested to ensure proper functionality.  
+
+If you need to add testing for your new feature, you can add a new file based on the existing style or write it into an existing file.

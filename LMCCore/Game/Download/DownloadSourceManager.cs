@@ -12,33 +12,86 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using LMC;
+using LMC.Basic.Configs;
 using LMCCore.Game.Download.Model;
 
 namespace LMCCore.Game.Download;
 
 public class DownloadSourceManager
 {
-    private readonly DownloadSource _primarySource;
+    private readonly DownloadSource _manifestSource;
+    private readonly DownloadSource _fileSource;
 
-    private DownloadSourceManager(DownloadSource primarySource)
+    private DownloadSourceManager(DownloadSource manifestSource, DownloadSource fileSource)
     {
-        _primarySource = primarySource ?? throw new ArgumentNullException(nameof(primarySource));
+        _manifestSource = manifestSource ?? throw new ArgumentNullException(nameof(manifestSource));
+        _fileSource = fileSource ?? throw new ArgumentNullException(nameof(fileSource));
     }
 
     public static DownloadSourceManager CreateDefault()
     {
-        var official = new OfficialDownloadSource();
-        var bmcl = new BmclDownloadSource { FallbackSource = official };
-        return new DownloadSourceManager(bmcl);
+        var config = Current.Config;
+        var manifestPolicy = config?.DefaultVersionManifestSource ?? DownloadSourcePolicy.BmclapiFirst;
+        var filePolicy = config?.DefaultFileDownloadSource ?? DownloadSourcePolicy.BmclapiFirst;
+        return CreateDefault(manifestPolicy, filePolicy);
+    }
+
+    public static DownloadSourceManager CreateDefault(
+        DownloadSourcePolicy manifestPolicy,
+        DownloadSourcePolicy filePolicy)
+    {
+        return new DownloadSourceManager(
+            CreateSourceChain(manifestPolicy),
+            CreateSourceChain(filePolicy));
     }
 
     public string? TransformUrl(string? officialUrl)
     {
-        return _primarySource.TransformUrlWithFallback(officialUrl);
+        return SelectSource(officialUrl).TransformUrlWithFallback(officialUrl);
+    }
+
+    public IReadOnlyList<string> GetUrlCandidates(string? officialUrl)
+    {
+        return SelectSource(officialUrl).TransformUrlCandidates(officialUrl);
     }
 
     public IEnumerable<string> GetSourceChainInfo()
     {
-        return _primarySource.GetSourceChain().Select(source => source.Name);
+        return _manifestSource.GetSourceChain()
+            .Concat(_fileSource.GetSourceChain())
+            .Select(source => source.Name)
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private DownloadSource SelectSource(string? officialUrl)
+    {
+        return IsVersionManifestUrl(officialUrl) ? _manifestSource : _fileSource;
+    }
+
+    private static DownloadSource CreateSourceChain(DownloadSourcePolicy policy)
+    {
+        return policy switch
+        {
+            DownloadSourcePolicy.OfficialFirst => new OfficialDownloadSource
+            {
+                FallbackSource = new BmclDownloadSource()
+            },
+            _ => new BmclDownloadSource
+            {
+                FallbackSource = new OfficialDownloadSource()
+            }
+        };
+    }
+
+    private static bool IsVersionManifestUrl(string? officialUrl)
+    {
+        if (string.IsNullOrWhiteSpace(officialUrl))
+        {
+            return false;
+        }
+
+        return officialUrl.StartsWith("https://launchermeta.mojang.com/mc/game/version_manifest", StringComparison.OrdinalIgnoreCase) ||
+               officialUrl.StartsWith("http://launchermeta.mojang.com/mc/game/version_manifest", StringComparison.OrdinalIgnoreCase);
     }
 }

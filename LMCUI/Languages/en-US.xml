@@ -167,6 +167,90 @@
             <WelcomeMessage>Welcome to Line Launcher</WelcomeMessage>
         </LaunchPage>
 
+        <DownloadMinecraftPage>
+            <Title>Download Game</Title>
+            <Wizard>
+                <Title>Download Version - {0}</Title>
+                <PreviousButton>Previous</PreviousButton>
+                <NextButton>Next</NextButton>
+                <FinishButton>Finish</FinishButton>
+                <Errors>
+                    <NoRootTitle>No Game Directory Selected</NoRootTitle>
+                    <NoRootContent>Please select the current .minecraft folder in Version Management first.</NoRootContent>
+                </Errors>
+                <Steps>
+                    <LoaderSelectionStep>
+                        <Title>Select Loader Versions</Title>
+                        <Description>Select available Fabric, Forge, and OptiFine versions for this game version first.</Description>
+                        <None>Do not install</None>
+                        <Loading>Loading...</Loading>
+                        <Fabric>
+                            <Header>Fabric Version</Header>
+                            <Description>Available Fabric versions.</Description>
+                        </Fabric>
+                        <Forge>
+                            <Header>Forge Version</Header>
+                            <Description>Available Forge versions.</Description>
+                        </Forge>
+                        <OptiFine>
+                            <Header>OptiFine Version</Header>
+                            <Description>Available OptiFine versions.</Description>
+                        </OptiFine>
+                        <Validation>
+                            <FabricOptiFineWarning>Fabric and OptiFine require OptiFabric to work properly, and compatibility is relatively poor.</FabricOptiFineWarning>
+                        </Validation>
+                    </LoaderSelectionStep>
+                    <VersionNameStep>
+                        <Title>Set Version Name</Title>
+                        <Description>Enter the version name to install under the current .minecraft/versions directory.</Description>
+                        <SelectedVersion>Target version: {0} | Current directory: {1} | Loaders: {2}</SelectedVersion>
+                        <Watermark>Enter version name...</Watermark>
+                        <Validation>
+                            <Empty>Please enter a version name.</Empty>
+                            <InvalidPath>The version name is not a valid path name.</InvalidPath>
+                            <AlreadyExists>A version with the same name already exists in the current versions directory.</AlreadyExists>
+                        </Validation>
+                    </VersionNameStep>
+                </Steps>
+            </Wizard>
+            <Filters>
+                <Title>Filters</Title>
+                <Release>Release</Release>
+                <Snapshot>Snapshot</Snapshot>
+                <AprilFools>April Fools</AprilFools>
+                <Old>Old</Old>
+            </Filters>
+            <Latest>
+                <ReleaseHeader>Latest Release</ReleaseHeader>
+                <SnapshotHeader>Latest Snapshot</SnapshotHeader>
+            </Latest>
+            <Search>
+                <Watermark>Search version ID...</Watermark>
+            </Search>
+            <Types>
+                <Release>Release</Release>
+                <Snapshot>Snapshot</Snapshot>
+                <AprilFools>April Fools</AprilFools>
+                <Old>Old</Old>
+            </Types>
+            <Dialog>
+                <Title>Version Info - {0}</Title>
+                <CloseButton>Close</CloseButton>
+                <VersionId>Version ID: {0}</VersionId>
+                <VersionType>Version Type: {0}</VersionType>
+                <ReleaseTime>Release Time: {0}</ReleaseTime>
+                <Placeholder>The vanilla download flow is not implemented on this page yet. This page currently supports browsing, search, and filtering only.</Placeholder>
+            </Dialog>
+            <Empty>
+                <NoMatchingVersions>No matching versions were found.</NoMatchingVersions>
+            </Empty>
+            <Errors>
+                <LoadFailedTitle>Failed to Load Versions</LoadFailedTitle>
+                <LoadFailedContent>Failed to load the version manifest: {0}</LoadFailedContent>
+            </Errors>
+            <Loading>Loading versions...</Loading>
+        </DownloadMinecraftPage>
+
         <TaskPage>
             <Title>Task Management</Title>
             <CancelButton>Cancel</CancelButton>
@@ -175,7 +259,68 @@
 
         <VersionManagePage>
             <Title>Version Management</Title>
+            <CommandBar>
+                <InstallVersion>Install Version</InstallVersion>
+                <SwitchMinecraftFolder>Switch .minecraft Folder</SwitchMinecraftFolder>
+            </CommandBar>
+            <CurrentRoot>
+                <Header>Current Game Directory</Header>
+                <Description>The .minecraft directory currently being viewed</Description>
+                <VersionCount>{0} versions in total</VersionCount>
+            </CurrentRoot>
+            <RootDialog>
+                <Title>Select .minecraft Folder</Title>
+                <Add>Add</Add>
+                <Delete>Delete</Delete>
+                <Cancel>Cancel</Cancel>
+                <Confirm>Confirm</Confirm>
+                <PickFolderTitle>Please select a .minecraft folder</PickFolderTitle>
+            </RootDialog>
+            <VersionType>
+                <Release>Release</Release>
+                <Snapshot>Snapshot</Snapshot>
+                <AprilFools>April Fools</AprilFools>
+                <Old>Old</Old>
+                <Error>Broken Version</Error>
+                <UnknownClientVersion>Unknown Version</UnknownClientVersion>
+            </VersionType>
+            <VersionStatus>
+                <Valid>Version structure is valid</Valid>
+                <MissingJar>Error: Missing version JAR</MissingJar>
+                <MissingJson>Error: Missing version JSON</MissingJson>
+                <InvalidJson>Error: Version JSON is invalid</InvalidJson>
+            </VersionStatus>
+            <InvalidVersions>
+                <Title>Invalid Versions Detected</Title>
+                <Content>The following versions are invalid: {0}</Content>
+            </InvalidVersions>
+            <EmptyState>
+                <NoRootHeader>No Game Directory Selected</NoRootHeader>
+                <NoRootDescription>Please select a .minecraft folder from the command bar first.</NoRootDescription>
+                <NoRootPath>There is currently no selected game directory.</NoRootPath>
+                <NoRootVersions>No game directory is available, so the version list cannot be shown.</NoRootVersions>
+                <NoVersions>No recognizable versions were found in the current directory.</NoVersions>
+                <Loading>Scanning versions...</Loading>
+            </EmptyState>
+            <Errors>
+                <SwitchRootTitle>Failed to Switch Directory</SwitchRootTitle>
+                <SwitchRootContent>Failed to switch the .minecraft folder: {0}</SwitchRootContent>
+                <AddRootTitle>Failed to Add Directory</AddRootTitle>
+                <AddRootContent>Failed to add the .minecraft folder: {0}</AddRootContent>
+                <ScanFailedTitle>Failed to Scan Versions</ScanFailedTitle>
+                <ScanFailedContent>Failed to scan versions: {0}</ScanFailedContent>
+            </Errors>
         </VersionManagePage>
+        <VersionDetailPage>
+            <Title>Version Details - {0}</Title>
+            <Status>Status: {0}</Status>
+            <RootPath>Game Directory: {0}</RootPath>
+            <VersionDirectory>Version Directory: {0}</VersionDirectory>
+            <Placeholder>
+                <Header>Details Under Construction</Header>
+                <Description>The detailed version page is not implemented yet. More version information and actions will be shown here later.</Description>
+            </Placeholder>
+        </VersionDetailPage>
 
         <HelpPage>
             <Title>Help Center</Title>
@@ -192,6 +337,10 @@
                 <Header>About Line (Minecraft) Launcher</Header>
                 <VersionDescription>Version {0}-{1} Build-{2}</VersionDescription>
             </AboutLauncherExpander>
+            <CopyrightExpander>
+                <Header>Copyright</Header>
+                <Description>View project and third-party license notices</Description>
+            </CopyrightExpander>
             <Author>
                 <Name>Huangyu (皇鱼)</Name>
                 <Description>Main author and maintainer of LMC C# version.</Description>
@@ -199,6 +348,108 @@
                 <Blog>Huangyu's Blog</Blog>
             </Author>
         </AboutPage>
+
+        <CopyrightPage>
+            <Title>Copyright</Title>
+            <Items>
+                <SystemGroup>
+                    <Title>System packages and .NET runtime</Title>
+                    <Description>Microsoft-provided .NET and System namespace components.</Description>
+                </SystemGroup>
+                <System>
+                    <Title>System / .NET</Title>
+                    <Description>Partly MIT licensed and partly under the .NET library license.</Description>
+                </System>
+                <AvaloniaGroup>
+                    <Title>Avalonia packages</Title>
+                    <Description>Cross-platform UI dependencies developed by the AvaloniaUI team.</Description>
+                </AvaloniaGroup>
+                <Avalonia>
+                    <Title>Avalonia</Title>
+                    <Description>MIT licensed.</Description>
+                </Avalonia>
+                <AvaloniaDesktop>
+                    <Title>Avalonia.Desktop</Title>
+                    <Description>MIT licensed.</Description>
+                </AvaloniaDesktop>
+                <AvaloniaThemesFluent>
+                    <Title>Avalonia.Themes.Fluent</Title>
+                    <Description>MIT licensed.</Description>
+                </AvaloniaThemesFluent>
+                <AvaloniaFontsInter>
+                    <Title>Avalonia.Fonts.Inter</Title>
+                    <Description>MIT licensed.</Description>
+                </AvaloniaFontsInter>
+                <AvaloniaDiagnostics>
+                    <Title>Avalonia.Diagnostics</Title>
+                    <Description>MIT licensed.</Description>
+                </AvaloniaDiagnostics>
+                <FluentAvaloniaGroup>
+                    <Title>FluentAvalonia package</Title>
+                    <Description>Fluent-style extensions developed by amwx.</Description>
+                </FluentAvaloniaGroup>
+                <FluentAvalonia>
+                    <Title>FluentAvaloniaUI</Title>
+                    <Description>MIT licensed.</Description>
+                </FluentAvalonia>
+                <OtherGroup>
+                    <Title>Other packages</Title>
+                    <Description>Other third-party dependencies.</Description>
+                </OtherGroup>
+                <NLog>
+                    <Title>NLog</Title>
+                    <Description>Developed by the NLog team, BSD 3-Clause.</Description>
+                </NLog>
+                <MicrosoftNetTestSdk>
+                    <Title>Microsoft.NET.Test.Sdk</Title>
+                    <Description>Developed by Microsoft, MIT licensed.</Description>
+                </MicrosoftNetTestSdk>
+                <Xunit>
+                    <Title>xunit</Title>
+                    <Description>Developed by the xUnit team, Apache-2.0.</Description>
+                </Xunit>
+                <XunitRunnerVisualStudio>
+                    <Title>xunit.runner.visualstudio</Title>
+                    <Description>Developed by the xUnit team, Apache-2.0.</Description>
+                </XunitRunnerVisualStudio>
+                <CoverletCollector>
+                    <Title>coverlet.collector</Title>
+                    <Description>Developed by the Coverlet team, MIT licensed.</Description>
+                </CoverletCollector>
+                <Moq>
+                    <Title>Moq</Title>
+                    <Description>Developed by the Moq team, BSD 3-Clause.</Description>
+                </Moq>
+                <SpecialThanksGroup>
+                    <Title>Special thanks</Title>
+                    <Description>Projects and references that helped this launcher.</Description>
+                </SpecialThanksGroup>
+                <HMCL>
+                    <Title>HMCL</Title>
+                    <Description>Important references for Minecraft-related implementation. GPL v3 licensed.</Description>
+                </HMCL>
+                <PCL2>
+                    <Title>PCL2</Title>
+                    <Description>Important references for Minecraft-related implementation. No specific open source license (ARR with explanatory terms).</Description>
+                </PCL2>
+                <TT702ForgeInstallProcessor>
+                    <Title>TT702 Forge Install Processor.NET</Title>
+                    <Description>Reference implementation for Forge installation processing.</Description>
+                </TT702ForgeInstallProcessor>
+                <BMCLAPI>
+                    <Title>BMCLAPI</Title>
+                    <Description>Mirror source support.</Description>
+                </BMCLAPI>
+                <MinecraftWiki>
+                    <Title>Minecraft Wiki</Title>
+                    <Description>Minecraft-related information reference.</Description>
+                </MinecraftWiki>
+                <FluentLauncher>
+                    <Title>Fluent Launcher</Title>
+                    <Description>UI design reference.</Description>
+                </FluentLauncher>
+            </Items>
+        </CopyrightPage>
 
         <SettingsPage>
             <AboutPageNav>
