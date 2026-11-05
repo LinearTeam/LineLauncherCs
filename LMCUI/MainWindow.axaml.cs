@@ -46,6 +46,8 @@ public partial class MainWindow : FAAppWindow
     {
         Instance = this;
         InitializeComponent();
+        InitializeFileDrop();
+        InitializeKeyboardNavigation();
         ConfigureTitleBar();
         RefreshWindowTitle();
         var splashScreen = new LineSplashScreen();

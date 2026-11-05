@@ -82,7 +82,8 @@ public partial class VersionManagePage : PageBase
         var expander = new FASettingsExpander
         {
             IsClickEnabled = true,
-            Header = VersionSummaryPresentation.CreateHeader(renderData.Version.VersionName, renderData.Badges),
+            Header = VersionSummaryPresentation.CreateHeader(renderData.Version.VersionName, renderData.Badges,
+                renderData.IsSelected ? I18nManager.Instance.GetString("Pages.VersionManagePage.SelectedBadge") : null),
             ActionIconSource = new FASymbolIconSource
             {
                 Symbol = FASymbol.ChevronRight
@@ -393,8 +394,10 @@ public partial class VersionManagePage : PageBase
             _versionNameMap[item.Version.VersionName] = item.Version;
         }
 
-        _visibleVersions = renderData;
+        var selectedVersionName = _versionManager.GetSelectedLaunchVersionName(renderData[0].Version.RootPath);
+        _visibleVersions = VersionManagePagePresentation.PrepareVersionList(renderData, selectedVersionName);
         VersionListBox.ItemsSource = _visibleVersions;
+        VersionListBox.ScrollIntoView(_visibleVersions[0]);
     }
 
     private void RenderEmptyState(string text)

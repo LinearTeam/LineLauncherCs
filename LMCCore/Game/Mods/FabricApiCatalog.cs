@@ -26,7 +26,9 @@ public static class FabricApiCatalog
         var games = Uri.EscapeDataString(JsonSerializer.Serialize(new[] { minecraftVersion }));
         var loaders = Uri.EscapeDataString("[\"fabric\"]");
         var url = $"https://api.modrinth.com/v2/project/fabric-api/version?game_versions={games}&loaders={loaders}";
-        using var response = await HttpUtils.CreateRequest(url).GetAsync(cancellationToken).ConfigureAwait(false);
+        using var response = await HttpUtils.CreateRequest(url)
+            .WithHeader("User-Agent", HttpUtils.ProjectUserAgent)
+            .GetAsync(cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken)

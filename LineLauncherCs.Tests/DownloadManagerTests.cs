@@ -80,6 +80,46 @@ public class DownloadManagerTests : IDisposable
     }
 
     [Fact]
+    public async Task GameInstallationCacheManager_WaitsForCancelledWriterToReleaseFiles()
+    {
+        using var parent = new ParentTask("parent");
+        var cacheManager = new GameInstallationCacheManager(parent);
+        cacheManager.EnsureCacheDirectoryExists();
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseWriter = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var task = new SubTask<bool>("writer", 0, parent, null, async (token, _, _) =>
+        {
+            await using var file = File.Create(cacheManager.CachedVersionJsonPath);
+            started.SetResult();
+            try
+            {
+                await Task.Delay(Timeout.Infinite, token);
+            }
+            finally
+            {
+                await releaseWriter.Task;
+            }
+            return true;
+        });
+        parent.SubTasks.Add(task);
+        cacheManager.RegisterCleanupOnTaskCompletion([task]);
+        var execution = task.ExecuteAsync();
+        try
+        {
+            await started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            task.Cancel();
+            Assert.True(task.IsExecuting);
+            Assert.True(Directory.Exists(cacheManager.CacheDirectory));
+        }
+        finally
+        {
+            releaseWriter.TrySetResult();
+            await execution.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+        Assert.False(Directory.Exists(cacheManager.CacheDirectory));
+    }
+
+    [Fact]
     public async Task GameInstallationCacheManager_CopyCachedFileToVersionDirectoryAsync_CopiesFileIntoVersionSubDirectory()
     {
         using var scope = new TestFileSystemScope();

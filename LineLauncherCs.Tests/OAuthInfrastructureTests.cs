@@ -31,6 +31,22 @@ public class OAuthInfrastructureTests : IDisposable
     }
 
     [Fact]
+    public void HttpUtils_ProjectUserAgent_IsValidAndIdentifiesProject()
+    {
+        using var request = new HttpRequestMessage();
+        request.Headers.UserAgent.ParseAdd(HttpUtils.ProjectUserAgent);
+
+        Assert.Collection(request.Headers.UserAgent,
+            entry =>
+            {
+                Assert.NotNull(entry.Product);
+                Assert.Equal("LMCCS", entry.Product.Name);
+                Assert.Equal($"{Current.VersionType}-{Current.Version}-{Current.BuildNumber}", entry.Product.Version);
+            },
+            entry => Assert.Equal("(LinearTeam)", entry.Comment));
+    }
+
+    [Fact]
     public async Task HttpUtils_RetriesWithFreshRequestContent()
     {
         var payloads = new List<string>();

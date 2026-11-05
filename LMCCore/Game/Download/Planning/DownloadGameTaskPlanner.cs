@@ -22,9 +22,10 @@ internal sealed class DownloadGameTaskPlanner
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        var isModpack = request.Modpack != null;
         var parent = TaskManager.Instance.CreateParent(
-            $"Install Minecraft {request.VersionName}",
-            "Pages.TaskPage.Tasks.GameInstall.Parent",
+            isModpack ? $"Install modpack {request.VersionName}" : $"Install Minecraft {request.VersionName}",
+            isModpack ? "Pages.TaskPage.Tasks.GameInstall.Modpack.Parent" : "Pages.TaskPage.Tasks.GameInstall.Parent",
             [request.VersionName]);
         return new DownloadGamePlan
         {

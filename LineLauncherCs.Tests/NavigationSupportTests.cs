@@ -13,11 +13,41 @@
 //    limitations under the License.
 using LMCUI.Navigation;
 using LMCUI.Pages;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using FluentAvalonia.UI.Controls;
+using LMCUI;
 
 namespace LineLauncherCs.Tests;
 
 public class NavigationSupportTests
 {
+    [Fact]
+    public Task EscapeNavigation_DefersToDialogsAndOpenPopups() => TestAppBuilder.RunOnUiThreadAsync(() =>
+    {
+        var root = new StackPanel();
+        Assert.False(MainWindow.HasEscapeNavigationBlocker(root));
+        Assert.True(MainWindow.HasEscapeNavigationBlocker(root, new FAContentDialog()));
+        foreach (var blocker in new Control[]
+                 {
+                     new FAContentDialog(),
+                     new FADialogHost { Content = new FAContentDialog() },
+                     new ComboBox { IsDropDownOpen = true },
+                     new Popup { IsOpen = true }
+                 })
+        {
+            root.Children.Add(blocker);
+            Assert.True(MainWindow.HasEscapeNavigationBlocker(root), blocker.GetType().Name);
+            root.Children.Remove(blocker);
+        }
+
+        root.Children.Add(new ComboBox { IsDropDownOpen = false });
+        root.Children.Add(new Popup { IsOpen = false });
+        root.Children.Add(new TextBox());
+        root.Children.Add(new FAContentDialog { IsVisible = false });
+        Assert.False(MainWindow.HasEscapeNavigationBlocker(root));
+    });
+
     [Fact]
     public Task Navigate_ToSameCachedPage_ReopensWithoutDuplicatingHistory() => TestAppBuilder.RunOnUiThreadAsync(() =>
     {

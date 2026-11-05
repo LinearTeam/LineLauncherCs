@@ -24,6 +24,134 @@ namespace LMCCore.Game.Download.Installation.Caching;
 internal static class GameInstallationLocalReuseHelper
 {
     private readonly static Logger s_logger = new("GameInstall.LocalReuse");
+    private static readonly TimeSpan s_fabricApiReuseBudget = TimeSpan.FromMilliseconds(200);
+    private const int FabricApiMaxPaths = 128;
+    private const int FabricApiMaxHashCandidates = 4;
+
+    public static Task<bool> TryPopulateFabricApiFromLocalModsAsync(
+        string currentRootPath,
+        string targetPath,
+        string fileName,
+        string? sha1,
+        long? size,
+        CancellationToken cancellationToken)
+        => Task.Run(async () =>
+        {
+            using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            budget.CancelAfter(s_fabricApiReuseBudget);
+            try
+            {
+                budget.Token.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(sha1) || size is null or < 0 ||
+                    string.IsNullOrWhiteSpace(fileName) || Path.GetFileName(fileName) != fileName ||
+                    fileName.Contains('\\') || !fileName.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
+                    return false;
+
+                var hashesComputed = 0;
+                foreach (var candidate in EnumerateFabricApiCandidates(currentRootPath, fileName, budget.Token))
+                {
+                    budget.Token.ThrowIfCancellationRequested();
+                    try
+                    {
+                        if (!File.Exists(candidate) || !string.Equals(Path.GetFileName(candidate), fileName,
+                                StringComparison.Ordinal) || new FileInfo(candidate).Length != size ||
+                            (File.GetAttributes(candidate) & FileAttributes.ReparsePoint) != 0)
+                            continue;
+                        if (hashesComputed++ >= FabricApiMaxHashCandidates)
+                            return false;
+                        await using var stream = new FileStream(candidate, FileMode.Open, FileAccess.Read,
+                            FileShare.Read, 81920, FileOptions.Asynchronous | FileOptions.SequentialScan);
+                        var hash = Convert.ToHexStringLower(await System.Security.Cryptography.SHA1.HashDataAsync(
+                            stream, budget.Token).ConfigureAwait(false));
+                        if (!string.Equals(hash, sha1, StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        budget.Token.ThrowIfCancellationRequested();
+                        stream.Position = 0;
+                        await CopyAtomicallyAsync(stream, targetPath, budget.Token).ConfigureAwait(false);
+                        s_logger.Info($"Reused Fabric API from '{candidate}' to '{targetPath}'.");
+                        return true;
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+                    {
+                        // Local reuse is best-effort; installation downloads inaccessible artifacts instead.
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                // A missing or inaccessible root must not prevent the normal download path.
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            return false;
+        }, cancellationToken);
+
+    private static IEnumerable<string> EnumerateFabricApiCandidates(
+        string currentRootPath, string fileName, CancellationToken token)
+    {
+        var roots = new[] { currentRootPath }.Concat(Current.Config?.ManagedGameRootPaths.ToArray() ?? []);
+        var seenRoots = new HashSet<string>(OperatingSystem.IsWindows()
+            ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+        var versionsVisited = 0;
+        foreach (var root in roots)
+        {
+            token.ThrowIfCancellationRequested();
+            IEnumerator<string> versions;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(root) || !seenRoots.Add(NormalizePath(root)))
+                    continue;
+                versions = Directory.EnumerateDirectories(Path.Combine(root, "versions")).GetEnumerator();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+            { continue; }
+            using (versions)
+            {
+                while (versionsVisited < FabricApiMaxPaths)
+                {
+                    token.ThrowIfCancellationRequested();
+                    string version;
+                    try
+                    {
+                        // Enumeration may fail on MoveNext, after the enumerator has been created.
+                        if (!versions.MoveNext())
+                            break;
+                        version = versions.Current;
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    { break; }
+                    token.ThrowIfCancellationRequested();
+                    versionsVisited++;
+                    yield return Path.Combine(version, "mods", fileName);
+                }
+            }
+            if (versionsVisited >= FabricApiMaxPaths)
+                yield break;
+        }
+    }
+
+    private static async Task CopyAtomicallyAsync(Stream source, string targetPath, CancellationToken token)
+    {
+        var directory = Path.GetDirectoryName(targetPath)
+                        ?? throw new InvalidOperationException("Failed to resolve destination directory.");
+        Directory.CreateDirectory(directory);
+        var temporary = Path.Combine(directory, $".fabric-api-{Guid.NewGuid():N}.tmp");
+        try
+        {
+            await using (var target = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None,
+                             81920, FileOptions.Asynchronous | FileOptions.SequentialScan))
+                await source.CopyToAsync(target, token).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
+            File.Move(temporary, targetPath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporary)) File.Delete(temporary);
+        }
+    }
 
     public static Task<bool> TryPopulateClientJarFromKnownVersionsAsync(
         string currentRootPath,

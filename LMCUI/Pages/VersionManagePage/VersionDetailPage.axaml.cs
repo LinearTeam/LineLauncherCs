@@ -31,11 +31,12 @@ using LMCUI.Utils;
 
 namespace LMCUI.Pages.VersionManagePage;
 
-public partial class VersionDetailPage : PageBase
+public partial class VersionDetailPage : PageBase, IVersionContextPage
 {
     private readonly Logger _logger = new("VersionDetailPage");
     private readonly VersionManager _versionManager = new();
     private LocalGameVersionEntry? _version;
+    public LocalGameVersionEntry? TargetVersion => _version;
 
     public VersionDetailPage() : base("Pages.VersionDetailPage.Title", "VersionDetailPage")
     {
@@ -51,7 +52,7 @@ public partial class VersionDetailPage : PageBase
         }
 
         _version = version;
-        Title = I18nManager.Instance.GetString("Pages.VersionDetailPage.Title", version.VersionName);
+        Title = version.VersionName;
         VersionSummaryExpander.Header = VersionSummaryPresentation.CreateHeader(
             version.VersionName,
             VersionSummaryPresentation.BuildBadges(version,

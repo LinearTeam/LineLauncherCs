@@ -14,13 +14,62 @@
 
 using LMCCore.Game.Download.Model;
 using LMCCore.Game.Model.Loaders;
+using LMCCore.Utils;
+using System.Text.Json;
+using LMC.Basic.Logging;
 
 namespace LMCCore.Game.Download.Installation.Forge;
 
 internal static class ForgeVersionResolver
 {
+    private static readonly Logger s_logger = new("ForgeVersionResolver");
     public const string BranchMetadataKey = "branch";
     public const string InstallerFormatMetadataKey = "installerFormat";
+
+    internal static async Task ResolveModpackMetadataAsync(
+        string minecraftVersion, ModLoader loader, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var url = $"https://bmclapi2.bangbang93.com/forge/minecraft/{Uri.EscapeDataString(minecraftVersion)}";
+            using var response = await HttpUtils.CreateRequest(url).WithTimeout(TimeSpan.FromSeconds(15))
+                .GetAsync(cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            using var catalog = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+            foreach (var item in catalog.RootElement.EnumerateArray())
+            {
+                if (item.GetProperty("version").GetString() != loader.VersionId)
+                    continue;
+                var installer = item.GetProperty("files").EnumerateArray().FirstOrDefault(file =>
+                    file.GetProperty("category").GetString() == "installer"
+                    && file.GetProperty("format").GetString() is "jar" or "zip");
+                if (installer.ValueKind == JsonValueKind.Undefined)
+                    break;
+                loader.Metadata = new Dictionary<string, string?>
+                {
+                    [BranchMetadataKey] = item.TryGetProperty("branch", out var branch) ? branch.GetString() : null,
+                    [InstallerFormatMetadataKey] = installer.GetProperty("format").GetString()
+                };
+                return;
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or InvalidOperationException or KeyNotFoundException
+                                   or IOException or TaskCanceledException)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            s_logger.Warn($"Forge catalog unavailable; using artifact metadata: {ex.Message}");
+        }
+
+        var classifier = ResolveArtifactVersion(minecraftVersion, loader.VersionId);
+        var prefix = $"{minecraftVersion}-{loader.VersionId}-";
+        loader.Metadata = new Dictionary<string, string?>
+        {
+            [BranchMetadataKey] = classifier.StartsWith(prefix, StringComparison.Ordinal) ? classifier[prefix.Length..] : null,
+            [InstallerFormatMetadataKey] = "jar"
+        };
+    }
 
     public static string ResolveArtifactVersion(string minecraftVersion, string forgeVersion)
     {

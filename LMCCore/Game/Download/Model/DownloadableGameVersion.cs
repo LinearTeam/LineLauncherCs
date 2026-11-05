@@ -14,6 +14,7 @@
 
 using LMCCore.Game.Model.Loaders;
 using LMCCore.Game.Mods;
+using LMCCore.Game.Modpacks;
 
 namespace LMCCore.Game.Download.Model;
 
@@ -38,5 +39,8 @@ public class DownloadableGameVersion
 
     [JsonPropertyName("fabricApi")]
     public FabricApiVersion? FabricApi { get; set; }
+
+    [JsonIgnore]
+    public ModrinthModpackInstallation? Modpack { get; set; }
 }
 

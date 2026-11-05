@@ -175,6 +175,86 @@ public class GameInstallationLocalReuseHelperTests : IDisposable
         Assert.Equal("{}", await File.ReadAllTextAsync(targetPath));
     }
 
+    [Fact]
+    public async Task FabricApiReuse_SearchesCurrentThenManagedVersionModsAndRequiresHash()
+    {
+        using var scope = new TestFileSystemScope();
+        var current = scope.CreateDirectory("current");
+        var managed = scope.CreateDirectory("managed");
+        Current.Config.ManagedGameRootPaths = [current, managed];
+        const string fileName = "fabric-api-1.0.jar";
+        var bytes = Encoding.UTF8.GetBytes("matching artifact");
+        var candidate = Path.Combine(managed, "versions", "game", "mods", fileName);
+        Directory.CreateDirectory(Path.GetDirectoryName(candidate)!);
+        await File.WriteAllBytesAsync(candidate, bytes);
+        var target = scope.GetPath("cache/fabric-api.jar");
+
+        var copied = await GameInstallationLocalReuseHelper.TryPopulateFabricApiFromLocalModsAsync(
+            current, target, fileName, ComputeSha1(bytes), bytes.Length, CancellationToken.None);
+
+        Assert.True(copied);
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(target));
+    }
+
+    [Theory]
+    [InlineData("other.jar", 9, true)]
+    [InlineData("fabric-api.jar", 8, true)]
+    [InlineData("fabric-api.jar", 9, false)]
+    [InlineData("fabric-api.jar.disabled", 9, true)]
+    public async Task FabricApiReuse_RejectsDifferentFilenameSizeOrHash(string fileName, long size, bool validHash)
+    {
+        using var scope = new TestFileSystemScope();
+        var root = scope.CreateDirectory("root");
+        Current.Config.ManagedGameRootPaths = [root];
+        var mods = Path.Combine(root, "versions", "game", "mods");
+        Directory.CreateDirectory(mods);
+        await File.WriteAllTextAsync(Path.Combine(mods, fileName), "same size");
+        var target = scope.GetPath("cache/target.jar");
+        var hash = validHash ? ComputeSha1(Encoding.UTF8.GetBytes("same size")) : new string('0', 40);
+
+        var copied = await GameInstallationLocalReuseHelper.TryPopulateFabricApiFromLocalModsAsync(
+            root, target, "fabric-api.jar", hash, size, CancellationToken.None);
+
+        Assert.False(copied);
+        Assert.False(File.Exists(target));
+    }
+
+    [Fact]
+    public async Task FabricApiReuse_ContinuesAfterInaccessibleCandidateAndLeavesExistingTargetIntact()
+    {
+        using var scope = new TestFileSystemScope();
+        var root = scope.CreateDirectory("root");
+        Current.Config.ManagedGameRootPaths = [root];
+        var mods = scope.CreateDirectory("root/versions/game/mods");
+        var source = Path.Combine(mods, "fabric-api.jar");
+        await File.WriteAllTextAsync(source, "valid");
+        var target = scope.GetPath("existing.jar");
+        await File.WriteAllTextAsync(target, "keep");
+        await using var locked = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.None);
+
+        var copied = await GameInstallationLocalReuseHelper.TryPopulateFabricApiFromLocalModsAsync(
+            root, target, "fabric-api.jar", ComputeSha1(Encoding.UTF8.GetBytes("valid")), 5,
+            CancellationToken.None);
+
+        Assert.False(copied);
+        Assert.Equal("keep", await File.ReadAllTextAsync(target));
+        Assert.Empty(Directory.GetFiles(scope.RootPath, ".fabric-api-*.tmp"));
+    }
+
+    [Fact]
+    public async Task FabricApiReuse_PropagatesCallerCancellation()
+    {
+        using var scope = new TestFileSystemScope();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            GameInstallationLocalReuseHelper.TryPopulateFabricApiFromLocalModsAsync(scope.RootPath,
+                scope.GetPath("cached.jar"), "fabric-api.jar", new string('0', 40), 10, cancellation.Token));
+
+        Assert.False(File.Exists(scope.GetPath("cached.jar")));
+    }
+
     public void Dispose()
     {
         Current.Config = _previousConfig;

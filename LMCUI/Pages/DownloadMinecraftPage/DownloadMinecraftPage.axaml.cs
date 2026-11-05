@@ -25,6 +25,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
 using LMC.Basic.Logging;
@@ -38,6 +39,7 @@ using LMCCore.Tasks.Model;
 using LMCUI.I18n;
 using LMCUI.Navigation.Model;
 using LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
+using LMCCore.Game.Model.LocalVersion;
 using LMCUI.Pages.TaskPage;
 using LMCUI.Utils;
 
@@ -99,6 +101,39 @@ public partial class DownloadMinecraftPage : PageBase
     {
         _loadCts?.Cancel();
         _searchDebounceTimer?.Stop();
+    }
+
+    private async void ImportModpackButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (!ImportModpackButton.IsEnabled)
+            return;
+        ImportModpackButton.IsEnabled = false;
+        try
+        {
+            var files = await CrossPlatformUtils.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                AllowMultiple = false,
+                Title = I18nManager.Instance.GetString("Pages.ModpackImport.PickerTitle"),
+                FileTypeFilter = [new FilePickerFileType(I18nManager.Instance.GetString("Pages.ModpackImport.FileType"))
+                {
+                    Patterns = ["*.mrpack", "*.zip"]
+                }]
+            });
+            var path = files.FirstOrDefault()?.TryGetLocalPath();
+            if (!string.IsNullOrWhiteSpace(path))
+                await ModpackImportFlow.InstallAsync(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Importing Modrinth modpack");
+            await MessageQueueHelper.ShowError(
+                I18nManager.Instance.GetString("Pages.ModpackImport.ErrorTitle"),
+                ModpackImportFlow.LocalizeReaderError(ex));
+        }
+        finally
+        {
+            ImportModpackButton.IsEnabled = true;
+        }
     }
 
     async private Task LoadManifestAsync()

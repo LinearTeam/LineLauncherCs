@@ -2,6 +2,22 @@
 <Localization>
     <MainWindow>
         <Title>Line Launcher</Title>
+        <Import>
+            <WarningTitle>导入未完成</WarningTitle>
+            <InvalidDropSet>请一次仅拖入一个整合包，或仅拖入 JAR 模组；不能混合拖入或同时导入多个整合包。</InvalidDropSet>
+            <NoVersionContext>当前没有可用的已选版本，请先在启动页选择版本，再导入模组。</NoVersionContext>
+            <InvalidTarget>目标版本已失效或目录不存在，本次未导入模组。</InvalidTarget>
+            <OperationFailed>无法导入文件：{0}</OperationFailed>
+            <ConfirmTitle>确认导入模组</ConfirmTitle>
+            <ConfirmContent>将 {1} 个模组导入版本“{0}”。</ConfirmContent>
+            <Confirm>导入</Confirm>
+            <Cancel>取消</Cancel>
+            <SuccessTitle>模组导入完成</SuccessTitle>
+            <SuccessContent>已向版本“{0}”导入 {1} 个模组。</SuccessContent>
+            <ErrorTitle>模组导入失败</ErrorTitle>
+            <AllFailed>导入全部失败，共 {0} 项错误。</AllFailed>
+            <Partial>版本“{0}”：成功 {1} 个，跳过 {2} 个，失败 {3} 个。</Partial>
+        </Import>
         <NavItems>
             <LaunchPage>启动</LaunchPage>
             <VersionManagePage>版本管理</VersionManagePage>
@@ -348,6 +364,7 @@
                 <LoadFailedContent>获取版本清单失败：{0}</LoadFailedContent>
             </Errors>
             <Loading>正在加载版本列表...</Loading>
+            <ImportModpack>导入整合包</ImportModpack>
         </DownloadMinecraftPage>
 
         <TaskPage>
@@ -355,9 +372,15 @@
             <CancelButton>取消</CancelButton>
             <ConfirmButton>确定</ConfirmButton>
             <Tasks>
-                <GameInstall>
+                    <GameInstall>
                     <Parent>安装 Minecraft {0}</Parent>
-                    <Finalize>结束安装</Finalize>
+                        <Finalize>结束安装</Finalize>
+                        <Modpack>
+                            <Parent>安装整合包 {0}</Parent>
+                            <Prepare>检查整合包与准备文件</Prepare>
+                            <Download>下载整合包文件</Download>
+                            <Overrides>应用整合包配置文件</Overrides>
+                        </Modpack>
                     <Fabric>
                         <GetVersionInfo>获取 Fabric 版本信息</GetVersionInfo>
                         <DownloadApi>下载 Fabric API</DownloadApi>
@@ -380,8 +403,36 @@
             </Tasks>
         </TaskPage>
 
+        <ModpackImport>
+            <Title>导入 Modrinth 整合包</Title>
+            <TargetFolder>安装到游戏目录</TargetFolder>
+            <NewVersionName>新版本名称</NewVersionName>
+            <OptionalFiles>可选文件（默认全部安装）</OptionalFiles>
+            <PickerTitle>选择 Modrinth 整合包</PickerTitle>
+            <FileType>Modrinth 整合包</FileType>
+            <Install>安装</Install>
+            <Cancel>取消</Cancel>
+            <NoRoots>没有可用的游戏目录，请先在版本管理中添加目录。</NoRoots>
+            <Close>关闭</Close>
+            <TargetExists>目标名称已被使用或无法写入，请检查目录或更改新版本名称。</TargetExists>
+            <AlreadyOpen>已打开整合包导入窗口，请先完成或关闭该窗口。</AlreadyOpen>
+            <InstallFailed>无法创建整合包安装任务，请查看日志中的错误详情。</InstallFailed>
+            <Fabric>Fabric</Fabric>
+            <Forge>Forge</Forge>
+            <Inspecting>正在检查整合包...</Inspecting>
+            <CreatingPlan>正在创建安装任务...</CreatingPlan>
+            <PackSummary>{0} ({1})，Minecraft {2}，加载器：{3}</PackSummary>
+            <Vanilla>原版</Vanilla>
+            <InvalidTarget>请选择有效目录并填写有效的新版本名称。</InvalidTarget>
+            <ErrorTitle>整合包导入失败</ErrorTitle>
+            <UnsupportedDependency>不支持整合包依赖：{0}</UnsupportedDependency>
+            <InvalidArchive>所选文件不是有效的 Modrinth 整合包：{0}</InvalidArchive>
+            <ReadFailed>读取整合包失败：{0}</ReadFailed>
+        </ModpackImport>
+
         <VersionManagePage>
             <Title>版本管理</Title>
+            <SelectedBadge>已选中</SelectedBadge>
             <CommandBar>
                 <InstallVersion>安装版本</InstallVersion>
                 <SwitchMinecraftFolder>切换目录</SwitchMinecraftFolder>
@@ -538,6 +589,15 @@
             <PermanentDeleteManyDescription>当前环境不支持回收站。确定永久删除选中的 {0} 个模组吗？此操作无法撤销。</PermanentDeleteManyDescription>
             <ErrorTitle>模组操作失败</ErrorTitle>
             <Failed>无法完成操作：{0}</Failed>
+            <ImportDialog>
+                <ConflictTitle>模组文件已存在</ConflictTitle>
+                <Conflict>已存在“{1}”。是否使用“{0}”替换？已禁用的模组将保持禁用。</Conflict>
+                <AmbiguousConflict>同时存在启用和禁用的同名模组，请先处理文件冲突。</AmbiguousConflict>
+                <ApplyToAll>对此次其余冲突使用相同操作</ApplyToAll>
+                <Replace>替换</Replace>
+                <Skip>跳过</Skip>
+                <Cancel>取消剩余导入</Cancel>
+            </ImportDialog>
         </VersionModsPage>
 
         <HelpPage>

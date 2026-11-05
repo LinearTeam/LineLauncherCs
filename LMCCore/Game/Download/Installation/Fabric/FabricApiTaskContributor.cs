@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMCCore.Game.Launching.Steps.Resources;
+using LMCCore.Game.Download.Installation.Caching;
 
 namespace LMCCore.Game.Download.Installation.Fabric;
 
@@ -33,8 +34,12 @@ public sealed class FabricApiTaskContributor : IInstallationSubTaskContributor
             {
                 context.CacheManager.EnsureCacheDirectoryExists();
                 var path = Path.Combine(context.CacheManager.CacheDirectory, "fabric-api.jar");
-                await InstallationFileDownloader.DownloadFileWithFallbackAsync([api.Url], path, cancellationToken)
+                var reused = await GameInstallationLocalReuseHelper.TryPopulateFabricApiFromLocalModsAsync(
+                    context.Request.RootPath, path, api.FileName, api.Sha1, api.Size, cancellationToken)
                     .ConfigureAwait(false);
+                if (!reused)
+                    await InstallationFileDownloader.DownloadFileWithFallbackAsync([api.Url], path, cancellationToken)
+                        .ConfigureAwait(false);
                 var result = GameLaunchFileIntegrityHelper.CheckFile(path, api.Sha1, api.Size, cancellationToken);
                 if (!result.IsValid)
                     throw new InvalidDataException($"Fabric API validation failed: {result.Reason}");

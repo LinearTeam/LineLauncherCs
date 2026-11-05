@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using LMC;
 using LMCCore.Tasks.Model;
 
@@ -105,6 +106,7 @@ public sealed class GameInstallationCacheManager
             if (_trackedTasks.TryAdd(task.Id, task))
             {
                 task.Completed += OnTrackedTaskCompleted;
+                task.PropertyChanged += OnTrackedTaskPropertyChanged;
             }
         }
 
@@ -133,9 +135,16 @@ public sealed class GameInstallationCacheManager
         TryCleanupAfterAllTasksFinished();
     }
 
+    private void OnTrackedTaskPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == nameof(SubTaskBase.IsExecuting))
+            TryCleanupAfterAllTasksFinished();
+    }
+
     private void TryCleanupAfterAllTasksFinished()
     {
-        if (_parentTask.SubTasks.Any(task => !task.IsFinished))
+        // Cancellation changes State immediately, before executors have released their file handles.
+        if (_parentTask.SubTasks.Any(task => !task.IsFinished || task.IsExecuting))
         {
             return;
         }
@@ -148,6 +157,7 @@ public sealed class GameInstallationCacheManager
         foreach (var trackedTask in _trackedTasks.Values)
         {
             trackedTask.Completed -= OnTrackedTaskCompleted;
+            trackedTask.PropertyChanged -= OnTrackedTaskPropertyChanged;
         }
 
         Cleanup();

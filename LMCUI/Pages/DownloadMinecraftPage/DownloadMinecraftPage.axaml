@@ -33,13 +33,15 @@
             </ui:FASettingsExpander>
         </Grid>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
             <AutoCompleteBox Name="SearchBox"
                              MinimumPrefixLength="0"
                              PlaceholderText="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Search.Watermark}"
                              TextChanged="SearchBox_OnTextChanged" />
 
-            <Button Grid.Column="1">
+            <Button Name="ImportModpackButton" Grid.Column="1" Click="ImportModpackButton_OnClick"
+                    Content="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.ImportModpack}" />
+            <Button Grid.Column="2">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <ui:FASymbolIcon Symbol="Filter" VerticalAlignment="Center" />
                     <TextBlock Name="FilterButtonText" VerticalAlignment="Center"

@@ -13,8 +13,10 @@
 //    limitations under the License.
 
 using LMC;
+using LMC.Basic.Configs;
 using LMCCore.Game.Model;
 using LMCCore.Game.Model.Configuration;
+using LMCCore.Game.Modpacks;
 using LMCCore.Game.Versioning;
 
 namespace LMCCore.Game.Download.Installation.Finalization;
@@ -25,8 +27,31 @@ public class GameInstallationFinalizer
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        if (context.Request.Modpack != null)
+        {
+            var content = Path.Combine(context.CacheManager.CacheDirectory, "modpack", "content");
+            var requiredBytes = Directory.EnumerateFiles(content, "*", SearchOption.AllDirectories)
+                .Append(context.CacheManager.CachedVersionJsonPath).Append(context.CacheManager.CachedClientJarPath)
+                .Where(File.Exists).Sum(file => new FileInfo(file).Length);
+            ModpackPaths.EnsureSpace(context.Request.RootPath, requiredBytes);
+            await NewVersionPublisher.PublishAsync(context.Request.RootPath, context.Request.VersionName,
+                (stagingRoot, token) => FinalizeCoreAsync(context, stagingRoot, token),
+                () =>
+                {
+                    if (Current.Config.DefaultVersionConfigSourceForNewInstalls == NewVersionConfigSource.LMCDataDirectory)
+                        WriteConfig(context, context.Request.RootPath);
+                }, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        await FinalizeCoreAsync(context, context.Request.RootPath, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task FinalizeCoreAsync(
+        DownloadInstallationContext context, string outputRoot, CancellationToken cancellationToken)
+    {
         await context.CacheManager.CopyCacheToVersionDirectoryAsync(
-            context.Request.RootPath,
+            outputRoot,
             context.Request.VersionName,
             cancellationToken);
 
@@ -35,23 +60,41 @@ public class GameInstallationFinalizer
         {
             await context.CacheManager.CopyCachedFileToVersionDirectoryAsync(
                 optiFineState.CachedInstallerJarPath,
-                context.Request.RootPath,
+                outputRoot,
                 context.Request.VersionName,
                 Path.Combine("mods", optiFineState.StandaloneModFileName),
                 required: true,
                 cancellationToken);
         }
 
-        var vcm = new VersionConfigManager();
         if (context.Request.FabricApi is { } api)
         {
             await context.CacheManager.CopyCachedFileToVersionDirectoryAsync(
                 Path.Combine(context.CacheManager.CacheDirectory, "fabric-api.jar"),
-                context.Request.RootPath, context.Request.VersionName,
+                outputRoot, context.Request.VersionName,
                 Path.Combine("mods", api.FileName), required: true, cancellationToken);
         }
 
-        var path = Path.Combine(context.Request.RootPath, "versions", context.Request.VersionName);
+        if (context.Request.Modpack != null)
+        {
+            var contentDirectory = Path.Combine(context.CacheManager.CacheDirectory, "modpack", "content");
+            foreach (var file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await context.CacheManager.CopyCachedFileToVersionDirectoryAsync(file, outputRoot,
+                    context.Request.VersionName, Path.GetRelativePath(contentDirectory, file), required: true,
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        if (context.Request.Modpack == null
+            || Current.Config.DefaultVersionConfigSourceForNewInstalls != NewVersionConfigSource.LMCDataDirectory)
+            WriteConfig(context, outputRoot);
+    }
+
+    private static void WriteConfig(DownloadInstallationContext context, string outputRoot)
+    {
+        var path = Path.Combine(outputRoot, "versions", context.Request.VersionName);
         var entry = new LocalGameVersionEntry
         {
             ClientVersionId = context.Request.VersionId,
@@ -64,7 +107,7 @@ public class GameInstallationFinalizer
             VersionInfo = context.GetRequiredVersionInfo()
         };
         
-        vcm.WriteIndependentConfig(entry, new GameVersionConfig
+        new VersionConfigManager().WriteIndependentConfig(entry, new GameVersionConfig
         {
             Game = new GameVersionGameConfig
             {

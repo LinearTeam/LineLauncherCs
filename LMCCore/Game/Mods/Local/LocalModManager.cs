@@ -13,6 +13,8 @@
 //    limitations under the License.
 
 using System.Collections.Concurrent;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using LMCCore.Utils;
 
 namespace LMCCore.Game.Mods.Local;
@@ -21,6 +23,11 @@ public sealed class LocalModManager
 {
     private static readonly StringComparison s_pathComparison = OperatingSystem.IsWindows()
         ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> s_mutationLocks = new(
+        OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+
+    private sealed record ImportDestination(
+        string FilePath, long Length, DateTime CreationTimeUtc, DateTime LastWriteTimeUtc, FileAttributes Attributes);
 
     public string ModsDirectory { get; }
 
@@ -52,36 +59,119 @@ public sealed class LocalModManager
 
     public async Task ImportAsync(IEnumerable<string> paths, CancellationToken cancellationToken = default)
     {
-        Directory.CreateDirectory(ModsDirectory);
+        ArgumentNullException.ThrowIfNull(paths);
+        var result = await ImportCoreAsync(paths, (conflict, _) =>
+            throw new IOException($"A mod with this file name already exists: {Path.GetFileName(conflict.SourcePath)}"),
+            true, cancellationToken).ConfigureAwait(false);
+        if (result.Errors.Count > 0)
+            throw new IOException(result.Errors[0]);
+    }
+
+    public Task<ModImportResult> ImportAsync(
+        IEnumerable<string> paths,
+        Func<ModImportConflict, CancellationToken, Task<ModImportChoice>> resolveConflict,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(resolveConflict);
+        return ImportCoreAsync(paths, resolveConflict, false, cancellationToken);
+    }
+
+    private Task<ModImportResult> ImportCoreAsync(
+        IEnumerable<string> paths,
+        Func<ModImportConflict, CancellationToken, Task<ModImportChoice>> resolveConflict,
+        bool stopOnError,
+        CancellationToken cancellationToken) => MutateAsync(async markChanged =>
+    {
+        var imported = 0;
+        var skipped = 0;
+        var errors = new List<string>();
+        var applyToAll = (ModImportDecision?)null;
+        var cancelled = false;
+        var seenSources = new HashSet<string>(s_mutationLocks.Comparer);
+        EnsureModsDirectorySafe(create: true);
         foreach (var path in paths)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException("Only JAR files can be imported.");
-            var destination = Path.Combine(ModsDirectory, Path.GetFileName(path));
-            if (Path.GetFullPath(path).Equals(destination, s_pathComparison))
-                continue;
-            if (File.Exists(destination) || File.Exists(destination + ".disabled"))
-                throw new IOException($"A mod with this file name already exists: {Path.GetFileName(path)}");
-
-            var temporary = Path.Combine(ModsDirectory, $".import-{Guid.NewGuid():N}");
             try
             {
-                await using (var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
-                                 81920, FileOptions.Asynchronous | FileOptions.SequentialScan))
-                await using (var target = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write,
-                                 FileShare.None, 81920, FileOptions.Asynchronous))
-                    await source.CopyToAsync(target, cancellationToken).ConfigureAwait(false);
+                if (!path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("Only JAR files can be imported.");
+                var source = Path.GetFullPath(path);
+                var destination = Path.Combine(ModsDirectory, Path.GetFileName(source));
+                if (!seenSources.Add(source) || string.Equals(source, destination, s_pathComparison))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                EnsureOrdinaryJar(source);
+                EnsureModsDirectorySafe(create: false);
+                var approvedDestination = ReadImportDestination(destination);
+                if (approvedDestination is not null)
+                {
+                    var choice = applyToAll.HasValue ? new ModImportChoice(applyToAll.Value)
+                        : await resolveConflict(new ModImportConflict(source, approvedDestination.FilePath, false),
+                            cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (choice.ApplyToAll)
+                        applyToAll = choice.Decision;
+                    if (choice.Decision == ModImportDecision.Cancel)
+                    {
+                        cancelled = true;
+                        break;
+                    }
+                    if (choice.Decision == ModImportDecision.Skip)
+                    {
+                        skipped++;
+                        continue;
+                    }
+                    if (choice.Decision != ModImportDecision.Replace)
+                        throw new InvalidDataException("Invalid import conflict decision.");
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
-                File.Move(temporary, destination, overwrite: false);
+                EnsureModsDirectorySafe(create: false);
+                EnsureDestinationUnchanged(destination, approvedDestination);
+                // A callback may have removed the source or replaced it with a link.
+                EnsureOrdinaryJar(source);
+                var temporary = Path.Combine(ModsDirectory, $".import-{Guid.NewGuid():N}.tmp");
+                try
+                {
+                    await using (var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read,
+                                     81920, FileOptions.Asynchronous | FileOptions.SequentialScan))
+                    await using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write,
+                                     FileShare.None, 81920, FileOptions.Asynchronous))
+                    {
+                        await input.CopyToAsync(output, cancellationToken).ConfigureAwait(false);
+                        await output.FlushAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    EnsureModsDirectorySafe(create: false);
+                    EnsureDestinationUnchanged(destination, approvedDestination);
+                    File.Move(temporary, approvedDestination?.FilePath ?? destination,
+                        overwrite: approvedDestination is not null);
+                    imported++;
+                    markChanged();
+                }
+                finally
+                {
+                    if (File.Exists(temporary))
+                        File.Delete(temporary);
+                }
             }
-            finally
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
+                                      or ArgumentException)
             {
-                if (File.Exists(temporary))
-                    File.Delete(temporary);
+                if (stopOnError)
+                    throw;
+                errors.Add($"{Path.GetFileName(path)}: {ex.Message}");
             }
         }
-    }
+        return new ModImportResult(imported, skipped, errors, cancelled);
+    }, cancellationToken);
+
+    public static event Action<string>? Changed;
 
     public async Task<LocalModFile> SetEnabledAsync(
         LocalModFile mod, bool enabled, CancellationToken cancellationToken = default) =>
@@ -89,11 +179,14 @@ public sealed class LocalModManager
 
     public Task<IReadOnlyList<LocalModFile>> SetEnabledAsync(
         IEnumerable<LocalModFile> mods, bool enabled, CancellationToken cancellationToken = default) =>
-        Task.Run<IReadOnlyList<LocalModFile>>(() =>
+        MutateAsync<IReadOnlyList<LocalModFile>>(markChanged =>
         {
             var files = mods.ToArray();
+            if (files.Length == 0)
+                return Task.FromResult<IReadOnlyList<LocalModFile>>(files);
             foreach (var mod in files)
                 EnsureLocalFile(mod.FilePath);
+            EnsureModsDirectorySafe(create: false);
             foreach (var mod in files)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -101,12 +194,14 @@ public sealed class LocalModManager
                     continue;
                 var target = enabled ? mod.EnabledFilePath : mod.FilePath + ".disabled";
                 File.Move(mod.FilePath, target, overwrite: false);
+                markChanged();
             }
-            return files.Select(mod => mod with
+            var updated = files.Select(mod => mod with
             {
                 FilePath = enabled ? mod.EnabledFilePath : mod.EnabledFilePath + ".disabled",
                 IsEnabled = enabled
             }).ToArray();
+            return Task.FromResult<IReadOnlyList<LocalModFile>>(updated);
         }, cancellationToken);
 
     public Task DeleteAsync(LocalModFile mod, CancellationToken cancellationToken = default) =>
@@ -115,11 +210,121 @@ public sealed class LocalModManager
     public async Task DeleteAsync(
         IEnumerable<LocalModFile> mods, CancellationToken cancellationToken = default)
     {
-        var files = mods.ToArray();
-        foreach (var mod in files)
-            EnsureLocalFile(mod.FilePath);
-        foreach (var mod in files)
-            await SystemFileOperations.DeleteFileAsync(mod.FilePath, cancellationToken).ConfigureAwait(false);
+        await MutateAsync(async markChanged =>
+        {
+            var files = mods.ToArray();
+            if (files.Length == 0)
+                return true;
+            foreach (var mod in files) EnsureLocalFile(mod.FilePath);
+            EnsureModsDirectorySafe(create: false);
+            foreach (var mod in files)
+            {
+                var existed = File.Exists(mod.FilePath);
+                try
+                {
+                    await SystemFileOperations.DeleteFileAsync(mod.FilePath, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (existed && !File.Exists(mod.FilePath))
+                        markChanged();
+                }
+            }
+            return true;
+        }, cancellationToken).ConfigureAwait(false);
+    }
+
+    private SemaphoreSlim GetMutationLock() => s_mutationLocks.GetOrAdd(ModsDirectory, _ => new SemaphoreSlim(1, 1));
+
+    private Task<T> MutateAsync<T>(Func<Action, Task<T>> action, CancellationToken token) => Task.Run(async () =>
+    {
+        var gate = GetMutationLock();
+        await gate.WaitAsync(token).ConfigureAwait(false);
+        var changed = false;
+        try { return await action(() => changed = true).ConfigureAwait(false); }
+        finally
+        {
+            gate.Release();
+            if (changed)
+                RaiseChanged();
+        }
+    }, token);
+
+    private void EnsureModsDirectorySafe(bool create)
+    {
+        EnsureVersionDirectoryExists();
+        FileAttributes attributes;
+        try { attributes = File.GetAttributes(ModsDirectory); }
+        catch (Exception ex) when (create && (ex is FileNotFoundException or DirectoryNotFoundException))
+        {
+            // Unlike Directory.CreateDirectory, these calls never recreate a missing version parent.
+            var created = OperatingSystem.IsWindows()
+                ? CreateDirectoryWindows(ModsDirectory, IntPtr.Zero)
+                : CreateDirectoryUnix(ModsDirectory, 0x1FF) == 0;
+            var error = Marshal.GetLastPInvokeError();
+            if (!created && !Directory.Exists(ModsDirectory))
+                throw new IOException("Unable to create the version's mods directory.", new Win32Exception(error));
+            EnsureVersionDirectoryExists();
+            attributes = File.GetAttributes(ModsDirectory);
+        }
+        if ((attributes & FileAttributes.Directory) == 0 || (attributes & FileAttributes.ReparsePoint) != 0)
+            throw new IOException("The version's mods directory must be an ordinary directory, not a link.");
+    }
+
+    [DllImport("kernel32.dll", EntryPoint = "CreateDirectoryW", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool CreateDirectoryWindows(string path, IntPtr securityAttributes);
+
+    [DllImport("libc", EntryPoint = "mkdir", SetLastError = true)]
+    private static extern int CreateDirectoryUnix([MarshalAs(UnmanagedType.LPUTF8Str)] string path, uint mode);
+
+    private static ImportDestination? ReadImportDestination(string destination)
+    {
+        var enabled = ReadDestinationFile(destination);
+        var disabled = ReadDestinationFile(destination + ".disabled");
+        if (enabled is not null && disabled is not null)
+            throw new IOException("Both enabled and disabled mod files exist; import was skipped.");
+        return enabled ?? disabled;
+    }
+
+    private static ImportDestination? ReadDestinationFile(string path)
+    {
+        try
+        {
+            EnsureOrdinaryJar(path);
+            var info = new FileInfo(path);
+            return new ImportDestination(path, info.Length, info.CreationTimeUtc, info.LastWriteTimeUtc, info.Attributes);
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return null;
+        }
+    }
+
+    private static void EnsureDestinationUnchanged(string destination, ImportDestination? approvedDestination)
+    {
+        if (ReadImportDestination(destination) != approvedDestination)
+            throw new IOException("The destination mod changed during import; import was skipped. Try importing again.");
+    }
+
+    private void EnsureVersionDirectoryExists()
+    {
+        if (!Directory.Exists(Path.GetDirectoryName(ModsDirectory)!))
+            throw new DirectoryNotFoundException("The game version directory no longer exists.");
+    }
+
+    private static void EnsureOrdinaryJar(string path)
+    {
+        var attributes = File.GetAttributes(path);
+        if ((attributes & (FileAttributes.Directory | FileAttributes.ReparsePoint)) != 0)
+            throw new InvalidDataException("The selected file must be an ordinary local JAR file.");
+    }
+
+    private void RaiseChanged()
+    {
+        foreach (Action<string> handler in Changed?.GetInvocationList() ?? [])
+            try { handler(Path.GetDirectoryName(ModsDirectory)!); }
+            catch { /* Subscribers must not break a completed mutation. */ }
     }
 
     private void EnsureLocalFile(string path)

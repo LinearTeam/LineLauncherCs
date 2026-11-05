@@ -33,18 +33,19 @@ using LMCUI.I18n;
 
 namespace LMCUI.Pages.VersionManagePage;
 
-public partial class VersionGameSettingsPage : PageBase
+public partial class VersionGameSettingsPage : PageBase, IVersionContextPage
 {
     private readonly Logger _logger = new("VersionGameSettingsPage");
     private readonly VersionConfigManager _versionConfigManager = new();
     private readonly DispatcherTimer _configWriteTimer;
     private LocalGameVersionEntry? _version;
+    public LocalGameVersionEntry? TargetVersion => _version;
     private GameVersionConfig _independentConfig = new();
     private VersionConfigWriteRequest? _pendingConfigWrite;
     private bool _isLoadingSettings;
     private bool _isSavingConfig;
 
-    public VersionGameSettingsPage() : base("Pages.VersionGameSettingsPage.Title", "VersionGameSettingsPage")
+    public VersionGameSettingsPage() : base("Pages.SettingsPage.GameSettingsPage.Title", "VersionGameSettingsPage")
     {
         InitializeComponent();
         _configWriteTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
@@ -65,7 +66,7 @@ public partial class VersionGameSettingsPage : PageBase
         FlushConfigWrite();
         _version = version;
         _independentConfig = _versionConfigManager.GetIndependentConfigModel(version) ?? new GameVersionConfig();
-        Title = I18nManager.Instance.GetString("Pages.VersionGameSettingsPage.Title", version.VersionName);
+        Title = I18nManager.Instance.GetString("Pages.SettingsPage.GameSettingsPage.Title");
         LoadLaunchSettings();
     }
 

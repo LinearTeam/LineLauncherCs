@@ -44,6 +44,7 @@ internal sealed class VersionRenderData
     public required VersionDisplayType DisplayType { get; init; }
     public required string Description { get; init; }
     public IReadOnlyList<string> Badges { get; init; } = [];
+    public bool IsSelected { get; set; }
     public required VersionIconKind IconKind { get; init; }
     public string? IconPath { get; init; }
     public IImage? Icon { get; set; }
@@ -93,6 +94,18 @@ internal sealed class VersionManagePageRefreshState
 
 internal static class VersionManagePagePresentation
 {
+    public static IReadOnlyList<VersionRenderData> PrepareVersionList(
+        IReadOnlyList<VersionRenderData> versions, string? selectedVersionName)
+    {
+        foreach (var version in versions)
+        {
+            version.IsSelected = !string.IsNullOrEmpty(selectedVersionName) &&
+                string.Equals(version.Version.VersionName, selectedVersionName, StringComparison.Ordinal);
+        }
+
+        return versions.OrderByDescending(version => version.IsSelected).ToArray();
+    }
+
     public static VersionDisplayType GetDisplayType(LocalGameVersionEntry version)
     {
         if (version.Status != VersionStatus.Valid)

@@ -60,6 +60,7 @@ public class DownloadManager
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
         EnsureRequestIsSupported(request);
 
         var plan = _taskPlanner.CreatePlan(request);
@@ -149,6 +150,7 @@ public class DownloadManager
             new ForgeInstallationTaskProvider(),
             new ForgePostProcessingTaskProvider(),
             new OptiFineInstallationTaskProvider(),
+            new ModrinthModpackTaskProvider(),
             new GameInstallationFinalizationTaskProvider()
         ];
     }
@@ -181,6 +183,9 @@ public class DownloadManager
     private static IEnumerable<DownloadInstallationComponent> GetRequestedComponents(DownloadableGameVersion request)
     {
         yield return DownloadInstallationComponent.Vanilla;
+
+        if (request.Modpack != null)
+            yield return DownloadInstallationComponent.Modpack;
 
         foreach (var loader in request.Loaders)
         {

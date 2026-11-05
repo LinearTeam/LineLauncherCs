@@ -13,7 +13,6 @@
 //    limitations under the License.
 
 using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using LMC;
 using System.Text;
@@ -22,12 +21,15 @@ namespace LMCCore.Utils;
 
 public sealed class HttpUtils
 {
+    internal const string ProjectUserAgent =
+        "LMCCS/" + Current.VersionType + "-" + Current.Version + "-" + Current.BuildNumber + " (LinearTeam)";
+
     private readonly static HttpClient s_httpClient = new HttpClient();
     internal static IHttpRequestTransport Transport { get; set; } = new HttpClientRequestTransport(s_httpClient);
 
     static HttpUtils()
     {
-        s_httpClient.DefaultRequestHeaders.UserAgent.ParseAdd($"LMC/C{Current.Version}-{Current.BuildNumber}-{Current.VersionType} Mozilla/5.0 ({RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} {RuntimeInformation.RuntimeIdentifier}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0");
+        s_httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(ProjectUserAgent);
     }
 
     public static HttpRequestBuilder CreateRequest(string url) => new HttpRequestBuilder(url);

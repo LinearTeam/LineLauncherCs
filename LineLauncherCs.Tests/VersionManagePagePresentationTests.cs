@@ -19,6 +19,34 @@ namespace LineLauncherCs.Tests;
 
 public class VersionManagePagePresentationTests
 {
+    [Theory]
+    [InlineData("selected")]
+    [InlineData("first")]
+    [InlineData("missing")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void PrepareVersionList_PinsOnlySelectedVersionAndPreservesOtherOrdering(string? selectedName)
+    {
+        var versions = new[] { "first", "second", "selected", "last" }
+            .Select(name => VersionManagePagePresentation.BuildVersionRenderData(
+                CreateEntry("1.21.1", VersionStatus.Valid, name), _ => "Release", "Unknown",
+                (_, _) => (VersionIconKind.Symbol, null)))
+            .ToArray();
+
+        var result = VersionManagePagePresentation.PrepareVersionList(versions, selectedName);
+
+        var expected = selectedName == "selected"
+            ? new[] { "selected", "first", "second", "last" }
+            : new[] { "first", "second", "selected", "last" };
+        Assert.Equal(expected, result.Select(version => version.Version.VersionName));
+        Assert.All(result, version => Assert.Equal(version.Version.VersionName == selectedName, version.IsSelected));
+        Assert.Equal(new[] { "first", "second", "selected", "last" },
+            versions.Select(version => version.Version.VersionName));
+
+        var cleared = VersionManagePagePresentation.PrepareVersionList(result, null);
+        Assert.All(cleared, version => Assert.False(version.IsSelected));
+    }
+
     [Fact]
     public void BuildVersionRenderData_UsesFallbackTextAndResolvedIcon()
     {

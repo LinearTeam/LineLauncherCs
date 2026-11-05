@@ -231,6 +231,20 @@ public class VersionManager(
     /// A complete scan may need to download the version manifest merely to improve display metadata,
     /// whereas this method only reads local files needed to validate the selected version.
     /// </summary>
+    // File imports must not silently fall back to a different version or change the user's selection.
+    public Task<LocalGameVersionEntry?> ResolveExplicitlySelectedLaunchVersionAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var rootPath = Current.Config.SelectedGameRootPath;
+        if (string.IsNullOrWhiteSpace(rootPath))
+            return Task.FromResult<LocalGameVersionEntry?>(null);
+        rootPath = NormalizeRootPath(rootPath);
+        var selections = Current.Config.SelectedLaunchVersionsByGameRoot;
+        var name = selections != null && selections.TryGetValue(rootPath, out var selectedName)
+            ? selectedName : Current.Config.SelectedLaunchVersionName;
+        return Task.Run(() => TryReadLaunchableVersionAsync(rootPath, name, cancellationToken), cancellationToken);
+    }
+
     public async Task<LocalGameVersionEntry?> ResolveSelectedLaunchVersionAsync(
         CancellationToken cancellationToken = default)
     {

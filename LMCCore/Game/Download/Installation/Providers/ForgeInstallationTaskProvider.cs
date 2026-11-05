@@ -74,6 +74,10 @@ public sealed class ForgeInstallationTaskProvider : ModLoaderInstallationTaskPro
     {
         ArgumentNullException.ThrowIfNull(loader);
 
+        if (context.Request.Modpack != null && loader.Metadata == null)
+            await ForgeVersionResolver.ResolveModpackMetadataAsync(context.Request.VersionId, loader, cancellationToken)
+                .ConfigureAwait(false);
+
         var installerUrl = ForgeVersionResolver.ResolveInstallerDownloadUrl(context.Request.VersionId, loader);
         var installerFileName = Path.GetFileName(new Uri(installerUrl).LocalPath);
         var installerJarPath = Path.Combine(context.CacheManager.CacheDirectory, installerFileName);

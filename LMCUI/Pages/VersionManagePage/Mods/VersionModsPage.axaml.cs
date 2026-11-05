@@ -32,7 +32,7 @@ using LMCUI.Utils;
 
 namespace LMCUI.Pages.VersionManagePage.Mods;
 
-public partial class VersionModsPage : PageBase
+public partial class VersionModsPage : PageBase, IVersionContextPage
 {
     private readonly Logger _logger = new("VersionModsPage");
     private LocalModManager? _manager;
@@ -41,13 +41,26 @@ public partial class VersionModsPage : PageBase
     private CancellationTokenSource? _scanCts;
     private bool _isBusy;
     private bool _updatingList;
+    private bool _isPageLoaded;
+    private bool _pendingExternalRefresh;
+    public LocalGameVersionEntry? TargetVersion { get; private set; }
 
     public VersionModsPage() : base("Pages.VersionModsPage.Title", "VersionModsPage")
     {
         InitializeComponent();
         ModList.ItemsSource = _visibleMods;
-        Loaded += (_, _) => _ = RefreshAsync();
-        Unloaded += (_, _) => _scanCts?.Cancel();
+        Loaded += (_, _) =>
+        {
+            _isPageLoaded = true;
+            LocalModManager.Changed += OnModsChanged;
+            _ = RefreshAsync();
+        };
+        Unloaded += (_, _) =>
+        {
+            _isPageLoaded = false;
+            _scanCts?.Cancel();
+            LocalModManager.Changed -= OnModsChanged;
+        };
     }
 
     public override void ProcessParameter(object? param)
@@ -55,6 +68,7 @@ public partial class VersionModsPage : PageBase
         base.ProcessParameter(param);
         if (param is not LocalGameVersionEntry version)
             return;
+        TargetVersion = version;
         _manager = new LocalModManager(version.VersionDirectory);
         VersionNameText.Text = version.VersionName;
         Title = Text("Title");
@@ -63,17 +77,23 @@ public partial class VersionModsPage : PageBase
     private static string Text(string key, params object[] args) =>
         I18nManager.Instance.GetString("Pages.VersionModsPage." + key, args);
 
-    private async Task RefreshAsync(bool clearError = true)
+    private async Task RefreshAsync(bool clearError = true, bool showLoading = true)
     {
-        if (_manager == null || _isBusy)
+        if (_manager == null)
             return;
+        if (_isBusy)
+        {
+            if (!showLoading)
+                _pendingExternalRefresh = true;
+            return;
+        }
         _scanCts?.Cancel();
         using var request = new CancellationTokenSource();
         _scanCts = request;
         SetBusy(true);
-        LoadingPanel.IsVisible = true;
-        LoadingRing.IsActive = true;
-        ModList.IsVisible = EmptyPanel.IsVisible = false;
+        LoadingPanel.IsVisible = LoadingRing.IsActive = showLoading;
+        if (showLoading)
+            ModList.IsVisible = EmptyPanel.IsVisible = false;
         if (clearError)
             ErrorBar.IsOpen = false;
         try
@@ -151,6 +171,22 @@ public partial class VersionModsPage : PageBase
         EmptyImportButton.IsVisible = _mods.Count == 0;
     }
 
+    public Task RefreshAfterExternalImportAsync() => RefreshAsync(clearError: false, showLoading: false);
+
+    private void OnModsChanged(string versionDirectory)
+    {
+        if (!string.Equals(TargetVersion?.VersionDirectory, versionDirectory,
+                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+            return;
+        Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        {
+            if (!_isPageLoaded || !string.Equals(TargetVersion?.VersionDirectory, versionDirectory,
+                    OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                return;
+            await RefreshAfterExternalImportAsync();
+        });
+    }
+
     private static void UpdateModItem(ModListItem item, LocalModFile file)
     {
         item.Update(file, Text(file.IsEnabled ? "DisableMod" : "EnableMod"));
@@ -161,6 +197,15 @@ public partial class VersionModsPage : PageBase
         _isBusy = busy;
         SelectionCommands.IsEnabled = !busy;
         ImportButton.IsEnabled = RefreshButton.IsEnabled = ModList.IsEnabled = EmptyImportButton.IsEnabled = !busy;
+        if (!busy && _pendingExternalRefresh && _isPageLoaded)
+        {
+            _pendingExternalRefresh = false;
+            Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+            {
+                if (_isPageLoaded)
+                    await RefreshAfterExternalImportAsync();
+            });
+        }
     }
 
     private void ShowError(Exception ex)
@@ -215,7 +260,7 @@ public partial class VersionModsPage : PageBase
             });
             var paths = files.Select(file => file.TryGetLocalPath()).OfType<string>().ToArray();
             if (paths.Length > 0)
-                await RunMutationAsync(manager => manager.ImportAsync(paths));
+                await ImportPathsAsync(paths);
         }
         catch (Exception ex)
         {
@@ -254,5 +299,29 @@ public partial class VersionModsPage : PageBase
     {
         PageLayout.Margin = e.NewSize.Width < 700
             ? new Thickness(20, 20, 20, 30) : new Thickness(60, 20, 40, 30);
+    }
+
+    public async Task ImportPathsAsync(string[] paths)
+    {
+        if (_manager == null || _isBusy || paths.Length == 0)
+            return;
+        SetBusy(true);
+        try
+        {
+            var manager = _manager;
+            var versionName = TargetVersion?.VersionName ?? VersionNameText.Text ?? string.Empty;
+            await ModImportDialogs.ImportAndNotifyAsync(manager, versionName, paths);
+            _mods = await _manager.ScanAsync();
+            ApplyFilter();
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex);
+        }
+        finally
+        {
+            SetBusy(false);
+            ApplyFilter();
+        }
     }
 }
