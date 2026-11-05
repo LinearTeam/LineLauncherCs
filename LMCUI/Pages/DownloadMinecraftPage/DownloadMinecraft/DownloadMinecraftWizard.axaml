@@ -5,11 +5,6 @@
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="300"
              x:Class="LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft.DownloadMinecraftWizard">
-    <Grid>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Orientation="Vertical" Spacing="5">
-                <ui:FAFrame Name="contentFrm" IsVisible="False"/>
-            </StackPanel>
-        </ScrollViewer>
-    </Grid>
+    <!-- ContentDialog owns vertical scrolling for the whole wizard. -->
+    <ui:FAFrame Name="contentFrm" IsVisible="False" HorizontalContentAlignment="Stretch" />
 </UserControl>

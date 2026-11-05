@@ -40,6 +40,8 @@ public class AppConfig {
 
     public string SelectedLanguage { get; set; } = "zh-CN";
 
+    public LauncherThemePreference ThemePreference { get; set; } = LauncherThemePreference.System;
+
     public NewVersionConfigSource DefaultVersionConfigSourceForNewInstalls { get; set; } =
         NewVersionConfigSource.VersionJson;
 
@@ -50,5 +52,12 @@ public class AppConfig {
 public enum DownloadSourcePolicy
 {
     BmclapiFirst, OfficialFirst
+}
+
+public enum LauncherThemePreference
+{
+    System,
+    Light,
+    Dark
 }
 

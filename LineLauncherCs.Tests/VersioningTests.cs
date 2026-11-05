@@ -478,6 +478,33 @@ public class VersioningTests
     }
 
     [Fact]
+    public void VersionConfigManager_GetEffectiveConfig_ResolvesUnsavedEditsWithoutChangingStorage()
+    {
+        using var scope = new TestFileSystemScope();
+        var version = CreateLocalGameVersionEntry(scope, "editable");
+        var globalPath = scope.GetPath("global_version_config.json");
+        File.WriteAllText(globalPath, """
+        { "Java": { "JvmArguments": "-Dinherited=true", "MaxMemoryMb": 2048 } }
+        """);
+        var manager = new VersionConfigManager(globalConfigPath: globalPath);
+        var originalJson = File.ReadAllText(version.JsonPath!);
+        var draft = new GameVersionConfig
+        {
+            UseGlobalGameSettings = false,
+            Java = new GameVersionJavaConfig { MaxMemoryMb = 6144 }
+        };
+
+        var effective = manager.GetEffectiveConfigModel(version, draft)!;
+
+        Assert.False(effective.UseGlobalGameSettings);
+        Assert.Equal(6144, effective.Java!.MaxMemoryMb);
+        Assert.Equal("-Dinherited=true", effective.Java.JvmArguments);
+        Assert.Null(draft.Java.JvmArguments);
+        Assert.Equal(originalJson, File.ReadAllText(version.JsonPath!));
+        Assert.Null(manager.GetIndependentConfigModel(version));
+    }
+
+    [Fact]
     public void VersionConfigManager_WriteIndependentConfig_WritesToVersionFolder()
     {
         using var scope = new TestFileSystemScope();

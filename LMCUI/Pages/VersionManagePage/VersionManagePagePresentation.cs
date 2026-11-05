@@ -43,6 +43,7 @@ internal sealed class VersionRenderData
     public required LocalGameVersionEntry Version { get; init; }
     public required VersionDisplayType DisplayType { get; init; }
     public required string Description { get; init; }
+    public IReadOnlyList<string> Badges { get; init; } = [];
     public required VersionIconKind IconKind { get; init; }
     public string? IconPath { get; init; }
     public IImage? Icon { get; set; }
@@ -131,6 +132,8 @@ internal static class VersionManagePagePresentation
             Version = version,
             DisplayType = displayType,
             Description = $"{getDisplayTypeText(displayType)} {VersionSummaryPresentation.Build(version, unknownClientVersionText, includeMinecraftLabel: false)}",
+            Badges = VersionSummaryPresentation.BuildBadges(version, unknownClientVersionText)
+                .Prepend(getDisplayTypeText(displayType)).ToArray(),
             IconKind = iconKind,
             IconPath = iconPath
         };

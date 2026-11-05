@@ -19,6 +19,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using LMCUI.I18n;
+using LMC.Basic.Logging;
+using LMCCore.Game.Mods;
 
 namespace LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 
@@ -30,6 +32,8 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
     private CancellationTokenSource? _loadCts;
     private bool _isFinal;
     private bool _isLoading;
+    private CancellationTokenSource? _apiLoadCts;
+    private IReadOnlyList<FabricApiVersion>? _apiVersions;
 
     public LoaderSelectionStep()
     {
@@ -47,6 +51,8 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
 
     public override void Leave()
     {
+        _apiLoadCts?.Cancel();
+        _apiLoadCts = null;
         _loadCts?.Cancel();
         _loadCts = null;
         _context = null;
@@ -77,7 +83,8 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
                 _selection.DisplayType,
                 _selection.FabricVersion,
                 _selection.ForgeVersion,
-                _selection.OptiFineVersion));
+                _selection.OptiFineVersion,
+                _selection.FabricApi));
     }
 
     public override (Type? type, object? data) PreviousStep() => (null, null);
@@ -103,7 +110,10 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
             NoneText,
             I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Validation.FabricOptiFineWarning"));
 
-        _selection = state.Selection;
+        _selection = state.Selection is { FabricVersion: not null } selection
+            ? selection with { FabricApi = FabricApiComboBox.SelectedItem as FabricApiVersion }
+            : state.Selection;
+        UpdateFabricApiState(_selection?.FabricVersion != null);
         _isFinal = state.IsFinal;
         ValidationText.Text = state.ValidationMessage;
         ValidationText.IsVisible = state.IsValidationVisible;
@@ -145,6 +155,76 @@ public partial class LoaderSelectionStep : DownloadMinecraftStep
     }
 
     private static string NoneText => I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.None");
+
+    private void UpdateFabricApiState(bool fabricSelected)
+    {
+        FabricApiExpander.IsVisible = fabricSelected;
+        if (!fabricSelected)
+        {
+            if (FabricApiComboBox.SelectedIndex > 0)
+                FabricApiComboBox.SelectedIndex = 0;
+            return;
+        }
+
+        if (_apiVersions == null && _apiLoadCts == null && !FabricApiRetryButton.IsVisible)
+            _ = LoadFabricApiAsync();
+    }
+
+    private void FabricApiRetryButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _ = LoadFabricApiAsync();
+    }
+
+    private async Task LoadFabricApiAsync()
+    {
+        if (_context == null || _apiLoadCts != null)
+            return;
+
+        var context = _context;
+        using var request = new CancellationTokenSource();
+        _apiLoadCts = request;
+        FabricApiRing.IsVisible = FabricApiRing.IsActive = true;
+        FabricApiRetryButton.IsVisible = false;
+        FabricApiComboBox.IsEnabled = false;
+        FabricApiComboBox.ItemsSource = new object[] { NoneText };
+        FabricApiComboBox.SelectedIndex = 0;
+        FabricApiExpander.Description = I18nManager.Instance.GetString(
+            "Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.FabricApi.Loading");
+        try
+        {
+            var versions = await FabricApiCatalog.GetVersionsAsync(context.ManifestVersionId, request.Token);
+            if (request.IsCancellationRequested || !ReferenceEquals(_context, context))
+                return;
+
+            _apiVersions = versions;
+            FabricApiComboBox.ItemsSource = versions.Cast<object>().Prepend(NoneText).ToArray();
+            FabricApiComboBox.SelectedIndex = 0;
+            FabricApiExpander.Description = I18nManager.Instance.GetString(
+                "Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.FabricApi."
+                + (versions.Count == 0 ? "Empty" : "Description"));
+        }
+        catch (OperationCanceledException) when (request.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            new Logger("FabricApiCatalog").Error(ex, "Loading Fabric API versions");
+            if (!request.IsCancellationRequested && ReferenceEquals(_context, context))
+            {
+                FabricApiExpander.Description = I18nManager.Instance.GetString(
+                    "Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.FabricApi.Failed");
+                FabricApiRetryButton.IsVisible = true;
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(_apiLoadCts, request))
+            {
+                _apiLoadCts = null;
+                FabricApiRing.IsVisible = FabricApiRing.IsActive = false;
+                FabricApiComboBox.IsEnabled = _apiVersions is { Count: > 0 };
+            }
+        }
+    }
+
     async private Task LoadCatalogAsync(DownloadMinecraftWizardContext context, CancellationTokenSource requestCts)
     {
         try

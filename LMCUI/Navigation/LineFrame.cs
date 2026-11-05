@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
@@ -84,6 +85,7 @@ public class LineFrame : ContentControl
     /// 是否正在返回（用于动画方向判断）
     /// </summary>
     private bool _isNavigatingBack;
+    private CancellationTokenSource? _transitionCts;
 
     /// <summary>
     /// 导航完成事件
@@ -193,14 +195,21 @@ public class LineFrame : ContentControl
     {
         try
         {
+            var newPage = PageRegistry.Instance.CreateInstance(registration, param);
+
             // 保存当前页面到历史（仅在需要记录历史时）
-            if (recordHistory && CurrentPage != null)
+            if (recordHistory && CurrentPage != null && !ReferenceEquals(CurrentPage, newPage))
             {
                 _historyStack.Push(new NavigationHistoryEntry(CurrentPage, registration, _currentParam));
             }
 
-            // 根据存储模式获取或创建页面实例
-            var newPage = PageRegistry.Instance.CreateInstance(registration, param);
+            CancelTransition();
+            if (ReferenceEquals(Content, newPage))
+            {
+                // Reattach cached pages so a repeated menu click runs their Loaded refresh logic.
+                Content = null;
+                Presenter?.UpdateChild();
+            }
 
             // 执行动画切换
             if (IsAnimationEnabled && AnimationDuration > 0)
@@ -232,6 +241,8 @@ public class LineFrame : ContentControl
     /// </summary>
     async private void PerformTransitionAnimation(PageBase newPage, PageRegistration registration, object? param)
     {
+        var transitionCts = new CancellationTokenSource();
+        _transitionCts = transitionCts;
         // 设置新页面
         CurrentPage = newPage;
         _currentParam = param;
@@ -281,20 +292,60 @@ public class LineFrame : ContentControl
             animation.Children.Add(endKeyframe);
 
             // 执行动画
-            await animation.RunAsync(newPage);
+            await animation.RunAsync(newPage, transitionCts.Token);
+
+            if (transitionCts.IsCancellationRequested || !ReferenceEquals(CurrentPage, newPage))
+            {
+                return;
+            }
 
             // 动画完成后清理变换
+            newPage.Opacity = 1;
             newPage.RenderTransform = null;
 
             s_logger.Debug($"导航到 {registration.PageType.Name} (动画完成)");
             OnNavigated(newPage, registration, param);
         }
+        catch (OperationCanceledException) when (transitionCts.IsCancellationRequested)
+        {
+        }
         catch (Exception ex)
         {
+            if (transitionCts.IsCancellationRequested || !ReferenceEquals(CurrentPage, newPage))
+            {
+                return;
+            }
+
             s_logger.Error(ex, "动画执行失败");
             newPage.Opacity = 1;
             newPage.RenderTransform = null;
             OnNavigated(newPage, registration, param);
+        }
+        finally
+        {
+            if (ReferenceEquals(_transitionCts, transitionCts))
+            {
+                _transitionCts = null;
+            }
+
+            transitionCts.Dispose();
+        }
+    }
+
+    private void CancelTransition()
+    {
+        var transitionCts = _transitionCts;
+        if (transitionCts == null)
+        {
+            return;
+        }
+
+        _transitionCts = null;
+        transitionCts.Cancel();
+        if (CurrentPage is { } page)
+        {
+            page.Opacity = 1;
+            page.RenderTransform = null;
         }
     }
 
@@ -345,6 +396,7 @@ public class LineFrame : ContentControl
         }
 
         var entry = _historyStack.Pop();
+        CancelTransition();
 
         // 对于 Singleton 页面，更新其参数
         if (entry.Registration.StorageMode == PageStorageMode.Singleton)
@@ -392,6 +444,7 @@ public class LineFrame : ContentControl
     /// </summary>
     public void SetContent(PageBase page)
     {
+        CancelTransition();
         CurrentPage = page;
         _currentParam = null;
         Content = page;

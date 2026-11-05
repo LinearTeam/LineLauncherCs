@@ -6,6 +6,7 @@
                 xmlns:launch="clr-namespace:LMCUI.Pages.LaunchPage"
                 xmlns:pages="clr-namespace:LMCUI.Pages"
                 xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:metadata="clr-namespace:LMCUI.Controls.Metadata"
                 mc:Ignorable="d"
                 d:DesignWidth="800"
                 d:DesignHeight="450"
@@ -166,10 +167,7 @@
                                                 Spacing="2">
                                         <TextBlock Text="{Binding VersionName}"
                                                    TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="{Binding VersionSummary}"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                   FontSize="12"
-                                                   TextTrimming="CharacterEllipsis" />
+                                        <metadata:MetadataBadges ItemsSource="{Binding VersionBadges}" />
                                     </StackPanel>
                                     <ui:FASymbolIcon Grid.Column="2"
                                                      Margin="0,0,4,0"

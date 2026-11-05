@@ -23,7 +23,8 @@
             <StackPanel Orientation="Vertical"
                         Spacing="1"
                         behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
-                <Label Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Header}" />
+                <Label Padding="0"
+                       Content="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Header}" />
                 <TextBlock Name="AccountListDescription"
                            Margin="0,0,0,8"
                            Text="{i18n:I18nBinding Key=Pages.AccountPage.AccountListExpander.Description}"

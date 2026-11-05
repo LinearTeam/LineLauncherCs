@@ -12,11 +12,45 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 using LMCUI.Navigation;
+using LMCUI.Pages;
 
 namespace LineLauncherCs.Tests;
 
 public class NavigationSupportTests
 {
+    [Fact]
+    public Task Navigate_ToSameCachedPage_ReopensWithoutDuplicatingHistory() => TestAppBuilder.RunOnUiThreadAsync(() =>
+    {
+        var page = new TestPage();
+        var frame = new LineFrame { IsAnimationEnabled = false };
+        var registration = new PageRegistration
+        {
+            PageType = typeof(TestPage),
+            Factory = _ => page
+        };
+        var navigated = 0;
+        frame.Navigated += (_, _) => navigated++;
+        Assert.True(frame.Navigate(registration));
+
+        var contentChanges = new List<object?>();
+        frame.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == LineFrame.ContentProperty)
+                contentChanges.Add(frame.Content);
+        };
+
+        Assert.True(frame.Navigate(registration));
+
+        Assert.Equal(2, navigated);
+        Assert.Collection(contentChanges, value => Assert.Null(value), value => Assert.Same(page, value));
+        Assert.Same(page, frame.CurrentPage);
+        Assert.Equal(0, frame.HistoryCount);
+    });
+
+    private sealed class TestPage : PageBase
+    {
+    }
+
     [Fact]
     public void MainWindowNavigationMap_CreateDefaultContainsExpectedPages()
     {
@@ -24,6 +58,6 @@ public class NavigationSupportTests
 
         Assert.Equal("LMCUI.Pages.LaunchPage.LaunchPage", map["LaunchPage"].FullName);
         Assert.Equal("LMCUI.Pages.SettingsPage.SettingsPage", map["SettingsPage"].FullName);
-        Assert.Equal(7, map.Count);
+        Assert.Equal(map["DownloadMinecraftPage"], map["DownloadPage"]);
     }
 }

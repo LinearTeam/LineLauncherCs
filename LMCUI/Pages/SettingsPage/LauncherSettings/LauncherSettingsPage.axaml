@@ -15,7 +15,14 @@
         <ScrollViewer>
             <StackPanel Orientation="Vertical" Spacing="1"
                         behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
-                <Label Content="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.Title}" Margin="0, 20"/>
+                <Label Content="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.Title}" Margin="0,20"/>
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.ThemeExpander.Header}"
+                                       Description="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.ThemeExpander.Description}"
+                                       IconSource="ColorFill">
+                    <ui:FASettingsExpander.Footer>
+                        <ComboBox Name="ThemeComboBox" SelectionChanged="ThemeComboBox_OnSelectionChanged" />
+                    </ui:FASettingsExpander.Footer>
+                </ui:FASettingsExpander>
                 <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Header}"
                                      Description="{i18n:I18nBinding Key=Pages.SettingsPage.LauncherSettingsPage.AppearanceSettings.LanguageExpander.Description}" IconSource="Globe">
                     <ui:FASettingsExpander.Footer>

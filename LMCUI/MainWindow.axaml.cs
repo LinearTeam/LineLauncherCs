@@ -345,9 +345,15 @@ public partial class MainWindow : FAAppWindow
         Instance.mainBcb.ItemsSource = Instance.BreadCrumbItemSource;
     }
 
-    private void Mnv_OnSelectionChanged(object? sender, FANavigationViewSelectionChangedEventArgs e)
+    private void Mnv_OnItemInvoked(object? sender, FANavigationViewItemInvokedEventArgs e)
     {
-        if (_isUpdatingNavigationSelection || e.SelectedItem is not FANavigationViewItem item)
+        if (_isUpdatingNavigationSelection)
+        {
+            return;
+        }
+
+        var item = e.IsSettingsInvoked ? mnv.SettingsItem : e.InvokedItemContainer as FANavigationViewItem;
+        if (item == null)
         {
             return;
         }
@@ -360,17 +366,12 @@ public partial class MainWindow : FAAppWindow
 
         if (_navItemTagToPageType.TryGetValue(tag, out var pageType))
         {
-            if (mainFrm.CurrentPage?.GetType() == pageType)
-            {
-                return;
-            }
-
             NavigatePage(pageType, NavigateType.New, item);
             return;
         }
 
         var registration = PageRegistry.Instance.MatchByTag(tag);
-        if (registration != null && mainFrm.CurrentPage?.GetType() != registration.PageType)
+        if (registration != null)
         {
             NavigatePage(registration.PageType, NavigateType.New, item);
         }

@@ -20,7 +20,7 @@ namespace LineLauncherCs.Tests;
 public class GameSettingsPagePresentationTests
 {
     [Fact]
-    public void BuildJavaItemViewData_MarksSelectedItemAndBuildsHeader()
+    public void BuildJavaItemViewData_KeepsMetadataSeparateFromHeader()
     {
         var items = GameSettingsPagePresentation.BuildJavaItemViewData(
             [
@@ -37,8 +37,11 @@ public class GameSettingsPagePresentationTests
 
         var item = Assert.Single(items);
         Assert.True(item.IsSelected);
-        Assert.Contains("JDK-17.0.9", item.Header);
-        Assert.Contains("已启用", item.Header);
+        Assert.Equal("JDK-17.0.9 Eclipse Adoptium", item.Header);
+        Assert.Equal(new[] { "JDK", "17.0.9" }, item.Badges.Take(2));
+        Assert.Contains("Eclipse Adoptium", item.Badges);
+        Assert.DoesNotContain("已启用", item.Badges);
+        Assert.Equal(new[] { "已启用" }, item.EnabledBadges);
     }
 
     [Fact]
@@ -49,7 +52,8 @@ public class GameSettingsPagePresentationTests
 
         var items = GameSettingsPagePresentation.BuildJavaItems(
             [
-                new JavaItemViewData("a", "A", true),
+                new JavaItemViewData("a", "A", true)
+                    { Badges = ["21", "x64"], EnabledBadges = ["Enabled"] },
                 new JavaItemViewData("b", "B", false)
             ],
             selectedBrush,
@@ -57,6 +61,9 @@ public class GameSettingsPagePresentationTests
 
         Assert.Same(selectedBrush, items[0].Foreground);
         Assert.Same(defaultBrush, items[1].Foreground);
+        Assert.Equal(new[] { "21", "x64" }, items[0].Badges);
+        Assert.Equal(new[] { "Enabled" }, items[0].EnabledBadges);
+        Assert.Empty(items[1].EnabledBadges);
     }
 
     [Fact]

@@ -34,6 +34,10 @@
                                        ActionIconSource="ChevronRight"
                                        IsClickEnabled="True"
                                        Click="GameSettingsExpander_OnClick" />
+                <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.VersionDetailPage.ModsNav.Header}"
+                                       Description="{i18n:I18nBinding Key=Pages.VersionDetailPage.ModsNav.Description}"
+                                       IconSource="Library" ActionIconSource="ChevronRight"
+                                       IsClickEnabled="True" Click="ModsExpander_OnClick" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -37,6 +37,22 @@
             </ui:FASettingsExpander.Footer>
         </ui:FASettingsExpander>
 
+        <ui:FASettingsExpander x:Name="FabricApiExpander" IsVisible="False"
+                               Header="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.FabricApi.Header}"
+                               Description="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.FabricApi.Description}">
+            <ui:FASettingsExpander.Footer>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ui:FAProgressRing x:Name="FabricApiRing" Width="16" Height="16"
+                                       IsVisible="False" IsActive="False" />
+                    <Button x:Name="FabricApiRetryButton" IsVisible="False"
+                            Content="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Retry}"
+                            Click="FabricApiRetryButton_OnClick" />
+                    <ComboBox x:Name="FabricApiComboBox" MinWidth="120" MaxWidth="220"
+                              SelectionChanged="ComboBox_OnSelectionChanged" />
+                </StackPanel>
+            </ui:FASettingsExpander.Footer>
+        </ui:FASettingsExpander>
+
         <ui:FASettingsExpander x:Name="ForgeExpander"
                                Header="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Forge.Header}"
                                Description="{i18n:I18nBinding Key=Pages.DownloadMinecraftPage.Wizard.Steps.LoaderSelectionStep.Forge.Description}">

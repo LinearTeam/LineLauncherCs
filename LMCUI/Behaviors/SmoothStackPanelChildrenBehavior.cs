@@ -20,6 +20,7 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 
@@ -94,7 +95,7 @@ public static class SmoothStackPanelChildrenBehavior
         animator.Dispose();
     }
 
-    private sealed class StackPanelAnimator : IDisposable
+    internal sealed class StackPanelAnimator : IDisposable
     {
         private readonly static TimeSpan s_animationDuration = TimeSpan.FromMilliseconds(160);
         private readonly static TimeSpan s_layoutSettleDelay = TimeSpan.FromMilliseconds(50);
@@ -108,6 +109,7 @@ public static class SmoothStackPanelChildrenBehavior
         private readonly List<Control> _removedChildren = [];
         private readonly DispatcherTimer _layoutSettleTimer;
         private bool _hasInitialSnapshot;
+        private double _crossAxisSize = double.NaN;
         private bool _isDisposed;
 
         public StackPanelAnimator(StackPanel panel)
@@ -136,6 +138,11 @@ public static class SmoothStackPanelChildrenBehavior
             _panel.DetachedFromVisualTree -= OnDetachedFromVisualTree;
             _layoutSettleTimer.Stop();
             _layoutSettleTimer.Tick -= LayoutSettleTimer_OnTick;
+            foreach (var transform in _transforms.Values)
+            {
+                SetTransformImmediately(transform, 0, 0);
+            }
+
             _lastBounds.Clear();
             _stableBounds.Clear();
             _transforms.Clear();
@@ -167,6 +174,7 @@ public static class SmoothStackPanelChildrenBehavior
             _pendingChildren.Clear();
             _layoutSettleTimer.Stop();
             _hasInitialSnapshot = false;
+            _crossAxisSize = double.NaN;
         }
 
         private void OnLayoutUpdated(object? sender, EventArgs e)
@@ -179,9 +187,9 @@ public static class SmoothStackPanelChildrenBehavior
             AnalyzeLayout();
         }
 
-        private void AnalyzeLayout()
+        internal void AnalyzeLayout()
         {
-            if (_isDisposed || !_panel.IsEffectivelyVisible)
+            if (_isDisposed)
             {
                 return;
             }
@@ -197,10 +205,18 @@ public static class SmoothStackPanelChildrenBehavior
                 }
             }
 
-            if (!_hasInitialSnapshot)
+            var isVertical = _panel.Orientation == Orientation.Vertical;
+            var crossAxisSize = isVertical ? _panel.Bounds.Width : _panel.Bounds.Height;
+            if (!_hasInitialSnapshot || Math.Abs(crossAxisSize - _crossAxisSize) > 0.5)
             {
+                // Width changes are a new layout constraint, not a child-reordering animation.
+                foreach (var transform in _transforms.Values)
+                    SetTransformImmediately(transform, 0, 0);
+                _pendingChildren.Clear();
+                _layoutSettleTimer.Stop();
                 SnapshotChildren(_visibleChildren);
                 _hasInitialSnapshot = true;
+                _crossAxisSize = crossAxisSize;
                 return;
             }
 
@@ -216,7 +232,8 @@ public static class SmoothStackPanelChildrenBehavior
                     continue;
                 }
 
-                var hasCurrentBoundsChanged = !_lastBounds.TryGetValue(child, out var previousBounds)
+                var hasPreviousBounds = _lastBounds.TryGetValue(child, out var previousBounds);
+                var hasCurrentBoundsChanged = !hasPreviousBounds
                                               || HasBoundsChanged(currentBounds, previousBounds);
 
                 if (!_stableBounds.TryGetValue(child, out var stableBounds))
@@ -229,18 +246,37 @@ public static class SmoothStackPanelChildrenBehavior
                 if (hasCurrentBoundsChanged)
                 {
                     hasLayoutChanges = true;
+                    if (hasPreviousBounds && !_pendingChildren.Contains(child))
+                    {
+                        // Retarget from the visible position, not the previous animation's destination.
+                        var translation = _transforms.TryGetValue(child, out var activeTransform)
+                            ? new Vector(activeTransform.X, activeTransform.Y)
+                            : default;
+                        stableBounds = previousBounds.Translate(translation);
+                        _stableBounds[child] = stableBounds;
+                    }
                 }
 
-                if (HasBoundsChanged(currentBounds, stableBounds))
+                var offset = isVertical ? stableBounds.Y - currentBounds.Y : stableBounds.X - currentBounds.X;
+                if (Math.Abs(offset) > 0.5)
                 {
                     _pendingChildren.Add(child);
                     HoldChildAtStablePosition(child, currentBounds, stableBounds);
+                }
+                else
+                {
+                    _stableBounds[child] = currentBounds;
+                    if (_pendingChildren.Remove(child) && _transforms.TryGetValue(child, out var heldTransform))
+                    {
+                        // A quick reversal can return to the origin before the settle timer fires.
+                        SetTransformImmediately(heldTransform, 0, 0);
+                    }
                 }
 
                 _lastBounds[child] = currentBounds;
             }
 
-            if (hasLayoutChanges || _pendingChildren.Count > 0)
+            if (hasLayoutChanges && _pendingChildren.Count > 0)
             {
                 _layoutSettleTimer.Stop();
                 _layoutSettleTimer.Start();
@@ -275,7 +311,10 @@ public static class SmoothStackPanelChildrenBehavior
                 _lastBounds.Remove(child);
                 _stableBounds.Remove(child);
                 _pendingChildren.Remove(child);
-                _transforms.Remove(child);
+                if (_transforms.Remove(child, out var transform))
+                {
+                    SetTransformImmediately(transform, 0, 0);
+                }
             }
         }
 

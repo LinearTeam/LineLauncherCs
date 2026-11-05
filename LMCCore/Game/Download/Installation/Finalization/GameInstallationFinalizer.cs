@@ -43,6 +43,14 @@ public class GameInstallationFinalizer
         }
 
         var vcm = new VersionConfigManager();
+        if (context.Request.FabricApi is { } api)
+        {
+            await context.CacheManager.CopyCachedFileToVersionDirectoryAsync(
+                Path.Combine(context.CacheManager.CacheDirectory, "fabric-api.jar"),
+                context.Request.RootPath, context.Request.VersionName,
+                Path.Combine("mods", api.FileName), required: true, cancellationToken);
+        }
+
         var path = Path.Combine(context.Request.RootPath, "versions", context.Request.VersionName);
         var entry = new LocalGameVersionEntry
         {

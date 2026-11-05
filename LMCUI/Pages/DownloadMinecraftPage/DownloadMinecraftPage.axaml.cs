@@ -342,6 +342,7 @@ public partial class DownloadMinecraftPage : PageBase
         var dialog = new FAContentDialog
         {
             Title = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.Title", version.Id),
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
             CloseButtonText = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Dialog.CloseButton"),
             PrimaryButtonText = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.PreviousButton"),
             SecondaryButtonText = I18nManager.Instance.GetString("Pages.DownloadMinecraftPage.Wizard.FinishButton"),
@@ -349,6 +350,9 @@ public partial class DownloadMinecraftPage : PageBase
             IsPrimaryButtonEnabled = false,
             IsSecondaryButtonEnabled = true
         };
+        // Leave enough content width for SettingsExpander's inline footer layout.
+        dialog.Resources["ContentDialogMinWidth"] = 560d;
+        dialog.Resources["ContentDialogMaxWidth"] = 560d;
         var isDialogBusy = false;
         var allowProgrammaticClose = false;
 

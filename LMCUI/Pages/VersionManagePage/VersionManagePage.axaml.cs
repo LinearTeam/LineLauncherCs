@@ -82,8 +82,7 @@ public partial class VersionManagePage : PageBase
         var expander = new FASettingsExpander
         {
             IsClickEnabled = true,
-            Header = renderData.Version.VersionName,
-            Description = renderData.Description,
+            Header = VersionSummaryPresentation.CreateHeader(renderData.Version.VersionName, renderData.Badges),
             ActionIconSource = new FASymbolIconSource
             {
                 Symbol = FASymbol.ChevronRight

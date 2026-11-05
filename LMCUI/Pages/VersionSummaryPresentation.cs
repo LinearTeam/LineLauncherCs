@@ -15,6 +15,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia.Controls;
+using Avalonia.Media;
+using LMCUI.Controls.Metadata;
 using LMCUI.I18n;
 using LMCCore.Game.Model;
 using LMCCore.Game.Model.LocalVersion;
@@ -24,6 +27,14 @@ namespace LMCUI.Pages;
 internal static class VersionSummaryPresentation
 {
     public static string Build(
+        LocalGameVersionEntry version,
+        string unknownVersionText,
+        bool includeMinecraftLabel = true)
+    {
+        return string.Join(", ", BuildBadges(version, unknownVersionText, includeMinecraftLabel));
+    }
+
+    public static IReadOnlyList<string> BuildBadges(
         LocalGameVersionEntry version,
         string unknownVersionText,
         bool includeMinecraftLabel = true)
@@ -43,7 +54,20 @@ internal static class VersionSummaryPresentation
         };
         parts.AddRange(version.ModLoaders.Select(loader =>
             $"{GetString(GetLoaderNameKey(loader.Type))} {loader.VersionId}"));
-        return string.Join(", ", parts);
+        return parts;
+    }
+
+    public static Control CreateHeader(string name, IReadOnlyList<string> badges)
+    {
+        return new StackPanel
+        {
+            Spacing = 2,
+            Children =
+            {
+                new TextBlock { Text = name, TextTrimming = TextTrimming.CharacterEllipsis },
+                new MetadataBadges { ItemsSource = badges }
+            }
+        };
     }
 
     private static string GetString(string key, params object[] args)

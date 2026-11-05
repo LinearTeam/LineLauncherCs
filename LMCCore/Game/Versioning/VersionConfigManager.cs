@@ -51,19 +51,24 @@ public class VersionConfigManager(
         return GetIndependentConfig(version)?.Get<GameVersionConfig>();
     }
 
-    public JsonUtils? GetEffectiveConfig(LocalGameVersionEntry version)
+    public JsonUtils? GetEffectiveConfig(LocalGameVersionEntry version) => GetEffectiveConfig(version, null);
+
+    // Editors can resolve unsaved changes without reading an older independent config from disk.
+    public JsonUtils? GetEffectiveConfig(LocalGameVersionEntry version, GameVersionConfig? independentConfig)
     {
-        var independentConfig = GetIndependentConfig(version);
+        var config = independentConfig == null
+            ? GetIndependentConfig(version)
+            : JsonUtils.Parse(JsonSerializer.Serialize(independentConfig, JsonUtils.DefaultSerializerOptions));
         var globalConfig = LoadGlobalConfig();
 
-        if (independentConfig is { IsValid: true, Node: not null } && globalConfig is { IsValid: true, Node: not null })
+        if (config is { IsValid: true, Node: not null } && globalConfig is { IsValid: true, Node: not null })
         {
-            return globalConfig.Merge(independentConfig);
+            return globalConfig.Merge(config);
         }
 
-        if (independentConfig is { IsValid: true, Node: not null })
+        if (config is { IsValid: true, Node: not null })
         {
-            return independentConfig.Clone();
+            return config.Clone();
         }
 
         if (globalConfig is { IsValid: true, Node: not null })
@@ -77,6 +82,11 @@ public class VersionConfigManager(
     public GameVersionConfig? GetEffectiveConfigModel(LocalGameVersionEntry version)
     {
         return GetEffectiveConfig(version)?.Get<GameVersionConfig>();
+    }
+
+    public GameVersionConfig? GetEffectiveConfigModel(LocalGameVersionEntry version, GameVersionConfig independentConfig)
+    {
+        return GetEffectiveConfig(version, independentConfig)?.Get<GameVersionConfig>();
     }
 
     public T? GetValue<T>(LocalGameVersionEntry version, string path, T? defaultValue = default)

@@ -27,7 +27,7 @@
                                   HorizontalAlignment="Stretch" 
                                   VerticalAlignment="Top" />
 
-        <ui:FANavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" SelectionChanged="Mnv_OnSelectionChanged" IsSettingsVisible="True">
+        <ui:FANavigationView Name="mnv" PaneDisplayMode="Left" IsPaneOpen="False" ItemInvoked="Mnv_OnItemInvoked" IsSettingsVisible="True">
             <ui:FANavigationView.MenuItems>
                 <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.LaunchPage}" Tag="LaunchPage" IconSource="Play" />
                 <ui:FANavigationViewItem Content="{i18n:I18nBinding Key=MainWindow.NavItems.VersionManagePage}" Tag="VersionManagePage" IconSource="Games" />
@@ -46,7 +46,7 @@
                             <ui:FABreadcrumbBarItem Content="{Binding}" AutomationProperties.Name="{Binding Title}">
                                 <ui:FABreadcrumbBarItem.ContentTemplate>
                                     <DataTemplate DataType="model:BreadCrumbBarItem">
-                                        <TextBlock FontSize="20" Text="{Binding Title}" LineHeight="30"/>
+                                        <TextBlock FontSize="25" Text="{Binding Title}" LineHeight="30"/>
                                     </DataTemplate>
                                 </ui:FABreadcrumbBarItem.ContentTemplate>
                             </ui:FABreadcrumbBarItem>

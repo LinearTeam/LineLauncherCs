@@ -19,6 +19,45 @@ namespace LineLauncherCs.Tests;
 public class ConfigManagerTests
 {
     [Fact]
+    public void AppConfig_ThemePreference_DefaultsToSystemForExistingConfigurations()
+    {
+        var config = System.Text.Json.JsonSerializer.Deserialize<AppConfig>("{}");
+
+        Assert.Equal(LauncherThemePreference.System, config!.ThemePreference);
+    }
+
+    [Theory]
+    [InlineData(LauncherThemePreference.System)]
+    [InlineData(LauncherThemePreference.Light)]
+    [InlineData(LauncherThemePreference.Dark)]
+    public void Load_AppConfig_PreservesThemePreference(LauncherThemePreference preference)
+    {
+        using var scope = new TestFileSystemScope();
+        ConfigManager.ConfigDirectoryOverride = scope.RootPath;
+        try
+        {
+            ConfigManager.Save("app", new AppConfig { ThemePreference = preference });
+
+            Assert.Equal(preference, ConfigManager.Load<AppConfig>("app").ThemePreference);
+        }
+        finally
+        {
+            ConfigManager.ConfigDirectoryOverride = null;
+        }
+    }
+
+    [Theory]
+    [InlineData(LauncherThemePreference.System, "Default")]
+    [InlineData(LauncherThemePreference.Light, "Light")]
+    [InlineData(LauncherThemePreference.Dark, "Dark")]
+    [InlineData((LauncherThemePreference)999, "Default")]
+    public void GetThemeVariant_MapsPreferenceAndFallsBackToSystem(
+        LauncherThemePreference preference, string expected)
+    {
+        Assert.Equal(expected, LMCUI.App.GetThemeVariant(preference).Key);
+    }
+
+    [Fact]
     public void Load_MigratesAliasProcessorAndRemovedFieldsAcrossVersions()
     {
         using var scope = new TestFileSystemScope();

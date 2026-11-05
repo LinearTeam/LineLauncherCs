@@ -17,13 +17,18 @@ using System.IO;
 using System.Linq;
 using Avalonia.Media;
 using LMCCore.Java;
+using LMCUI.I18n;
 
 namespace LMCUI.Pages.SettingsPage.GameSettings;
 
 internal sealed record JavaItemViewData(
     string Path,
     string Header,
-    bool IsSelected);
+    bool IsSelected)
+{
+    public IReadOnlyList<string> Badges { get; init; } = [];
+    public IReadOnlyList<string> EnabledBadges { get; init; } = [];
+}
 
 internal static class GameSettingsPagePresentation
 {
@@ -33,10 +38,28 @@ internal static class GameSettingsPagePresentation
         string enabledText)
     {
         return javas
-            .Select(java => new JavaItemViewData(
-                java.Path,
-                BuildJavaHeader(java, selectedJavaPath, enabledText),
-                string.Equals(java.Path, selectedJavaPath, StringComparison.OrdinalIgnoreCase)))
+            .Select(java =>
+            {
+                var isSelected = string.Equals(java.Path, selectedJavaPath, StringComparison.OrdinalIgnoreCase);
+                var badges = new List<string>
+                {
+                    java.IsJdk ? "JDK" : "JRE",
+                    java.Version.ToString(),
+                    I18nManager.Instance.GetString(
+                        "Pages.SettingsPage.GameSettingsPage.JavaRuntime.JavaListExpander.JavaListItem.Bitness",
+                        java.Is64Bit ? 64 : 32)
+                };
+                if (!string.IsNullOrWhiteSpace(java.Implementor))
+                    badges.Add(java.Implementor);
+
+                return new JavaItemViewData(java.Path,
+                    $"{(java.IsJdk ? "JDK" : "JRE")}-{java.Version} {java.Implementor}".Trim(),
+                    isSelected)
+                {
+                    Badges = badges,
+                    EnabledBadges = isSelected ? [enabledText] : []
+                };
+            })
             .ToList();
     }
 
@@ -50,6 +73,8 @@ internal static class GameSettingsPagePresentation
             {
                 Path = item.Path,
                 Header = item.Header,
+                Badges = item.Badges,
+                EnabledBadges = item.EnabledBadges,
                 IsSelected = item.IsSelected,
                 Foreground = item.IsSelected ? selectedBrush : defaultBrush
             })
@@ -74,13 +99,5 @@ internal static class GameSettingsPagePresentation
         }
 
         return root;
-    }
-
-    private static string BuildJavaHeader(LocalJava java, string selectedJavaPath, string enabledText)
-    {
-        var selectedSuffix = string.Equals(java.Path, selectedJavaPath, StringComparison.OrdinalIgnoreCase)
-            ? $"({enabledText})"
-            : string.Empty;
-        return $"{(java.IsJdk ? "JDK" : "JRE")}-{java.Version} {java.Implementor} {selectedSuffix}".Trim();
     }
 }

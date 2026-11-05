@@ -32,6 +32,7 @@ internal static class MainWindowNavigationMap
             ["LaunchPage"] = typeof(LaunchPage),
             ["VersionManagePage"] = typeof(VersionManagePage),
             ["DownloadMinecraftPage"] = typeof(DownloadMinecraftPage),
+            ["DownloadPage"] = typeof(DownloadMinecraftPage),
             ["AccountPage"] = typeof(AccountPage),
             ["TaskPage"] = typeof(TaskPage),
             ["SettingsPage"] = typeof(SettingsPage),

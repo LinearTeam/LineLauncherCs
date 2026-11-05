@@ -991,14 +991,16 @@ public partial class LaunchPage : PageBase
         var contentWidth = _versionOptions
             .Select(option => Math.Max(
                 MeasureTextWidth(option.VersionName, AccountIdText),
-                MeasureTextWidth(option.VersionSummary, AccountTypeText)))
+                option.VersionBadges.Sum(badge => Math.Min(220, MeasureTextWidth(badge, AccountTypeText)) + 18)))
             .DefaultIfEmpty(0)
             .Max();
         var versionWidth = contentWidth + VersionSelectionPanelHorizontalChrome;
         var loadingWidth = _isVersionCatalogLoading
             ? MeasureTextWidth(VersionSelectionLoadingText.Text ?? string.Empty, VersionSelectionLoadingText) + 56
             : 0;
-        VersionSelectionPanel.Width = Math.Ceiling(Math.Max(versionWidth, loadingWidth));
+        var maximumWidth = Math.Max(280, Math.Min(560, Bounds.Width - 40));
+        VersionSelectionPanel.Width = Math.Clamp(Math.Ceiling(Math.Max(versionWidth, loadingWidth)),
+            280, maximumWidth);
     }
 
     private void UpdateAccountSelectionPanelWidth()
@@ -1063,7 +1065,7 @@ internal sealed record LaunchVersionOption(LocalGameVersionEntry Version, IImage
 {
     public string VersionName => Version.VersionName;
 
-    public string VersionSummary => VersionSummaryPresentation.Build(
+    public IReadOnlyList<string> VersionBadges { get; } = VersionSummaryPresentation.BuildBadges(
         Version,
         I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.UnknownClientVersion"));
 }

@@ -13,6 +13,19 @@
     <Application.Styles>
         <FluentTheme />
         <sty:FluentAvaloniaTheme />
+        <StyleInclude Source="avares://LMCUI/Styles/SettingsExpanderAnimations.axaml" />
+        <Style Selector="ui|FAContentDialog /template/ ContentPresenter#Content">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="ui|FASettingsExpander /template/ Expander#Expander">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="ui|FASettingsExpander /template/ Expander#Expander /template/ ToggleButton#ToggleButton">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="ui|FASettingsExpander /template/ Expander#Expander /template/ ToggleButton#ToggleButton /template/ ContentPresenter">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
         <Style Selector="ScrollViewer">
             <Setter Property="behaviors:SmoothScrollViewerBehavior.IsEnabled" Value="True" />
         </Style>

@@ -6,6 +6,8 @@
 
 下文所述的LMC均指代C#版本仓库。
 
+> **许可与品牌说明**：本项目代码采用 [Apache License 2.0](LICENSE.txt)。为衍生发行版命名或进行对外展示前，请阅读 [BRANDING.md](BRANDING.md)。请勿将独立发行版呈现为 LineLauncher 官方版本，或暗示不存在的官方关联。品牌政策不构成 Apache 2.0 代码许可的附加条件，不限制该许可证授予的使用、修改和再分发权利。
+
 ~~由于基本上只有我一个人开发，而且我比较懒，所以该项目会掺杂相当的AI成分~~
 
 ## 简介
@@ -58,6 +60,8 @@ LineLauncherCs/
 ```
 ### 版权
 本项目使用[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)许可协议，如需更多信息，请访问[LICENSE.txt](https://github.com/LinearTeam/LineLauncherCs/blob/main/LICENSE.txt)
+
+项目名称的使用规则见 [BRANDING.md](BRANDING.md)。该政策用于避免衍生项目与官方项目混淆，不改变代码的 Apache 2.0 授权。
 
 ### 依赖库版权声明
 #### System包

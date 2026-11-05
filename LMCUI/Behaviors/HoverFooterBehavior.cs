@@ -16,6 +16,7 @@ namespace LMCUI.Behaviors;
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
 using System;
@@ -23,15 +24,19 @@ using Avalonia.Markup.Xaml.Templates;
 
 public static class HoverFooterBehavior
 {
-    public readonly static AttachedProperty<ControlTemplate> FooterContentTemplateProperty =
-        AvaloniaProperty.RegisterAttached<Control, ControlTemplate>(
+    public readonly static AttachedProperty<ControlTemplate?> FooterContentTemplateProperty =
+        AvaloniaProperty.RegisterAttached<Control, ControlTemplate?>(
             "FooterContentTemplate", 
             typeof(HoverFooterBehavior));
 
-    public static ControlTemplate GetFooterContentTemplate(Control obj) =>
+    private readonly static AttachedProperty<ContentControl?> FooterContentProperty =
+        AvaloniaProperty.RegisterAttached<Control, ContentControl?>(
+            "FooterContent", typeof(HoverFooterBehavior));
+
+    public static ControlTemplate? GetFooterContentTemplate(Control obj) =>
         obj.GetValue(FooterContentTemplateProperty);
 
-    public static void SetFooterContentTemplate(Control obj, ControlTemplate value) =>
+    public static void SetFooterContentTemplate(Control obj, ControlTemplate? value) =>
         obj.SetValue(FooterContentTemplateProperty, value);
 
     private class BehaviorObserver : IObserver<AvaloniaPropertyChangedEventArgs>
@@ -42,11 +47,32 @@ public static class HoverFooterBehavior
             
             ctrl.PointerEntered -= OnPointerEntered;
             ctrl.PointerExited -= OnPointerExited;
-            
-            if (args.NewValue is ControlTemplate)
+            ctrl.PropertyChanged -= OnOwnerPropertyChanged;
+
+            if (ctrl.GetValue(FooterContentProperty) is { } previousFooter)
             {
+                if (ctrl is FASettingsExpander expander && ReferenceEquals(expander.Footer, previousFooter))
+                    expander.Footer = null;
+                else if (ctrl is FASettingsExpanderItem item && ReferenceEquals(item.Footer, previousFooter))
+                    item.Footer = null;
+                ctrl.ClearValue(FooterContentProperty);
+            }
+
+            if (args.NewValue is ControlTemplate template &&
+                ctrl is FASettingsExpander or FASettingsExpanderItem)
+            {
+                // Keep the measured action area so hover never changes the header's available width.
+                var footer = new ContentControl { Template = template };
+                ctrl.SetValue(FooterContentProperty, footer);
+                if (ctrl is FASettingsExpander expander)
+                    expander.Footer = footer;
+                else if (ctrl is FASettingsExpanderItem item)
+                    item.Footer = footer;
+
                 ctrl.PointerEntered += OnPointerEntered;
                 ctrl.PointerExited += OnPointerExited;
+                ctrl.PropertyChanged += OnOwnerPropertyChanged;
+                UpdateFooterVisibility(ctrl, ctrl.IsPointerOver || ctrl.IsKeyboardFocusWithin);
             }
         }
 
@@ -61,30 +87,28 @@ public static class HoverFooterBehavior
 
     private static void OnPointerEntered(object? sender, RoutedEventArgs e)
     {
-        if (sender is FASettingsExpander expander)
-            expander.Footer = CreateFooterContent(expander);
-        else if (sender is FASettingsExpanderItem item)
-            item.Footer = CreateFooterContent(item);
-    }
-
-    // 修复模板加载问题
-    private static Control CreateFooterContent(Control owner)
-    {
-        var template = GetFooterContentTemplate(owner);
-
-        // 正确加载模板
-        var contentControl = new ContentControl
-        {
-            Template = template
-        };
-        return contentControl;
+        if (sender is Control owner)
+            UpdateFooterVisibility(owner, true);
     }
 
     private static void OnPointerExited(object? sender, RoutedEventArgs e)
     {
-        if (sender is FASettingsExpander expander)
-            expander.Footer = null;
-        else if (sender is FASettingsExpanderItem item)
-            item.Footer = null;
+        if (sender is Control owner)
+            UpdateFooterVisibility(owner, owner.IsKeyboardFocusWithin);
+    }
+
+    private static void OnOwnerPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (sender is Control owner && e.Property == InputElement.IsKeyboardFocusWithinProperty)
+            UpdateFooterVisibility(owner, owner.IsPointerOver || owner.IsKeyboardFocusWithin);
+    }
+
+    internal static void UpdateFooterVisibility(Control owner, bool isVisible)
+    {
+        if (owner.GetValue(FooterContentProperty) is not { } footer)
+            return;
+
+        footer.Opacity = isVisible ? 1 : 0;
+        footer.IsHitTestVisible = isVisible;
     }
 }

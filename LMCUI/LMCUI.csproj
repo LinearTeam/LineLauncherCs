@@ -30,6 +30,11 @@
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Include="..\LICENSE.txt" LogicalName="LMCUI.Legal.LICENSE.txt" />
+      <EmbeddedResource Include="..\NOTICE" LogicalName="LMCUI.Legal.NOTICE" />
+    </ItemGroup>
+
+    <ItemGroup>
       <AvaloniaResource Include="Assets\LMC.png" />
       <AvaloniaResource Include="Assets\VersionIcons\aprilfools.png" />
       <AvaloniaResource Include="Assets\VersionIcons\old.png" />

@@ -52,10 +52,10 @@ public partial class VersionDetailPage : PageBase
 
         _version = version;
         Title = I18nManager.Instance.GetString("Pages.VersionDetailPage.Title", version.VersionName);
-        VersionSummaryExpander.Header = version.VersionName;
-        VersionSummaryExpander.Description = VersionSummaryPresentation.Build(
-            version,
-            I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.UnknownClientVersion"));
+        VersionSummaryExpander.Header = VersionSummaryPresentation.CreateHeader(
+            version.VersionName,
+            VersionSummaryPresentation.BuildBadges(version,
+                I18nManager.Instance.GetString("Pages.VersionManagePage.VersionType.UnknownClientVersion")));
         VersionSummaryExpander.IconSource = new FAImageIconSource
         {
             Source = LoadVersionIcon(version)
@@ -72,6 +72,15 @@ public partial class VersionDetailPage : PageBase
         MainWindow.NavigatePage(
             new PageNavigateWay(typeof(VersionGameSettingsPage), _version, selectedItem),
             NavigateType.Append);
+    }
+
+    private void ModsExpander_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (_version == null || MainWindow.Instance.mnv.SelectedItem is not FANavigationViewItem selectedItem)
+            return;
+
+        MainWindow.NavigatePage(
+            new PageNavigateWay(typeof(Mods.VersionModsPage), _version, selectedItem), NavigateType.Append);
     }
 
     private async void RenameVersionButton_OnClick(object? sender, RoutedEventArgs e)

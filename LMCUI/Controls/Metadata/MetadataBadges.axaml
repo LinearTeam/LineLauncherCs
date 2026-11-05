@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:LMCUI.Controls.Metadata"
+             x:Class="LMCUI.Controls.Metadata.MetadataBadges"
+             x:Name="Root" x:DataType="local:MetadataBadges"
+             Focusable="False">
+    <UserControl.Styles>
+        <Style Selector="Border.badge">
+            <Setter Property="Background" Value="{DynamicResource ControlAltFillColorQuarternaryBrush}" />
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="MaxWidth" Value="220" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style Selector="ItemsControl">
+            <Setter Property="ItemsPanel">
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="local|MetadataBadges.inline > ItemsControl">
+            <Setter Property="ItemsPanel">
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="local|MetadataBadges.inline TextBlock">
+            <Setter Property="MaxWidth" Value="120" />
+        </Style>
+        <Style Selector="local|MetadataBadges.success TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="local|MetadataBadges.success Border.badge">
+            <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" />
+        </Style>
+    </UserControl.Styles>
+    <ItemsControl ItemsSource="{Binding ItemsSource, ElementName=Root}">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+                <Border Classes="badge" Padding="4,0" Margin="0,0,4,0" MinHeight="18"
+                        CornerRadius="{DynamicResource ControlCornerRadius}">
+                    <TextBlock Text="{Binding}" FontSize="11"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding}" />
+                </Border>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

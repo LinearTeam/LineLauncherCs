@@ -1,0 +1,23 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:FluentAvalonia.UI.Controls">
+    <!-- Disable the library's async collapse, which can hide content after a quick re-expansion. -->
+    <Style Selector="ui|FASettingsExpander /template/ Expander#Expander">
+        <Setter Property="ui:FAExpanderExt.ExpanderAnimationType" Value="{x:Null}" />
+    </Style>
+    <!-- Leaving :expanded automatically stops this animation; no delayed visibility changes remain. -->
+    <Style Selector="ui|FASettingsExpander /template/ Expander#Expander:expanded /template/ Border#ExpanderContent">
+        <Style.Animations>
+            <Animation Duration="0:0:0.16" FillMode="None">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="-8" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+</Styles>

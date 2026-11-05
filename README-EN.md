@@ -6,6 +6,8 @@ This is its C# version repository. For the Visual Basic version, please refer to
 
 The term "LMC" mentioned below refers to the C# version repository.
 
+> **License & Branding**: This project's code is licensed under [Apache License 2.0](LICENSE.txt). Before naming or presenting a derivative distribution, please read [BRANDING.md](BRANDING.md). Do not present an independent distribution as an official LineLauncher release or imply an official affiliation that does not exist. The branding policy adds no conditions to the Apache 2.0 code license and does not restrict the rights to use, modify, or redistribute granted by that license.
+
 ~~This project contains a lot AI Generated codes because I am the only developer basicly and I am lazy~~
 
 ## Introduction
@@ -59,6 +61,8 @@ LineLauncherCs/
 
 ### Copyright
 This project is under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), for more information please visit [LICENSE.txt](https://github.com/LinearTeam/LineLauncherCs/blob/main/LICENSE.txt)
+
+See [BRANDING.md](BRANDING.md) for the project naming policy. It addresses confusion between derivatives and the official project without changing the code's Apache 2.0 license.
 
 ### Dependency Library Copyright Notice
 #### System packages

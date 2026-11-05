@@ -11,7 +11,23 @@
              xmlns:behaviors="clr-namespace:LMCUI.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LMCUI.Pages.SettingsPage.About.AboutPage">
-    
+    <pages:PageBase.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <ImageBrush x:Key="GitHubIconBrush"
+                                Source="/Assets/GitHub_Invertocat_Black.png"
+                                Stretch="Uniform" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <ImageBrush x:Key="GitHubIconBrush"
+                                Source="/Assets/GitHub_Invertocat_White.png"
+                                Stretch="Uniform" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </pages:PageBase.Resources>
+
     <Grid Margin="60, 20, 40, 30">
         <ScrollViewer>
             <StackPanel Orientation="Vertical"
@@ -27,8 +43,8 @@
                                 <StackPanel Orientation="Horizontal" Spacing="3">
                                     <HyperlinkButton NavigateUri="https://github.com/tmdakm">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
-                                            <Image MaxHeight="20" Source="/Assets/GitHub_Invertocat_White.png"/>
-                                            <!-- TODO: 根据主题切换使用的图标 -->
+                                            <Border Width="20" Height="20"
+                                                    Background="{DynamicResource GitHubIconBrush}" />
                                             <TextBlock Text="{i18n:I18nBinding Key=Pages.AboutPage.Author.GitHub}" TextAlignment="Center" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </HyperlinkButton>

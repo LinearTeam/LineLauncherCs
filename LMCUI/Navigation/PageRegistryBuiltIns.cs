@@ -25,6 +25,7 @@ internal static class PageRegistryBuiltIns
         registry.Register<Pages.DownloadMinecraftPage.DownloadMinecraftPage>("DownloadMinecraftPage");
         registry.Register(typeof(Pages.VersionManagePage.VersionDetailPage), "VersionDetailPage", PageStorageMode.Transient);
         registry.Register(typeof(Pages.VersionManagePage.VersionGameSettingsPage), "VersionGameSettingsPage", PageStorageMode.Transient);
+        registry.Register(typeof(Pages.VersionManagePage.Mods.VersionModsPage), "VersionModsPage", PageStorageMode.Transient);
         registry.Register<Pages.AccountPage.AccountPage>("AccountPage");
         registry.Register<Pages.TaskPage.TaskPage>("TaskPage");
         registry.Register<Pages.SettingsPage.SettingsPage>("SettingsPage");

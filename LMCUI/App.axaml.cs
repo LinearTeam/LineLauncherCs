@@ -12,14 +12,18 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
 using Avalonia.Threading;
+using FluentAvalonia.Styling;
 
 namespace LMCUI;
 
 using I18n;
+using LMC.Basic.Configs;
 using LMCCore.Tasks;
 using LMC.LifeCycle;
 
@@ -29,6 +33,7 @@ public partial class App : Application
     {
         AvaloniaXamlLoader.Load(this);
         Startup.Initialize();
+        ApplyThemePreference(LMC.Current.Config.ThemePreference);
         Dispatcher.UIThread.UnhandledException += OnUiThreadUnhandledException;
         I18nManager.Instance.LoadAllLanguages();
     }
@@ -47,5 +52,27 @@ public partial class App : Application
     private static void OnUiThreadUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         CrashReportManager.TryWriteReport(e.Exception, "Dispatcher.UIThread.UnhandledException", true);
+    }
+
+    internal static ThemeVariant GetThemeVariant(LauncherThemePreference preference)
+    {
+        return preference switch
+        {
+            LauncherThemePreference.Light => ThemeVariant.Light,
+            LauncherThemePreference.Dark => ThemeVariant.Dark,
+            _ => ThemeVariant.Default
+        };
+    }
+
+    internal void ApplyThemePreference(LauncherThemePreference preference)
+    {
+        var variant = GetThemeVariant(preference);
+        foreach (var theme in Styles.OfType<FluentAvaloniaTheme>())
+        {
+            // Prevent later system color notifications from overriding a manually selected theme.
+            theme.PreferSystemTheme = variant == ThemeVariant.Default;
+        }
+
+        RequestedThemeVariant = variant;
     }
 }

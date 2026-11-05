@@ -1,0 +1,179 @@
+<pages:PageBase xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:FluentAvalonia.UI.Controls"
+                xmlns:i18n="clr-namespace:LMCUI.I18n"
+                xmlns:pages="clr-namespace:LMCUI.Pages"
+                xmlns:local="clr-namespace:LMCUI.Pages.VersionManagePage.Mods"
+                xmlns:metadata="clr-namespace:LMCUI.Controls.Metadata"
+                x:Class="LMCUI.Pages.VersionManagePage.Mods.VersionModsPage"
+                SizeChanged="Page_OnSizeChanged">
+    <Grid x:Name="PageLayout" Margin="60,20,40,30" MaxWidth="1000"
+          RowDefinitions="Auto,Auto,*" RowSpacing="12">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <StackPanel VerticalAlignment="Center" Spacing="4">
+                <TextBlock x:Name="VersionNameText" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="ModCountText" FontSize="12"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <ui:FACommandBar x:Name="PageCommands" Grid.Column="1"
+                             DefaultLabelPosition="Right" VerticalAlignment="Center">
+                <ui:FACommandBar.PrimaryCommands>
+                    <ui:FACommandBarButton x:Name="ImportButton" IconSource="Add"
+                                           Label="{i18n:I18nBinding Key=Pages.VersionModsPage.Import}"
+                                           Click="ImportButton_OnClick" />
+                    <ui:FACommandBarButton x:Name="RefreshButton" IconSource="Refresh"
+                                           Label="{i18n:I18nBinding Key=Pages.VersionModsPage.Refresh}"
+                                           Click="RefreshButton_OnClick" />
+                    <ui:FACommandBarButton IconSource="OpenFolder"
+                                           Label="{i18n:I18nBinding Key=Pages.VersionModsPage.OpenFolder}"
+                                           Click="OpenFolderButton_OnClick" />
+                </ui:FACommandBar.PrimaryCommands>
+            </ui:FACommandBar>
+            <ui:FACommandBar x:Name="SelectionCommands" Grid.Column="1" IsVisible="False"
+                             DefaultLabelPosition="Right" VerticalAlignment="Center">
+                <ui:FACommandBar.PrimaryCommands>
+                    <ui:FACommandBarButton IconSource="Accept"
+                                           Label="{i18n:I18nBinding Key=Pages.VersionModsPage.EnableSelected}"
+                                           Click="EnableSelected_OnClick" />
+                    <ui:FACommandBarButton IconSource="Remove"
+                                           Label="{i18n:I18nBinding Key=Pages.VersionModsPage.DisableSelected}"
+                                           Click="DisableSelected_OnClick" />
+                    <ui:FACommandBarButton IconSource="Delete"
+                                           Label="{i18n:I18nBinding Key=Pages.VersionModsPage.Delete}"
+                                           Click="DeleteSelected_OnClick" />
+                </ui:FACommandBar.PrimaryCommands>
+                <ui:FACommandBar.SecondaryCommands>
+                    <ui:FACommandBarButton IconSource="SelectAll"
+                                           Label="{i18n:I18nBinding Key=Pages.VersionModsPage.SelectAll}"
+                                           Click="SelectAll_OnClick" />
+                    <ui:FACommandBarButton IconSource="Cancel"
+                                           Label="{i18n:I18nBinding Key=Pages.VersionModsPage.ClearSelection}"
+                                           Click="ClearSelection_OnClick" />
+                </ui:FACommandBar.SecondaryCommands>
+            </ui:FACommandBar>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox x:Name="SearchBox" TextChanged="SearchBox_OnTextChanged"
+                     PlaceholderText="{i18n:I18nBinding Key=Pages.VersionModsPage.Search}"
+                     AutomationProperties.Name="{i18n:I18nBinding Key=Pages.VersionModsPage.Search}" />
+            <ComboBox x:Name="StateFilter" Grid.Column="1" MinWidth="112" SelectedIndex="0"
+                      SelectionChanged="StateFilter_OnSelectionChanged"
+                      AutomationProperties.Name="{i18n:I18nBinding Key=Pages.VersionModsPage.Filter}">
+                <ComboBoxItem Content="{i18n:I18nBinding Key=Pages.VersionModsPage.All}" />
+                <ComboBoxItem Content="{i18n:I18nBinding Key=Pages.VersionModsPage.Enabled}" />
+                <ComboBoxItem Content="{i18n:I18nBinding Key=Pages.VersionModsPage.Disabled}" />
+            </ComboBox>
+        </Grid>
+
+        <Grid Grid.Row="2" RowDefinitions="Auto,*">
+            <ui:FAInfoBar x:Name="ErrorBar" IsOpen="False" IsClosable="True" Severity="Error"
+                          Title="{i18n:I18nBinding Key=Pages.VersionModsPage.ErrorTitle}" />
+            <ListBox x:Name="ModList" Grid.Row="1" Background="Transparent" BorderThickness="0"
+                     SelectionMode="Multiple,Toggle" SelectionChanged="ModList_OnSelectionChanged"
+                     ContextRequested="ModList_OnContextRequested"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Padding" Value="16,10" />
+                        <Setter Property="Margin" Value="0,0,0,4" />
+                        <Setter Property="MinHeight" Value="68" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Background" Value="{DynamicResource ExpanderHeaderBackground}" />
+                    </Style>
+                    <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Transitions">
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.083" />
+                            </Transitions>
+                        </Setter>
+                    </Style>
+                    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                    </Style>
+                    <Style Selector="ListBoxItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+                    </Style>
+                </ListBox.Styles>
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="local:ModListItem">
+                        <Grid ColumnDefinitions="Auto,24,*,Auto" ColumnSpacing="12" Background="Transparent">
+                            <CheckBox Width="20" MinWidth="20" VerticalAlignment="Center"
+                                      IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}"
+                                      AutomationProperties.Name="{Binding Name}" />
+                            <ui:FASymbolIcon Grid.Column="1" Symbol="Library" FontSize="24"
+                                             VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
+                                      ColumnSpacing="4" RowSpacing="2"
+                                      metadata:MetadataLayoutBehavior.NarrowWidth="400">
+                                    <Grid.Styles>
+                                        <Style Selector="Grid:not(.narrow) > metadata|MetadataBadges">
+                                            <Setter Property="MaxWidth" Value="220" />
+                                        </Style>
+                                        <Style Selector="Grid.narrow > metadata|MetadataBadges">
+                                            <Setter Property="Grid.ColumnSpan" Value="2" />
+                                        </Style>
+                                        <Style Selector="Grid > TextBlock">
+                                            <Setter Property="Grid.Column" Value="1" />
+                                            <Setter Property="TextWrapping" Value="NoWrap" />
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                        </Style>
+                                        <Style Selector="Grid.narrow > TextBlock">
+                                            <Setter Property="Grid.Column" Value="0" />
+                                            <Setter Property="Grid.Row" Value="1" />
+                                            <Setter Property="Grid.ColumnSpan" Value="2" />
+                                            <Setter Property="TextWrapping" Value="Wrap" />
+                                            <Setter Property="TextTrimming" Value="None" />
+                                        </Style>
+                                    </Grid.Styles>
+                                    <metadata:MetadataBadges ItemsSource="{Binding Badges}" Classes="inline"
+                                                             ClipToBounds="True"
+                                                             VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding FileName}" FontSize="12"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                               ToolTip.Tip="{Binding FileName}" />
+                                </Grid>
+                                <TextBlock IsVisible="{Binding HasMetadataError}" FontSize="12"
+                                           Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                           Text="{i18n:I18nBinding Key=Pages.VersionModsPage.MetadataError}" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="3" VerticalAlignment="Center"
+                                          IsChecked="{Binding IsEnabled, Mode=OneWay}"
+                                          OnContent="" OffContent=""
+                                          ToolTip.Tip="{Binding StateText}"
+                                          AutomationProperties.Name="{Binding StateText}"
+                                          IsCheckedChanged="ModToggle_OnIsCheckedChanged" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel x:Name="LoadingPanel" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <ui:FAProgressRing x:Name="LoadingRing" Width="32" Height="32" IsActive="False" />
+                <TextBlock Text="{i18n:I18nBinding Key=Pages.VersionModsPage.Loading}" />
+            </StackPanel>
+            <StackPanel x:Name="EmptyPanel" Grid.Row="1" IsVisible="False" MaxWidth="360" Spacing="12"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ui:FASymbolIcon Symbol="Library" FontSize="32" HorizontalAlignment="Center"
+                                 Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <TextBlock x:Name="EmptyTitleText" FontSize="20" HorizontalAlignment="Center" />
+                <TextBlock x:Name="EmptyDescriptionText" TextWrapping="Wrap" TextAlignment="Center"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <Button x:Name="EmptyImportButton" HorizontalAlignment="Center" Click="ImportButton_OnClick"
+                        Content="{i18n:I18nBinding Key=Pages.VersionModsPage.Import}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</pages:PageBase>

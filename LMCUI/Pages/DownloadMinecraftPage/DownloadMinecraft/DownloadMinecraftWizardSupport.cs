@@ -331,7 +331,8 @@ internal static class DownloadMinecraftWizardSupport
                 context.SelectedRootPath,
                 context.FabricVersion,
                 context.ForgeVersion,
-                context.OptiFineVersion),
+                context.OptiFineVersion,
+                context.FabricApi),
             null,
             true);
     }
@@ -366,7 +367,8 @@ internal static class DownloadMinecraftWizardSupport
             VersionId = selection.ManifestVersionId,
             VersionName = selection.VersionName,
             Loaders = [..loaders],
-            OptiFine = selection.OptiFineVersion
+            OptiFine = selection.OptiFineVersion,
+            FabricApi = string.IsNullOrWhiteSpace(selection.FabricVersion) ? null : selection.FabricApi
         };
     }
 

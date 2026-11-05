@@ -16,6 +16,7 @@ using Avalonia.Controls;
 using FluentAvalonia.UI.Media.Animation;
 
 using LMCCore.Game.Versioning.Discovery;
+using LMCCore.Game.Mods;
 
 namespace LMCUI.Pages.DownloadMinecraftPage.DownloadMinecraft;
 
@@ -134,7 +135,8 @@ public sealed record DownloadMinecraftSelectionContext(
     GameVersionDisplayType DisplayType,
     string? FabricVersion,
     ForgeVersionCatalogEntry? ForgeVersion,
-    string? OptiFineVersion);
+    string? OptiFineVersion,
+    FabricApiVersion? FabricApi = null);
 
 public sealed record DownloadableVersionSelection(
     string ManifestVersionId,
@@ -142,4 +144,5 @@ public sealed record DownloadableVersionSelection(
     string SelectedRootPath,
     string? FabricVersion,
     ForgeVersionCatalogEntry? ForgeVersion,
-    string? OptiFineVersion);
+    string? OptiFineVersion,
+    FabricApiVersion? FabricApi = null);

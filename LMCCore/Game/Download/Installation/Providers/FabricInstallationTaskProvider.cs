@@ -26,6 +26,7 @@ public sealed class FabricInstallationTaskProvider : ModLoaderInstallationTaskPr
     {
         ArgumentNullException.ThrowIfNull(context);
         _versionJsonModifier.AddTasks(context);
+        new FabricApiTaskContributor().AddTasks(context);
     }
 
     public Task<string> ModifyVersionJsonAsync(

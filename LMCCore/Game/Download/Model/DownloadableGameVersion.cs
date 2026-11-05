@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 using LMCCore.Game.Model.Loaders;
+using LMCCore.Game.Mods;
 
 namespace LMCCore.Game.Download.Model;
 
@@ -34,5 +35,8 @@ public class DownloadableGameVersion
 
     [JsonPropertyName("optiFine")]
     public string? OptiFine { get; set; }
+
+    [JsonPropertyName("fabricApi")]
+    public FabricApiVersion? FabricApi { get; set; }
 }
 

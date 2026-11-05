@@ -12,6 +12,51 @@
         <ScrollViewer>
             <StackPanel Orientation="Vertical" Spacing="8"
                         behaviors:SmoothStackPanelChildrenBehavior.IsEnabled="True">
+                <ui:FASettingsExpander Name="ProjectExpander"
+                                       Header="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Title}"
+                                       IsExpanded="True">
+                    <ui:FASettingsExpander.IconSource>
+                        <ui:FAImageIconSource Source="/Assets/ico.png" />
+                    </ui:FASettingsExpander.IconSource>
+                    <ui:FASettingsExpander.Items>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                   Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Team.Header}"
+                                                   Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Team.Description}">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <HyperlinkButton NavigateUri="https://github.com/LinearTeam"
+                                                 Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Team.Name}" />
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                   Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.License.Header}"
+                                                   Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.License.Description}">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.License.Read}"
+                                            Click="ReadLicense_OnClick" />
+                                    <HyperlinkButton NavigateUri="https://www.apache.org/licenses/LICENSE-2.0"
+                                                     Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.License.Title}" />
+                                </StackPanel>
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                   Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Notice.Title}"
+                                                   Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Notice.Description}">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <Button Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Notice.Read}"
+                                        Click="ReadNotice_OnClick" />
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                        <ui:FASettingsExpanderItem IsClickEnabled="False"
+                                                   Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Repository.Header}"
+                                                   Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Repository.Description}">
+                            <ui:FASettingsExpanderItem.Footer>
+                                <HyperlinkButton NavigateUri="https://github.com/LinearTeam/LineLauncherCs"
+                                                 Content="{i18n:I18nBinding Key=Pages.CopyrightPage.Project.Repository.LinkLabel}" />
+                            </ui:FASettingsExpanderItem.Footer>
+                        </ui:FASettingsExpanderItem>
+                    </ui:FASettingsExpander.Items>
+                </ui:FASettingsExpander>
                 <ui:FASettingsExpander Header="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.SystemGroup.Title}"
                                        Description="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.SystemGroup.Description}"
                                        IconSource="Document"
@@ -274,7 +319,7 @@
                             <ui:FASettingsExpanderItem.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="3">
                                     <HyperlinkButton NavigateUri="https://bmclapi2.bangbang93.com/">
-                                        <TextBlock Text="GitHub"/>
+                                        <TextBlock Text="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.BMCLAPI.LinkLabel}"/>
                                     </HyperlinkButton>
                                 </StackPanel>
                             </ui:FASettingsExpanderItem.Footer>
@@ -283,7 +328,7 @@
                             <ui:FASettingsExpanderItem.Footer>
                                 <StackPanel Orientation="Horizontal" Spacing="3">
                                     <HyperlinkButton NavigateUri="https://zh.minecraft.wiki/">
-                                        <TextBlock Text="GitHub"/>
+                                        <TextBlock Text="{i18n:I18nBinding Key=Pages.CopyrightPage.Items.MinecraftWiki.LinkLabel}"/>
                                     </HyperlinkButton>
                                 </StackPanel>
                             </ui:FASettingsExpanderItem.Footer>
@@ -302,42 +347,6 @@
                                 <StackPanel Orientation="Horizontal" Spacing="3">
                                     <HyperlinkButton NavigateUri="https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/">
                                         <TextBlock Text="GitHub"/>
-                                    </HyperlinkButton>
-                                </StackPanel>
-                            </ui:FASettingsExpanderItem.Footer>
-                        </ui:FASettingsExpanderItem>
-                        <ui:FASettingsExpanderItem IsClickEnabled="False">
-                            <ui:FASettingsExpanderItem.Content>
-                                <TextBlock Text="Links"/>
-                            </ui:FASettingsExpanderItem.Content>
-                            <ui:FASettingsExpanderItem.Footer>
-                                <StackPanel Orientation="Horizontal" Spacing="3">
-                                    <HyperlinkButton NavigateUri="https://github.com/Hex-Dragon/PCL2">
-                                        <TextBlock Text="PCL2"/>
-                                    </HyperlinkButton>
-                                    <HyperlinkButton NavigateUri="https://github.com/HMCL-dev/HMCL/tree/main/HMCL">
-                                        <TextBlock Text="HMCL"/>
-                                    </HyperlinkButton>
-                                    <HyperlinkButton NavigateUri="https://github.com/MultiMC/Launcher">
-                                        <TextBlock Text="MultiMC"/>
-                                    </HyperlinkButton>
-                                    <HyperlinkButton NavigateUri="https://github.com/PrismLauncher/PrismLauncher">
-                                        <TextBlock Text="Prism Launcher"/>
-                                    </HyperlinkButton>
-                                    <HyperlinkButton NavigateUri="https://github.com/TT702/Forge-InstallProcessor.NET">
-                                        <TextBlock Text="Forge"/>
-                                    </HyperlinkButton>
-                                    <HyperlinkButton NavigateUri="https://bmclapi2.bangbang93.com/">
-                                        <TextBlock Text="BMCLAPI"/>
-                                    </HyperlinkButton>
-                                    <HyperlinkButton NavigateUri="https://zh.minecraft.wiki/">
-                                        <TextBlock Text="Wiki"/>
-                                    </HyperlinkButton>
-                                    <HyperlinkButton NavigateUri="https://wiki.vg/">
-                                        <TextBlock Text="wiki.vg"/>
-                                    </HyperlinkButton>
-                                    <HyperlinkButton NavigateUri="https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/">
-                                        <TextBlock Text="Fluent Launcher"/>
                                     </HyperlinkButton>
                                 </StackPanel>
                             </ui:FASettingsExpanderItem.Footer>
